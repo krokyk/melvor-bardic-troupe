@@ -37,8 +37,9 @@ Socket and Utility buttons show the equipped item's icon when filled, with its n
 The shortcuts open Music's matching upgrade confirmation or item-selection menu, where normal material requirements still apply.
 
 Each purchasable mastery bonus has a **Mastery 40**, **Mastery 75**, or **Mastery 99** button beside its description.
-The button is grey and disabled before its mastery requirement is met, outlined green when available to unlock, and solid green after the bonus is purchased.
-An available button opens Music's unlock confirmation for that tier; a purchased button opens Music's mastery overview.
+The button is grey and disabled before its mastery requirement is met, outlined green when available to unlock, and solid green and disabled after the bonus is purchased.
+An available button opens only Music's unlock confirmation for that tier; confirming purchases the bonus and closes the popup.
+Back cancels and closes the popup without spending resources.
 Normal GP and Essence of Music costs still apply, even if an available button is green.
 Music's instrument-card buttons retain their existing behavior, including the gold **♫** on **Mastery** while an eligible bonus remains unpurchased.
 This cue also works for unhired instruments, and all roster states and cues update after mastery changes, purchases, and save restoration.

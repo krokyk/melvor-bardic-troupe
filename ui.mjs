@@ -10,7 +10,7 @@ function canUnlockMastery(music, instrument, modifier) {
     music.getMasteryLevel(instrument) >= modifier.level;
 }
 
-function openMusicMenu(open, selector) {
+function openMusicMenu(open, selector, onMenuClick) {
   // Music keeps submenu state private, so enter it through the native modal's own button.
   const fire = SwalLocale.fire;
   SwalLocale.fire = function (options) {
@@ -18,6 +18,7 @@ function openMusicMenu(open, selector) {
       ...options,
       didOpen(popup) {
         options.didOpen?.call(this, popup);
+        if (onMenuClick) popup.addEventListener("click", onMenuClick);
         const button = popup.querySelector(selector);
         if (button && !button.disabled) button.click();
       },
@@ -46,7 +47,7 @@ function appendModifiers(container, music, instrument, onMastery) {
       const style = modifier.isActive ? "btn-success" : available ? "btn-outline-success" : "btn-outline-secondary";
       const button = element("button", `btn btn-sm ${style}`, `Mastery ${modifier.level}`);
       button.type = "button";
-      button.disabled = !modifier.isActive && !available;
+      button.disabled = !available;
       button.title = modifier.isActive ? "Mastery bonus unlocked." : available ? "Mastery bonus available to unlock (costs still apply)." : `Requires instrument mastery level ${modifier.level}.`;
       button.setAttribute("aria-label", `${instrument.name}: Mastery ${modifier.level}. ${button.title}`);
       button.onclick = () => onMastery(modifier.level);
@@ -89,9 +90,18 @@ export function installControls(ctx, music, troupe) {
     const index = modifiers.findIndex(modifier => modifier.level === level);
     const modifier = modifiers[index];
     if (!modifier) return;
-    if (modifier.isActive) return music.unlockMastery(bard.instrument);
     if (!canUnlockMastery(music, bard.instrument, modifier)) return;
-    return openMusicMenu(() => music.unlockMastery(bard.instrument), `.myth-music-mastery .manage > .manage-section:nth-child(${index + 1}) > button`);
+    return openMusicMenu(() => music.unlockMastery(bard.instrument), `.myth-music-mastery .manage > .manage-section:nth-child(${index + 1}) > button`, event => {
+      if (event.currentTarget !== SwalLocale.getPopup()) return;
+      // Music detaches confirmation controls before this bubbling listener runs.
+      const path = event.composedPath();
+      const button = path.find(node => node.tagName === "BUTTON");
+      if (!button || !path.some(node => node.matches?.(".unlock .myth-footer-buttons"))) return;
+      if (button.classList.contains("btn-danger") ||
+          music.manager.getModifiers(bard.instrument).some(current => current.level === level && current.isActive)) {
+        SwalLocale.close();
+      }
+    });
   }
 
   function render() {

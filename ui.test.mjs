@@ -61,6 +61,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
     calls: [],
     result: Symbol("native modal result"),
     fire(options) { this.options = options; this.calls.push({ receiver: this, options }); return this.result; },
+    getPopup() { return this.popup; },
     close() { this.closed = true; }
   };
   const instrument = { name: "<img onerror=alert(1)>", media: "instrument.svg", id: "music:lute" };
@@ -137,6 +138,8 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
     let clicks = 0;
     const receiver = {};
     const popup = {
+      listeners: new Map(),
+      addEventListener(name, callback) { this.listeners.set(name, callback); },
       querySelector(selector) {
         assert.equal(nativeOpens.length, priorOpens + 1, "mount the native component before querying its submenu");
         queries.push(selector);
@@ -144,6 +147,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
         return missingButton ? null : { click() { clicks++; } };
       }
     };
+    swal.popup = popup;
     swal.options.didOpen.call(receiver, popup);
     assert.equal(nativeOpens.at(-1).receiver, receiver, "preserve the native didOpen receiver");
     assert.equal(nativeOpens.at(-1).popup, popup);
@@ -312,11 +316,11 @@ test("roster Mastery shortcuts respect exact tier thresholds and open the matchi
     f.refresh();
     const purchased = rosterButton(f, label);
     assert(purchased.className.includes("btn-success"));
-    assert.equal(purchased.disabled, false);
+    assert.equal(purchased.disabled, true);
     assert.equal(purchased.title, "Mastery bonus unlocked.");
+    const callsBeforePurchaseClick = f.nativeModalCalls.length;
     purchased.onclick();
-    assert.equal(f.nativeModalCalls.at(-1).fire, fire, "an unlocked tier opens the unmodified native overview");
-    assert.deepEqual(f.didOpen(), { queries: [], clicks: 0 });
+    assert.equal(f.nativeModalCalls.length, callsBeforePurchaseClick, "an unlocked tier must not open another menu");
   }
   assert.equal(rosterIndicators(f).length, 0, "roster buttons replace the old row notes");
   assert.equal(f.troupe.request, undefined, "rendering does not hire or purchase anything");
@@ -448,10 +452,48 @@ test("stale roster handlers recheck bard presence, mastery level and a raced pur
   f.modifiers.set(f.existing.instrument, [bonus]);
   bonus.isActive = true;
   mastery.onclick();
-  assert.equal(f.nativeModalCalls.length, 1);
-  assert.equal(f.nativeModalCalls[0].fire, fire, "a tier purchased since rendering opens only the overview");
-  assert.deepEqual(f.didOpen(), { queries: [], clicks: 0 });
+  assert.equal(f.nativeModalCalls.length, 0, "a tier purchased since rendering cannot open a menu or spend again");
   assert.equal(f.swal.fire, fire);
+});
+
+test("roster mastery confirmation closes only after a native purchase or cancellation", t => {
+  const f = fixture(t);
+  const bonus = { level: 40, isActive: false, isUpgrade: false, description: "Tier 40" };
+  f.modifiers.set(f.existing.instrument, [bonus]);
+  f.masteryLevels.set(f.existing.instrument, 40);
+  f.ctx.ready();
+  const open = () => {
+    f.swal.closed = false;
+    rosterButton(f, "Mastery 40").onclick();
+    f.didOpen(".myth-music-mastery .manage > .manage-section:nth-child(1) > button");
+    const popup = f.swal.popup;
+    return (button, currentTarget = popup) => popup.listeners.get("click")({
+      currentTarget,
+      composedPath() {
+        return button ? [button, {
+          matches(selector) { assert.equal(selector, ".unlock .myth-footer-buttons"); return true; },
+        }, popup] : [popup];
+      },
+    });
+  };
+  const confirm = { tagName: "BUTTON", classList: { contains: () => false } };
+  const cancel = { tagName: "BUTTON", classList: { contains: name => name === "btn-danger" } };
+  let click = open();
+  click(null);
+  assert.equal(f.swal.closed, false, "ordinary popup clicks leave the confirmation open");
+  click(confirm);
+  assert.equal(f.swal.closed, false, "a failed or pending purchase must not dismiss the confirmation");
+  bonus.isActive = true;
+  click(confirm, {});
+  assert.equal(f.swal.closed, false, "an old popup must not close a different current modal");
+  click(confirm);
+  assert.equal(f.swal.closed, true, "successful native unlocking closes instead of displaying the overview");
+  bonus.isActive = false;
+  f.refresh();
+  click = open();
+  click(cancel);
+  assert.equal(f.swal.closed, true, "Back closes instead of displaying the overview");
+  assert.equal(bonus.isActive, false, "cancellation must not apply the bonus");
 });
 
 test("the temporary native modal wrapper restores fire when opening or fire itself throws", t => {

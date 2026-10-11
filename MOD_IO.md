@@ -43,8 +43,8 @@ The completed **Upgraded** button is disabled, while **Socket** and **Utility** 
 Each shortcut opens the matching Music menu and retains normal material requirements.
 
 Mastery bonuses have **Mastery 40**, **Mastery 75**, and **Mastery 99** shortcut buttons beside their descriptions.
-They are grey and disabled before the required mastery level, outlined green when available to unlock, and solid green once purchased.
-Available buttons open Music's unlock confirmation for the selected tier; purchased buttons open its mastery overview.
+They are grey and disabled before the required mastery level, outlined green when available to unlock, and solid green and disabled once purchased.
+Available buttons open only Music's unlock confirmation for the selected tier, then close the popup after purchase or cancellation.
 Normal GP and Essence of Music costs still apply.
 Music's instrument-card buttons retain their existing behavior and the gold **♫** cue on **Mastery** while an eligible bonus remains unpurchased, including on unhired instruments.
 Roster states and cues update as mastery levels, purchased bonuses, enhancements, or loaded saves change.
@@ -88,7 +88,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 - Replace the roster's Instrument button and status badges with direct Upgrade, Socket, and Utility menu shortcuts, using outlines for missing enhancements and solid green for applied ones.
 - Show equipped gem and utility icons, keep their selection menus available, and disable the completed Upgraded button.
 - Add Mastery 40, 75, and 99 shortcuts with grey, green outlined, and solid green states for locked, available, and purchased bonuses.
-- Open Music's native confirmation for an available mastery tier and its overview for a purchased bonus, retaining normal costs and skill-card controls.
+- Open only Music's native confirmation for an available mastery tier, close it after purchase or cancellation, and disable purchased mastery buttons while retaining normal costs and skill-card controls.
 - Keep the gold music-note cue on native instrument Mastery buttons while eligible bonuses remain unpurchased.
 - Show the same cue on the troupe bar, including while collapsed, when any hired bard has an available mastery bonus or a missing enhancement.
 - Refresh cues after mastery level changes, bonus purchases, and save restoration while retaining Music's normal costs and controls.
