@@ -65,7 +65,7 @@ Saving without it can discard purchased troupe slots, additional bards, and thei
 
 ## Homepage
 
-Leave blank until this mod has a published homepage or source repository.
+https://github.com/krokyk/melvor-bardic-troupe
 
 ## Community options
 
