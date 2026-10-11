@@ -1,0 +1,43 @@
+#bardic-troupe-roster {
+  display: block;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+#bardic-troupe-roster .block-header {
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+#bardic-troupe-roster .bardic-troupe-toggle {
+  border: 0;
+  color: inherit;
+}
+
+#bardic-troupe-roster .block-title {
+  overflow-wrap: anywhere;
+}
+
+#bardic-troupe-slots {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+#bardic-troupe-slots > .block {
+  min-width: 0;
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+}
+
+#bardic-troupe-slots .badge {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}
+
+@container (min-width: 46rem) {
+  #bardic-troupe-slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

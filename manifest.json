@@ -1,0 +1,6 @@
+{
+  "namespace": "KrokyBardicTroupe",
+  "setup": "setup.mjs",
+  "load": ["ui.css"],
+  "icon": "icon.svg"
+}

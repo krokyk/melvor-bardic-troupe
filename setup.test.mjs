@@ -1,0 +1,295 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { setup } from "./setup.mjs";
+import * as core from "./troupe.mjs";
+import * as config from "./config.mjs";
+
+async function fixture(t, { instrumentCount = 4, missingMusic = false } = {}) {
+  const globals = ["game", "Shop", "ShopTabMenu", "ShopCostsAndUnlock", "shopMenu"];
+  const previous = new Map(globals.map(key => [key, globalThis[key]]));
+  t.after(() => {
+    for (const [key, value] of previous) {
+      if (value === undefined) delete globalThis[key];
+      else globalThis[key] = value;
+    }
+  });
+  const storage = new Map();
+  const hooks = {};
+  const sections = new Map();
+  let unlocked = false;
+  let troupe;
+  const instruments = Array.from({ length: instrumentCount }, (_, index) => ({ id: `mythMusic:Instrument_${index}`, level: 1 }));
+  const counts = new Map();
+  const band = { id: "mythMusic:Band_Practice" };
+  const unrelated = { id: "melvorD:Other" };
+  const registry = new Map([[band.id, band], [unrelated.id, unrelated]]);
+  class Shop {
+    constructor() {
+      this.purchases = { getObjectByID: id => registry.get(id) };
+      this.purchaseDisplayOrder = [unrelated, band];
+      this.renderQueue = {};
+      this.events = new Map();
+      this.nativeBuys = 0;
+    }
+    getPurchaseCount(purchase) { return counts.get(purchase) ?? 0; }
+    on(name, handler) { this.events.set(name, handler); }
+    buyItemOnClick(purchase) {
+      this.nativeBuys++;
+      if (this.getPurchaseCount(purchase) >= (purchase.defaultBuyLimit ?? 1)) return;
+      if (!purchase.purchaseRequirements?.every(req => req.type === "SkillLevel" ? req.skill.isUnlocked && req.skill.level >= req.level :
+        req.type !== "ShopPurchase" || this.getPurchaseCount(registry.get(req.purchaseID)) >= req.count)) return;
+      const price = purchase.costs?.currencies[0].cost ?? 0;
+      if (!game.gp.canAfford(price)) return;
+      game.gp.remove(price);
+      if (purchase.contains?.modifiers !== undefined) counts.set(purchase, this.getPurchaseCount(purchase) + 1);
+      this.events.get("purchaseMade")?.({ purchase, quantity: 1 });
+    }
+  }
+  class ShopTabMenu { shouldShowItem() { return 1; } }
+  class ShopCostsAndUnlock { updatePurchaseRequirements() {} }
+  class Music {
+    encode(writer) { writer.bards = this.bards.all().map(bard => ({ ...bard })); return writer; }
+    decode(writer) {
+      this.bards.clear();
+      for (const bard of writer.bards ?? []) this.bards.set(bard.instrument, { ...bard });
+    }
+  }
+  const bards = {
+    bards: new Map(),
+    all() { return [...this.bards.values()]; },
+    get(key) { return typeof key === "number" ? this.all().find(bard => bard.slot === key) : this.bards.get(key); },
+    set(key, value) { this.bards.set(key, value); },
+    remove(key) { this.bards.delete(key); },
+    isHired(key) { return this.bards.has(key); },
+    clear() { this.bards.clear(); },
+  };
+  class Game {
+    encode(writer = {}) {
+      this.music.encode(writer);
+      writer.counts = [...counts];
+      writer.troupe = structuredClone(storage.get("troupe"));
+      writer.settings = Object.fromEntries([...sections.values()].flatMap(section => [...section.fields].map(([name, field]) => [name, field.value])));
+      return writer;
+    }
+    decode(writer) {
+      counts.clear();
+      for (const [purchase, count] of writer.counts ?? []) counts.set(purchase, count);
+      this.music.decode(writer);
+      // Melvor leaves missing mod storage untouched instead of clearing it.
+      if (writer.troupe !== undefined) storage.set("troupe", structuredClone(writer.troupe));
+      for (const section of sections.values()) {
+        for (const [name, field] of section.fields) {
+          if (Object.hasOwn(writer.settings ?? {}, name)) field.value = writer.settings[name];
+        }
+      }
+    }
+  }
+  globalThis.Shop = Shop;
+  globalThis.ShopTabMenu = ShopTabMenu;
+  globalThis.ShopCostsAndUnlock = ShopCostsAndUnlock;
+  globalThis.game = Object.assign(new Game(), {
+    shop: new Shop(),
+    gp: { amount: 10_000_000_000, canAfford(cost) { return this.amount >= cost; }, remove(cost) { this.amount -= cost; } },
+    items: { getObjectByID: () => undefined },
+  });
+  const music = Object.assign(new Music(), {
+    id: "mythMusic:Music", version: 4, level: 120, isUnlocked: true, game,
+    actions: { allObjects: instruments, getObjectByID: id => instruments.find(instrument => instrument.id === id) },
+    manager: {
+      get isBandPracticeUnlocked() { return game.shop.getPurchaseCount(band) > 0; },
+      isMasterAncientRelicUnlocked: false,
+      calculateHireCost: () => ({ costs: [10_000], unlocked: 1 }),
+      getHireCostModifier: () => 0,
+    },
+    bards, userInterface: { instruments: new Map() }, renderQueue: {},
+    computeProvidedStats() { this.computations = (this.computations ?? 0) + 1; },
+    isMasteryActionUnlocked: () => true,
+  });
+  if (!missingMusic) game.music = music;
+  const ctx = {
+    async loadModule(path) {
+      if (path === "troupe.mjs") return core;
+      if (path === "config.mjs") return config;
+      assert.equal(path, "ui.mjs");
+      return { installControls(_ctx, _music, controller) { troupe = controller; } };
+    },
+    onModsLoaded(fn) { hooks.mods = fn; },
+    onCharacterLoaded(fn) { hooks.character = () => { unlocked = true; fn(); }; },
+    gameData: { async addPackage(data) {
+      for (const purchase of data.data.shopPurchases) registry.set(`${core.namespace}:${purchase.id}`, {
+        ...purchase, id: `${core.namespace}:${purchase.id}`,
+        costs: { currencies: purchase.cost.currencies.map(cost => ({ ...cost, currency: game.gp })) },
+        purchaseRequirements: purchase.purchaseRequirements.map(requirement => ({ ...requirement, skill: music })),
+      });
+    } },
+    settings: { section(name) {
+      if (sections.has(name)) return sections.get(name);
+      const section = {
+        fields: new Map(),
+        add(field) { this.fields.set(field.name, { config: field, value: field.default }); },
+        get(name) { return this.fields.get(name).value; },
+        set(name, value) {
+          const field = this.fields.get(name);
+          const error = field.config.onChange(value, field.value);
+          if (typeof error === "string") return error;
+          field.value = value;
+        },
+      };
+      sections.set(name, section);
+      return section;
+    } },
+    characterStorage: {
+      getItem(key) { assert(unlocked); return structuredClone(storage.get(key)); },
+      setItem(key, value) { assert(unlocked); storage.set(key, structuredClone(value)); },
+      removeItem(key) { assert(unlocked); storage.delete(key); },
+    },
+    patch(Class, name) {
+      const original = Class.prototype[name];
+      return {
+        before(fn) { Class.prototype[name] = function (...args) { fn.call(this, ...args); return original.apply(this, args); }; },
+        after(fn) { Class.prototype[name] = function (...args) { const result = original.apply(this, args); return fn.call(this, result, ...args) ?? result; }; },
+        replace(fn) { Class.prototype[name] = function (...args) { return fn.call(this, original.bind(this), ...args); }; },
+      };
+    },
+  };
+  await setup(ctx);
+  return { hooks, storage, sections, counts, instruments, band, unrelated, registry, music, troupe: () => troupe };
+}
+
+test("dependency is checked after all mods load, before touching shop data", async t => {
+  const f = await fixture(t, { missingMusic: true });
+  await assert.rejects(f.hooks.mods(), /requires \[Myth\] Music/);
+  assert.equal(f.registry.size, 2);
+  game.music = f.music;
+  await f.hooks.mods();
+  assert.ok(f.troupe());
+});
+
+test("Band Practice disappears from display and buying while existing ownership remains", async t => {
+  const f = await fixture(t);
+  f.counts.set(f.band, 1);
+  await f.hooks.mods();
+  assert.deepEqual(game.shop.purchaseDisplayOrder, [f.unrelated]);
+  assert.equal(new ShopTabMenu().shouldShowItem(f.band), 0);
+  assert.equal(new ShopTabMenu().shouldShowItem(f.unrelated), 1);
+  game.shop.buyItemOnClick(f.band);
+  assert.equal(game.shop.nativeBuys, 0);
+  assert.equal(game.shop.getPurchaseCount(f.band), 1);
+  assert.deepEqual(f.troupe().slots(), [1, 2]);
+});
+
+test("native purchases enforce the chain, charge 500M, and stop before redundant slots", async t => {
+  const f = await fixture(t, { instrumentCount: 3 });
+  await f.hooks.mods();
+  const [first, second] = f.troupe().purchases;
+  const initial = game.gp.amount;
+  game.shop.buyItemOnClick(second);
+  assert.equal(game.shop.getPurchaseCount(second), 0);
+  game.shop.buyItemOnClick(first);
+  assert.equal(game.gp.amount, initial - 500_000_000);
+  assert.deepEqual(f.troupe().slots(), [1, 4]);
+  f.music.manager.isMasterAncientRelicUnlocked = true;
+  game.shop.buyItemOnClick(second);
+  assert.equal(game.shop.getPurchaseCount(second), 0);
+  assert.equal(new ShopTabMenu().shouldShowItem(second), 0);
+  assert.deepEqual(f.troupe().slots(), [1, 3, 4]);
+});
+
+test("latest extra hires and upgrades save before native encoding without leaking into Music", async t => {
+  const f = await fixture(t);
+  await f.hooks.mods();
+  assert.doesNotThrow(() => game.encode(), "storage is unavailable before character load");
+  f.hooks.character();
+  game.shop.buyItemOnClick(f.troupe().purchases[0]);
+  assert(f.troupe().hire(f.instruments[0], 1));
+  assert(f.troupe().hire(f.instruments[1], 4));
+  f.music.bards.get(4).isUpgraded = true;
+  const originalMap = f.music.bards.bards;
+  const saved = game.encode();
+  assert.deepEqual(saved.bards.map(bard => bard.slot), [1]);
+  assert.deepEqual(saved.troupe.bards.map(bard => [bard.slot, bard.isUpgraded]), [[4, true]]);
+  assert.equal(f.music.bards.bards, originalMap);
+  assert.equal(f.music.bards.all().length, 2);
+});
+
+test("initial restoration waits for storage and restores before offline processing", async t => {
+  const f = await fixture(t);
+  await f.hooks.mods();
+  const purchase = f.troupe().purchases[0];
+  const troupe = { version: 1, bards: [{ instrument: f.instruments[1].id, slot: 4, isUpgraded: true }] };
+  game.decode({ counts: [[purchase, 1]], bards: [], troupe });
+  assert.equal(f.music.bards.all().length, 0);
+  f.hooks.character();
+  assert.equal(f.music.bards.get(4).instrument, f.instruments[1]);
+  assert.equal(f.music.bards.get(4).isUpgraded, true);
+  assert.equal(f.music.computations, 1);
+});
+
+test("QuickLoad replaces addon state and an older save with no addon data cannot resurrect it", async t => {
+  const f = await fixture(t);
+  await f.hooks.mods();
+  f.hooks.character();
+  const purchase = f.troupe().purchases[0];
+  const first = { version: 1, bards: [{ instrument: f.instruments[1].id, slot: 4 }] };
+  const second = { version: 1, bards: [{ instrument: f.instruments[2].id, slot: 4 }] };
+  game.decode({ counts: [[purchase, 1]], troupe: first });
+  assert.equal(f.music.bards.get(4).instrument, f.instruments[1]);
+  game.decode({ counts: [[purchase, 1]], troupe: second });
+  assert.equal(f.music.bards.get(4).instrument, f.instruments[2]);
+  game.decode({ counts: [[purchase, 1]] });
+  assert.equal(f.music.bards.get(4), undefined);
+  assert.equal(f.storage.has("troupe"), false);
+});
+
+test("configured price and actual Music level apply to all new purchases without bypassing the slot chain", async t => {
+  const f = await fixture(t);
+  await f.hooks.mods();
+  f.hooks.character();
+  const settings = f.sections.get("Bardic Troupe");
+  const [first, second] = f.troupe().purchases;
+  f.music.level = 99;
+  f.music.virtualLevel = 120;
+  game.shop.buyItemOnClick(first);
+  assert.equal(game.shop.getPurchaseCount(first), 0);
+  settings.set("troupe-slot-price", 1234);
+  settings.set("troupe-slot-level", 99);
+  const gp = game.gp.amount;
+  game.shop.buyItemOnClick(second);
+  assert.equal(game.shop.getPurchaseCount(second), 0, "previous slot still required");
+  game.shop.buyItemOnClick(first);
+  game.shop.buyItemOnClick(second);
+  assert.equal(game.gp.amount, gp - 2468);
+  assert.deepEqual(f.troupe().slots(), [1, 4, 5]);
+  assert(f.troupe().hire(f.instruments[0], 4));
+  const bard = f.music.bards.get(4);
+  const afterHire = game.gp.amount;
+  settings.set("troupe-slot-price", 5678);
+  settings.set("troupe-slot-level", 120);
+  assert.deepEqual(f.troupe().slots(), [1, 4, 5]);
+  assert.equal(f.music.bards.get(4), bard);
+  assert.equal(game.gp.amount, afterHire, "changing prices does not charge or refund purchased slots");
+});
+
+test("saved slot settings apply on character load and QuickLoad before subsequent shop purchases", async t => {
+  const f = await fixture(t);
+  await f.hooks.mods();
+  const [first, second] = f.troupe().purchases;
+  game.decode({ settings: { "troupe-slot-price": 4321, "troupe-slot-level": 99 } });
+  assert.equal(first.costs.currencies[0].cost, 500_000_000);
+  f.hooks.character();
+  assert.equal(first.costs.currencies[0].cost, 4321);
+  assert.equal(first.purchaseRequirements[0].level, 99);
+  const saved = game.encode();
+  assert.deepEqual(saved.settings, { "troupe-slot-price": 4321, "troupe-slot-level": 99 });
+  const settings = f.sections.get("Bardic Troupe");
+  settings.set("troupe-slot-price", 0);
+  settings.set("troupe-slot-level", 120);
+  game.decode(saved);
+  f.music.level = 99;
+  assert.equal(second.costs.currencies[0].cost, 4321);
+  assert.equal(second.purchaseRequirements[0].level, 99);
+  const gp = game.gp.amount;
+  game.shop.buyItemOnClick(first);
+  assert.equal(game.shop.getPurchaseCount(first), 1);
+  assert.equal(game.gp.amount, gp - 4321);
+});

@@ -1,0 +1,15 @@
+Created with the built-in imagegen tool using the existing Workforce and Mapmaking covers as style references.
+Upload file: listing-image.png.
+Reference 1: D:/dev/projects/melvor-workforce/assets/krokys-workforce-cover.png
+Reference 2: D:/dev/projects/melvor-mapmaking/assets/krokys-mapmaking-cover.png
+The generated original is retained in Codex generated_images.
+
+Use case: ads-marketing
+Asset type: Melvor Idle mod.io listing cover, the third cover in the existing Kroky's mod family.
+Input images: Image 1 is Kroky's Workforce, the primary template for the layout, navy background, gold border, title typography and icon rendering. Image 2 is Kroky's Mapmaking, a second reference confirming exactly the same shared visual style. These reference projects must remain unmodified; create a new Bardic Troupe cover.
+Primary request: make "Kroky's Bardic Troupe" look like a direct sibling of these two covers, using precisely their smooth illustrated game-item icon style and shared cover template.
+Keep the same dark navy subtle textured background, the same thin gold frame with inward curved corner notches, the same decorative horizontal gold rules and diamonds, and the same polished gold serif lettering with restrained bevel and shadow.
+Text (verbatim): first centered line "Kroky's"; second centered line "Bardic Troupe". Keep exactly this sentence case. Match the two references' large two-line centered title placement in the upper third, adapting the second line's font size only as necessary to fit comfortably inside the frame. No other lettering.
+Replace the references' tree/fish/tools or map/compass with a balanced, large overlapping cluster of musical instrument icons in the lower two thirds: a warm wooden lute, an ornate gold lyre, a silver flute and a wooden hand drum. Each icon should have simple recognizable shapes, rounded clean silhouettes, soft dimensional shading and crisp smooth anti-aliased edges, rendered like the supplied references' fish, tree, map and compass. The instruments should fill the same visual area as the references' icons with comparable detail and bright colors.
+Constraints: exact same visual family as both attached reference covers; preserve the common framing, background and lettering treatment closely. Use instrument objects only, no people or scenery. No pixel art, blocky pixel edges, tavern scene, painterly fantasy characters, additional text, watermark or logos.
+Canvas: opaque 16:9 wide listing image, matching the supplied cover proportions.
