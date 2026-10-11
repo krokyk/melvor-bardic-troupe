@@ -286,3 +286,46 @@ test("unhired instruments retain a localized native Mastery button and one cache
   f.refresh();
   assert.equal(marker.hidden, true, "cached marker updates even though its injection changed the matching text");
 });
+
+test("Instrument markers reflect each missing enhancement independently of mastery bonuses and retain native management", t => {
+  const f = fixture(t);
+  const bard = f.existing;
+  const complete = { isUpgraded: true, socket: bard.socket, utility: bard.utility };
+  const manage = () => descendants(f.native.sibling).find(node => node.tag === "button" && node.attributes["aria-label"]?.startsWith("Manage Harp bard in slot 2"));
+  f.modifiers.set(bard.instrument, []);
+  bard.isUpgraded = false;
+  f.ctx.ready();
+  assert.equal(indicators(manage()).length, 1, "a missing enhancement is indicated on the first render");
+  for (const missing of [
+    { isUpgraded: false },
+    { socket: undefined },
+    { utility: null },
+    { isUpgraded: false, socket: undefined, utility: undefined },
+  ]) {
+    Object.assign(bard, complete, missing);
+    f.refresh();
+    const button = manage();
+    const markers = indicators(button);
+    assert.equal(markers.length, 1, "one marker covers any combination of missing enhancements");
+    const marker = markers[0];
+    assert.equal(button.children[0], marker, "place the indicator at the beginning of the Instrument button");
+    assert.equal(marker.textContent, "♫");
+    assert.equal(marker.attributes.role, "img");
+    assert.equal(marker.attributes["aria-label"], "Instrument enhancements available (upgrade, gem socket, or utility missing; costs still apply).");
+    assert.equal(marker.title, marker.attributes["aria-label"]);
+    assert.equal(button.attributes["aria-label"], `Manage Harp bard in slot 2. ${marker.attributes["aria-label"]}`);
+    marker.click();
+    f.bridge.didOpen();
+    assert.equal(f.modalBard(), bard, "the marker still opens Music's management modal for this bard");
+    assert.equal(indicators(f.native.sibling).length, 1, "no mastery bonus is needed for the equipment marker");
+    Object.assign(bard, complete);
+    f.refresh();
+    assert.equal(indicators(manage()).length, 0, "completing every enhancement clears the marker after refresh");
+    assert.equal(manage().attributes["aria-label"], "Manage Harp bard in slot 2");
+  }
+  f.modifiers.set(bard.instrument, [{ level: 40, isActive: false, isUpgrade: false, description: "Mastery tier" }]);
+  f.masteryLevels.set(bard.instrument, 40);
+  f.refresh();
+  assert.equal(indicators(f.native.sibling).length, 1, "an eligible mastery tier retains its own row marker");
+  assert.equal(indicators(manage()).length, 0, "mastery eligibility does not mark a fully enhanced Instrument button");
+});

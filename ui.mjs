@@ -10,9 +10,8 @@ function canUnlockMastery(music, instrument, modifier) {
     music.getMasteryLevel(instrument) >= modifier.level;
 }
 
-function upgradeIndicator() {
+function upgradeIndicator(description = "Mastery bonus available to unlock (costs still apply).") {
   const indicator = element("span", "bardic-troupe-upgrade-indicator text-warning mr-1", "♫");
-  const description = "Mastery bonus available to unlock (costs still apply).";
   indicator.setAttribute("role", "img");
   indicator.setAttribute("aria-label", description);
   indicator.title = description;
@@ -60,7 +59,13 @@ export function installControls(ctx, music, troupe) {
         heading.append(image, element("span", "font-size-lg mr-2", `${bard.instrument.name} Bard`));
         const manage = element("button", "btn btn-success ml-auto", "Instrument");
         manage.type = "button";
-        manage.setAttribute("aria-label", `Manage ${bard.instrument.name} bard in slot ${number}`);
+        const manageLabel = `Manage ${bard.instrument.name} bard in slot ${number}`;
+        manage.setAttribute("aria-label", manageLabel);
+        if (!bard.isUpgraded || !bard.socket || !bard.utility) {
+          const description = "Instrument enhancements available (upgrade, gem socket, or utility missing; costs still apply).";
+          manage.prepend(upgradeIndicator(description));
+          manage.setAttribute("aria-label", `${manageLabel}. ${description}`);
+        }
         manage.onclick = () => {
           const current = music.bards.get(slot);
           if (!current) return;

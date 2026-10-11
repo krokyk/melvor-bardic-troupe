@@ -39,6 +39,8 @@ Hiring and bonus updates keep the roster open or closed as you left it.
 A gold **♫** marks a grey mastery bonus once its instrument mastery requirement is met, and appears on the instrument's **Mastery** button while any eligible bonus remains unpurchased.
 The cue also works for unhired instruments and updates as mastery levels, purchased bonuses, or loaded saves change.
 Normal GP and Essence of Music costs still apply, even when the cue is visible.
+The **Instrument** button also shows a gold **♫** while the bard lacks its instrument upgrade, gem socket, or utility, regardless of whether you have the materials yet.
+The mark clears once all three enhancements are filled.
 
 Settings are saved separately for each character and immediately update the shop's prices, requirements, and labels.
 Previous troupe upgrades are still required in order.
@@ -77,6 +79,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 ### 1.2.0
 
 - Mark eligible unpurchased mastery bonuses with a gold music-note cue in the troupe roster and on native instrument Mastery buttons.
+- Mark Instrument buttons when the bard is missing its upgrade, gem socket, or utility, and clear the cue once all three are filled.
 - Refresh cues after mastery level changes, bonus purchases, and save restoration while retaining Music's normal costs and controls.
 
 ### 1.1.2

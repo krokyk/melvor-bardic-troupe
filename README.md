@@ -29,6 +29,8 @@ The bar also supports Enter and Space when focused.
 Bard cards use two columns when the panel is at least 46rem wide, or 736px at the standard text size, and stack in one column when the panel is narrower.
 Hiring or refreshing bard bonuses keeps the roster in its current open or closed state.
 The **Instrument** buttons continue to open Music's normal enhancement controls.
+They show a gold **♫** while the bard lacks its instrument upgrade, gem socket, or utility, and the mark disappears once all three are filled.
+This cue updates when enhancements change and does not require you to have the materials yet.
 
 A gold **♫** at the start of a grey mastery bonus means the instrument's mastery level meets its requirement and the bonus is ready to unlock.
 The same mark appears on an instrument card's **Mastery** button while any eligible bonus remains unpurchased, including on instruments without a hired bard.
