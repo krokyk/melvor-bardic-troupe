@@ -31,6 +31,8 @@ Choose an empty slot or a bard to replace when hiring, then use **Instrument** t
 Replacing a bard loses its upgrade, socket, and utility, as in Music.
 
 The compact **Toggle Bardic Troupe** bar shows an eye icon and your hired-bard count out of the total slots.
+It also shows a gold **♫**, including while collapsed, if any hired bard has an eligible unpurchased mastery bonus or a missing instrument enhancement.
+Unhired instruments do not affect this bar's cue.
 Click anywhere on the bar to show or hide the roster, just like combat's skill-progress toggle.
 The roster starts collapsed whenever the interface loads, and the bar also supports Enter and Space when focused.
 Cards appear in two columns when there is room and stack in one column in narrow panels.
@@ -80,6 +82,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 - Mark eligible unpurchased mastery bonuses with a gold music-note cue in the troupe roster and on native instrument Mastery buttons.
 - Mark Instrument buttons when the bard is missing its upgrade, gem socket, or utility, and clear the cue once all three are filled.
+- Show the same cue on the troupe bar, including while collapsed, when any hired bard has an available mastery bonus or a missing enhancement.
 - Refresh cues after mastery level changes, bonus purchases, and save restoration while retaining Music's normal costs and controls.
 
 ### 1.1.2

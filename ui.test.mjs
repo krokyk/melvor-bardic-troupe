@@ -17,6 +17,10 @@ class Node {
     assert.equal(selector, "button");
     return descendants(this).slice(1).filter(node => node.tag === "button");
   }
+  querySelector(selector) {
+    assert.equal(selector, ".bardic-troupe-upgrade-indicator");
+    return indicators(this).find(node => node !== this) ?? null;
+  }
 }
 
 function descendants(node) {
@@ -25,6 +29,10 @@ function descendants(node) {
 
 function indicators(node) {
   return descendants(node).filter(child => child.className?.split(" ").includes("bardic-troupe-upgrade-indicator"));
+}
+
+function rosterIndicators(f) {
+  return indicators(descendants(f.native.sibling).find(node => node.id === "bardic-troupe-slots"));
 }
 
 function fixture(t, { masteryLabel = "Mastery" } = {}) {
@@ -98,7 +106,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
   };
   installControls(ctx, music, troupe);
   const refresh = () => { music.renderQueue.bardModifiers = true; patches.get("renderBardModifiers")(); };
-  return { native, swal, instrument, existing, bridge, music, troupe, patches, ctx, modifiers, masteryLevels, instrumentButtons, nativeMasteryCalls, refresh, modalBard: () => modalBard };
+  return { native, swal, instrument, existing, bards, bridge, music, troupe, patches, ctx, modifiers, masteryLevels, instrumentButtons, nativeMasteryCalls, refresh, modalBard: () => modalBard };
 }
 
 test("roster retains native controls and uses the native equipment modal for extra slots", t => {
@@ -211,10 +219,10 @@ test("mastery indicators start at the exact level and precede only eligible unpu
   f.ctx.ready();
   const buttonMarker = indicators(f.instrumentButtons.get(instrument).mastery)[0];
   assert.equal(buttonMarker.hidden, true);
-  assert.equal(indicators(f.native.sibling).length, 0);
+  assert.equal(rosterIndicators(f).length, 0);
   f.masteryLevels.set(instrument, 40);
   f.refresh();
-  const rowMarkers = indicators(f.native.sibling);
+  const rowMarkers = rosterIndicators(f);
   assert.equal(rowMarkers.length, 1);
   const marker = rowMarkers[0];
   assert.equal(marker.parent.children[0], marker, "put the marker before the mastery-level label");
@@ -238,24 +246,24 @@ test("mastery indicators refresh after bonus purchases and mastery rollback whil
   const button = f.instrumentButtons.get(instrument).mastery;
   const marker = indicators(button)[0];
   assert.equal(marker.hidden, false);
-  assert.equal(indicators(f.native.sibling).length, 2);
+  assert.equal(rosterIndicators(f).length, 2);
   bonuses[0].isActive = true;
   f.refresh();
   assert.equal(marker.hidden, false, "the second eligible tier still needs attention");
-  assert.equal(indicators(f.native.sibling).length, 1);
+  assert.equal(rosterIndicators(f).length, 1);
   bonuses[1].isActive = true;
   f.refresh();
   assert.equal(marker.hidden, true);
-  assert.equal(indicators(f.native.sibling).length, 0);
+  assert.equal(rosterIndicators(f).length, 0);
   bonuses[0].isActive = false;
   f.masteryLevels.set(instrument, 39);
   f.refresh();
   assert.equal(marker.hidden, true);
-  assert.equal(indicators(f.native.sibling).length, 0);
+  assert.equal(rosterIndicators(f).length, 0);
   f.masteryLevels.set(instrument, 40);
   f.refresh();
   assert.equal(marker.hidden, false);
-  assert.equal(indicators(f.native.sibling).length, 1);
+  assert.equal(rosterIndicators(f).length, 1);
   assert.deepEqual(indicators(button), [marker], "refresh the cached native marker without duplicating it");
 });
 
@@ -269,7 +277,7 @@ test("unhired instruments retain a localized native Mastery button and one cache
   const card = document.getElementById(component.localId);
   card.replaceChildren(buttons.hire, buttons.mastery, buttons.train);
   f.ctx.ready();
-  assert.equal(indicators(f.native.sibling).length, 0, "an unhired instrument has no roster row");
+  assert.equal(rosterIndicators(f).length, 0, "an unhired instrument has no roster row");
   const marker = indicators(buttons.mastery)[0];
   assert(marker, "find the translated native label independently of button order");
   assert.equal(marker.hidden, false);
@@ -317,7 +325,7 @@ test("Instrument markers reflect each missing enhancement independently of maste
     marker.click();
     f.bridge.didOpen();
     assert.equal(f.modalBard(), bard, "the marker still opens Music's management modal for this bard");
-    assert.equal(indicators(f.native.sibling).length, 1, "no mastery bonus is needed for the equipment marker");
+    assert.equal(rosterIndicators(f).length, 1, "no mastery bonus is needed for the equipment marker");
     Object.assign(bard, complete);
     f.refresh();
     assert.equal(indicators(manage()).length, 0, "completing every enhancement clears the marker after refresh");
@@ -326,6 +334,97 @@ test("Instrument markers reflect each missing enhancement independently of maste
   f.modifiers.set(bard.instrument, [{ level: 40, isActive: false, isUpgrade: false, description: "Mastery tier" }]);
   f.masteryLevels.set(bard.instrument, 40);
   f.refresh();
-  assert.equal(indicators(f.native.sibling).length, 1, "an eligible mastery tier retains its own row marker");
+  assert.equal(rosterIndicators(f).length, 1, "an eligible mastery tier retains its own row marker");
   assert.equal(indicators(manage()).length, 0, "mastery eligibility does not mark a fully enhanced Instrument button");
+});
+
+test("the persistent header cue follows hired mastery eligibility without resetting the collapsed state", t => {
+  const f = fixture(t);
+  const bonus = { level: 40, isActive: false, isUpgrade: false, description: "Tier 40" };
+  f.modifiers.set(f.existing.instrument, [bonus]);
+  f.masteryLevels.set(f.existing.instrument, 39);
+  f.ctx.ready();
+  const nodes = descendants(f.native.sibling);
+  const toggle = nodes.find(node => node.attributes["aria-controls"] === "bardic-troupe-slots");
+  const body = nodes.find(node => node.className === "block-content block-content-full");
+  const marker = indicators(toggle)[0];
+  assert.equal(marker.id, "bardic-troupe-attention");
+  assert.equal(marker.textContent, "♫");
+  assert.equal(marker.attributes.role, "img");
+  assert.equal(marker.attributes["aria-label"], "A hired bard has a mastery bonus available or a missing instrument enhancement (costs still apply).");
+  assert.equal(marker.title, marker.attributes["aria-label"]);
+  assert.equal(toggle.children[0].children.at(-1), marker, "place the header cue after the hired count");
+  assert.equal(toggle.children[0].children.at(-2).textContent, "1/2 hired");
+  assert.equal(marker.hidden, true);
+  assert.equal(toggle.attributes["aria-describedby"], "");
+  assert.equal(body.hidden, true);
+  f.masteryLevels.set(f.existing.instrument, 40);
+  f.refresh();
+  assert.equal(marker.hidden, false);
+  assert.equal(toggle.attributes["aria-describedby"], marker.id);
+  assert.equal(toggle.attributes["aria-label"], "Show bard slots");
+  assert.equal(body.hidden, true, "the visible cue must not expand the roster");
+  marker.click();
+  assert.equal(body.hidden, false, "clicking the cue bubbles to the header exactly once");
+  assert.equal(toggle.attributes["aria-label"], "Hide bard slots");
+  f.refresh();
+  assert.deepEqual(indicators(toggle), [marker], "keep the header cue mounted across renders");
+  assert.equal(body.hidden, false);
+  bonus.isActive = true;
+  f.refresh();
+  assert.equal(marker.hidden, true, "purchasing the last eligible bonus clears the cue");
+  assert.equal(toggle.attributes["aria-describedby"], "");
+  assert.equal(body.hidden, false);
+  bonus.isActive = false;
+  f.refresh();
+  marker.click();
+  f.refresh();
+  assert.equal(marker.hidden, false);
+  assert.equal(body.hidden, true);
+  assert.equal(toggle.attributes["aria-expanded"], "false");
+  assert.equal(toggle.attributes["aria-label"], "Show bard slots");
+});
+
+test("the header cue covers each missing enhancement on any hired bard", t => {
+  const f = fixture(t);
+  const complete = { isUpgraded: true, socket: f.existing.socket, utility: f.existing.utility };
+  const firstBard = { instrument: f.instrument, slot: 1, ...complete };
+  f.bards.set(1, firstBard);
+  f.ctx.ready();
+  const toggle = descendants(f.native.sibling).find(node => node.attributes["aria-controls"] === "bardic-troupe-slots");
+  const marker = indicators(toggle)[0];
+  assert.equal(marker.hidden, true);
+  for (const missing of [{ isUpgraded: false }, { socket: undefined }, { utility: null }]) {
+    Object.assign(f.existing, complete, missing);
+    f.refresh();
+    assert.equal(marker.hidden, false, "a later hired bard needs attention even when the first is complete");
+    Object.assign(f.existing, complete);
+    f.refresh();
+    assert.equal(marker.hidden, true);
+  }
+  firstBard.isUpgraded = false;
+  f.refresh();
+  assert.equal(marker.hidden, false, "attention also includes the first hired bard");
+  firstBard.isUpgraded = true;
+  f.refresh();
+  assert.equal(marker.hidden, true);
+});
+
+test("unhired eligibility and an empty roster do not trigger the hired-bard header cue", t => {
+  const f = fixture(t);
+  f.modifiers.set(f.instrument, [{ level: 40, isActive: false, isUpgrade: false, description: "Unhired tier" }]);
+  f.masteryLevels.set(f.instrument, 40);
+  f.ctx.ready();
+  const toggle = descendants(f.native.sibling).find(node => node.attributes["aria-controls"] === "bardic-troupe-slots");
+  const marker = indicators(toggle)[0];
+  assert.equal(indicators(f.instrumentButtons.get(f.instrument).mastery)[0].hidden, false);
+  assert.equal(marker.hidden, true, "native Mastery notifications for unhired instruments are separate");
+  f.existing.isUpgraded = false;
+  f.refresh();
+  assert.equal(marker.hidden, false);
+  f.bards.clear();
+  f.refresh();
+  assert.equal(marker.hidden, true, "the former bard's incomplete equipment must not count after removal");
+  assert.equal(toggle.attributes["aria-describedby"], "");
+  assert.equal(toggle.children[0].children.at(-2).textContent, "0/2 hired");
 });

@@ -36,6 +36,8 @@ function appendModifiers(container, music, instrument) {
 
 export function installControls(ctx, music, troupe) {
   let roster;
+  let toggle;
+  let rosterIndicator;
   let slotGrid;
   let slotCount;
   const masteryIndicators = new Map();
@@ -88,6 +90,8 @@ export function installControls(ctx, music, troupe) {
       slotGrid.append(card);
     }
     slotCount.textContent = `${hired}/${slots.length} hired`;
+    rosterIndicator.hidden = !slotGrid.querySelector(".bardic-troupe-upgrade-indicator");
+    toggle.setAttribute("aria-describedby", rosterIndicator.hidden ? "" : rosterIndicator.id);
     for (const [instrument, indicator] of masteryIndicators) {
       indicator.hidden = !music.manager.getModifiers(instrument).some(modifier => canUnlockMastery(music, instrument, modifier));
     }
@@ -152,14 +156,17 @@ export function installControls(ctx, music, troupe) {
     roster = element("div", "col-12");
     roster.id = "bardic-troupe-roster";
     const panel = element("div", "block block-rounded");
-    const toggle = element("button", "block-header block-header-default w-100 text-left bardic-troupe-toggle");
+    toggle = element("button", "block-header block-header-default w-100 text-left bardic-troupe-toggle");
     toggle.type = "button";
     toggle.setAttribute("aria-controls", "bardic-troupe-slots");
     const title = element("span", "block-title");
     const eye = element("i", "");
     eye.setAttribute("aria-hidden", "true");
     slotCount = element("span", "badge badge-secondary ml-2");
-    title.append(eye, element("span", "", "Toggle Bardic Troupe"), slotCount);
+    rosterIndicator = upgradeIndicator("A hired bard has a mastery bonus available or a missing instrument enhancement (costs still apply).");
+    rosterIndicator.id = "bardic-troupe-attention";
+    rosterIndicator.className += " ml-2";
+    title.append(eye, element("span", "", "Toggle Bardic Troupe"), slotCount, rosterIndicator);
     toggle.append(title);
     const body = element("div", "block-content block-content-full");
     slotGrid = element("div", "");

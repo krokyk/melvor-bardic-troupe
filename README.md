@@ -24,6 +24,8 @@ Music's training, instrument unlocks, mastery bonuses, hiring costs, and instrum
 Replacing a bard loses that bard's upgrade, socket, and utility, as in Music.
 
 The compact **Toggle Bardic Troupe** bar shows an eye icon and the number of hired bards out of your total slots.
+It also shows a gold **♫**, including while collapsed, when any hired bard has an eligible unpurchased mastery bonus or a missing instrument enhancement.
+The bar's cue clears once every hired bard has all three enhancements and no available mastery bonuses; unhired instruments do not affect it.
 The roster starts collapsed whenever the interface loads; click anywhere on the bar to show or hide it, just like combat's skill-progress toggle.
 The bar also supports Enter and Space when focused.
 Bard cards use two columns when the panel is at least 46rem wide, or 736px at the standard text size, and stack in one column when the panel is narrower.
