@@ -80,9 +80,19 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Version
 
-1.2.0
+2.0.0
 
 ## Changelog
+
+### 2.0.0
+
+- Add a fully clickable, collapsible troupe bar and a responsive roster with two columns when space allows.
+- Add compact Upgrade, Socket, and Utility shortcuts with scaled equipped-item icons and clear missing or applied states.
+- Add Mastery 40, 75, and 99 shortcuts with grey locked, outlined available, and solid green purchased states.
+- Open Music's mastery purchase confirmation directly, close it after purchase or cancellation, and disable completed Upgrade and Mastery buttons.
+- Show gold **♫** cues for available mastery bonuses and missing enhancements, including on the collapsed troupe bar.
+- Configure the Music level and GP cost for additional slots, defaulting to level 100 and 500M GP each.
+- Preserve existing slot purchases, hired bards, enhancements, and character settings when updating.
 
 ### 1.2.0
 
@@ -120,7 +130,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Upload configuration
 
-- Upload **bardic-troupe-1.2.0.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root.
+- Upload **bardic-troupe-2.0.0.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root.
 - Exclude tests and documentation from the archive.
 - Set **[Myth] Music**, mod.io ID **3096259**, as a hard dependency in mod.io.
   The current Melvor manifest loader does not read dependency declarations from `manifest.json`.
