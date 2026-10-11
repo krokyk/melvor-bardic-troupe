@@ -15,7 +15,7 @@ Version: **1.2.0**.
 2. Buy **Bardic Troupe I**, **Bardic Troupe II**, and subsequent upgrades in order for **500,000,000 GP each by default**.
    Each purchase unlocks one additional bard slot.
 3. Choose **Hire** on an unlocked Music instrument and select an empty slot or a bard to replace.
-4. Use **Instrument** on a hired bard to open Music's normal upgrade, socket, and utility controls.
+4. Use **Upgrade**, **Socket**, **Utility**, or a **Mastery** button on a hired bard to open the matching Music menu.
 
 Slot purchases require **actual Music level 100 by default**, with a shared level requirement and GP price configurable in Mod Settings.
 Further purchases stop being offered once your total slot capacity covers every instrument registered by Music, including instruments you have not unlocked yet.
@@ -30,14 +30,18 @@ The roster starts collapsed whenever the interface loads; click anywhere on the 
 The bar also supports Enter and Space when focused.
 Bard cards use two columns when the panel is at least 46rem wide, or 736px at the standard text size, and stack in one column when the panel is narrower.
 Hiring or refreshing bard bonuses keeps the roster in its current open or closed state.
-The **Instrument** buttons continue to open Music's normal enhancement controls.
-They show a gold **♫** while the bard lacks its instrument upgrade, gem socket, or utility, and the mark disappears once all three are filled.
-This cue updates when enhancements change and does not require you to have the materials yet.
+Each hired bard has separate **Upgrade**, **Socket**, and **Utility** shortcut buttons instead of an Instrument button.
+Missing enhancements use a green outline; applied enhancements use solid green.
+An upgraded instrument shows a disabled **Upgraded** button.
+Socket and Utility buttons show the equipped item's icon when filled, with its name in the tooltip and accessible label, and remain clickable so you can change the item.
+The shortcuts open Music's matching upgrade confirmation or item-selection menu, where normal material requirements still apply.
 
-A gold **♫** at the start of a grey mastery bonus means the instrument's mastery level meets its requirement and the bonus is ready to unlock.
-The same mark appears on an instrument card's **Mastery** button while any eligible bonus remains unpurchased, including on instruments without a hired bard.
-The cue remains until those bonuses are unlocked and updates when mastery levels, purchased bonuses, or loaded saves change.
-Normal GP and Essence of Music costs still apply; the cue signals mastery-level eligibility even if you cannot afford the purchase yet.
+Each purchasable mastery bonus has a **Mastery 40**, **Mastery 75**, or **Mastery 99** button beside its description.
+The button is grey and disabled before its mastery requirement is met, outlined green when available to unlock, and solid green after the bonus is purchased.
+An available button opens Music's unlock confirmation for that tier; a purchased button opens Music's mastery overview.
+Normal GP and Essence of Music costs still apply, even if an available button is green.
+Music's instrument-card buttons retain their existing behavior, including the gold **♫** on **Mastery** while an eligible bonus remains unpurchased.
+This cue also works for unhired instruments, and all roster states and cues update after mastery changes, purchases, and save restoration.
 
 Music's **Band Practice** purchase is hidden and blocked while this addon is enabled.
 An already purchased Band Practice slot is preserved, and Music's master ancient relic still grants its additional slot.

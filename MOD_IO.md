@@ -27,7 +27,7 @@ Buy additional slots in order, with a configurable Music level requirement and G
 - Retain an already purchased **Band Practice** slot and the master ancient relic's additional slot.
   Band Practice is hidden and cannot be purchased while this addon is enabled.
 
-Choose an empty slot or a bard to replace when hiring, then use **Instrument** to manage each bard's enhancements.
+Choose an empty slot or a bard to replace when hiring, then use the roster's **Upgrade**, **Socket**, and **Utility** shortcuts to manage its enhancements.
 Replacing a bard loses its upgrade, socket, and utility, as in Music.
 
 The compact **Toggle Bardic Troupe** bar shows an eye icon and your hired-bard count out of the total slots.
@@ -38,11 +38,16 @@ The roster starts collapsed whenever the interface loads, and the bar also suppo
 Cards appear in two columns when there is room and stack in one column in narrow panels.
 Hiring and bonus updates keep the roster open or closed as you left it.
 
-A gold **♫** marks a grey mastery bonus once its instrument mastery requirement is met, and appears on the instrument's **Mastery** button while any eligible bonus remains unpurchased.
-The cue also works for unhired instruments and updates as mastery levels, purchased bonuses, or loaded saves change.
-Normal GP and Essence of Music costs still apply, even when the cue is visible.
-The **Instrument** button also shows a gold **♫** while the bard lacks its instrument upgrade, gem socket, or utility, regardless of whether you have the materials yet.
-The mark clears once all three enhancements are filled.
+Missing enhancements have green outlined buttons; applied enhancements have solid green buttons.
+The completed **Upgraded** button is disabled, while **Socket** and **Utility** remain clickable and show the equipped item's icon, with its name in the tooltip.
+Each shortcut opens the matching Music menu and retains normal material requirements.
+
+Mastery bonuses have **Mastery 40**, **Mastery 75**, and **Mastery 99** shortcut buttons beside their descriptions.
+They are grey and disabled before the required mastery level, outlined green when available to unlock, and solid green once purchased.
+Available buttons open Music's unlock confirmation for the selected tier; purchased buttons open its mastery overview.
+Normal GP and Essence of Music costs still apply.
+Music's instrument-card buttons retain their existing behavior and the gold **♫** cue on **Mastery** while an eligible bonus remains unpurchased, including on unhired instruments.
+Roster states and cues update as mastery levels, purchased bonuses, enhancements, or loaded saves change.
 
 Settings are saved separately for each character and immediately update the shop's prices, requirements, and labels.
 Previous troupe upgrades are still required in order.
@@ -80,8 +85,11 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ### 1.2.0
 
-- Mark eligible unpurchased mastery bonuses with a gold music-note cue in the troupe roster and on native instrument Mastery buttons.
-- Mark Instrument buttons when the bard is missing its upgrade, gem socket, or utility, and clear the cue once all three are filled.
+- Replace the roster's Instrument button and status badges with direct Upgrade, Socket, and Utility menu shortcuts, using outlines for missing enhancements and solid green for applied ones.
+- Show equipped gem and utility icons, keep their selection menus available, and disable the completed Upgraded button.
+- Add Mastery 40, 75, and 99 shortcuts with grey, green outlined, and solid green states for locked, available, and purchased bonuses.
+- Open Music's native confirmation for an available mastery tier and its overview for a purchased bonus, retaining normal costs and skill-card controls.
+- Keep the gold music-note cue on native instrument Mastery buttons while eligible bonuses remain unpurchased.
 - Show the same cue on the troupe bar, including while collapsed, when any hired bard has an available mastery bonus or a missing enhancement.
 - Refresh cues after mastery level changes, bonus purchases, and save restoration while retaining Music's normal costs and controls.
 

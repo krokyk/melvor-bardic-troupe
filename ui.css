@@ -30,15 +30,24 @@
   overflow-wrap: anywhere;
 }
 
-#bardic-troupe-slots .badge {
-  max-width: 100%;
-  white-space: normal;
-  text-align: left;
-}
-
 .bardic-troupe-upgrade-indicator {
   font-size: 1.15em;
   font-weight: bold;
+}
+
+.bardic-troupe-mastery-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.bardic-troupe-mastery-row > .btn {
+  flex: 0 0 auto;
+}
+
+.bardic-troupe-mastery-row > span {
+  min-width: 0;
 }
 
 @container (min-width: 46rem) {

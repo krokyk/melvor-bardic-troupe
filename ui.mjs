@@ -6,8 +6,28 @@ function element(tag, className, text) {
 }
 
 function canUnlockMastery(music, instrument, modifier) {
-  return !modifier.isActive && !modifier.isUpgrade && modifier.level < 100 &&
+  return !modifier.isActive && !modifier.isUpgrade && modifier.level > 1 && modifier.level < 100 &&
     music.getMasteryLevel(instrument) >= modifier.level;
+}
+
+function openMusicMenu(open, selector) {
+  // Music keeps submenu state private, so enter it through the native modal's own button.
+  const fire = SwalLocale.fire;
+  SwalLocale.fire = function (options) {
+    return fire.call(this, {
+      ...options,
+      didOpen(popup) {
+        options.didOpen?.call(this, popup);
+        const button = popup.querySelector(selector);
+        if (button && !button.disabled) button.click();
+      },
+    });
+  };
+  try {
+    return open();
+  } finally {
+    SwalLocale.fire = fire;
+  }
 }
 
 function upgradeIndicator(description = "Mastery bonus available to unlock (costs still apply).") {
@@ -18,14 +38,27 @@ function upgradeIndicator(description = "Mastery bonus available to unlock (cost
   return indicator;
 }
 
-function appendModifiers(container, music, instrument) {
+function appendModifiers(container, music, instrument, onMastery) {
   for (const modifier of music.manager.getModifiers(instrument)) {
     const row = element("div", modifier.isActive ? "text-success" : "myth-text-grey");
-    if (canUnlockMastery(music, instrument, modifier)) row.append(upgradeIndicator());
-    if (modifier.isUpgrade) {
-      row.append(element("span", "mr-1", "Upgrade: "));
-    } else if (!modifier.isActive) {
-      row.append(element("span", "mr-1", `(Mastery ${modifier.level}) `));
+    if (onMastery && !modifier.isUpgrade && modifier.level > 1 && modifier.level < 100) {
+      const available = canUnlockMastery(music, instrument, modifier);
+      const style = modifier.isActive ? "btn-success" : available ? "btn-outline-success" : "btn-outline-secondary";
+      const button = element("button", `btn btn-sm ${style}`, `Mastery ${modifier.level}`);
+      button.type = "button";
+      button.disabled = !modifier.isActive && !available;
+      button.title = modifier.isActive ? "Mastery bonus unlocked." : available ? "Mastery bonus available to unlock (costs still apply)." : `Requires instrument mastery level ${modifier.level}.`;
+      button.setAttribute("aria-label", `${instrument.name}: Mastery ${modifier.level}. ${button.title}`);
+      button.onclick = () => onMastery(modifier.level);
+      row.className += " bardic-troupe-mastery-row";
+      row.append(button);
+    } else {
+      if (canUnlockMastery(music, instrument, modifier)) row.append(upgradeIndicator());
+      if (modifier.isUpgrade) {
+        row.append(element("span", "mr-1", "Upgrade: "));
+      } else if (!modifier.isActive) {
+        row.append(element("span", "mr-1", `(Mastery ${modifier.level}) `));
+      }
     }
     const description = element("span", "");
     description.innerHTML = modifier.description;
@@ -42,10 +75,30 @@ export function installControls(ctx, music, troupe) {
   let slotCount;
   const masteryIndicators = new Map();
 
+  function openEquipment(slot, state) {
+    const bard = music.bards.get(slot);
+    if (!bard || (state === "upgrade" && bard.isUpgraded)) return;
+    music.userInterface.bard1.setBard(bard);
+    return openMusicMenu(() => music.userInterface.bard1.equipment(), `.myth-music-equipment .manage > .${state} > button`);
+  }
+
+  function openMastery(slot, level) {
+    const bard = music.bards.get(slot);
+    if (!bard) return;
+    const modifiers = music.manager.getModifiers(bard.instrument).filter(modifier => modifier.level < 100);
+    const index = modifiers.findIndex(modifier => modifier.level === level);
+    const modifier = modifiers[index];
+    if (!modifier) return;
+    if (modifier.isActive) return music.unlockMastery(bard.instrument);
+    if (!canUnlockMastery(music, bard.instrument, modifier)) return;
+    return openMusicMenu(() => music.unlockMastery(bard.instrument), `.myth-music-mastery .manage > .manage-section:nth-child(${index + 1}) > button`);
+  }
+
   function render() {
     if (!slotGrid) return;
     const slots = troupe.slots();
     let hired = 0;
+    let needsAttention = false;
     slotGrid.replaceChildren();
     for (const [index, slot] of slots.entries()) {
       const number = index + 1;
@@ -59,30 +112,31 @@ export function installControls(ctx, music, troupe) {
         image.src = bard.instrument.media;
         image.alt = "";
         heading.append(image, element("span", "font-size-lg mr-2", `${bard.instrument.name} Bard`));
-        const manage = element("button", "btn btn-success ml-auto", "Instrument");
-        manage.type = "button";
-        const manageLabel = `Manage ${bard.instrument.name} bard in slot ${number}`;
-        manage.setAttribute("aria-label", manageLabel);
-        if (!bard.isUpgraded || !bard.socket || !bard.utility) {
-          const description = "Instrument enhancements available (upgrade, gem socket, or utility missing; costs still apply).";
-          manage.prepend(upgradeIndicator(description));
-          manage.setAttribute("aria-label", `${manageLabel}. ${description}`);
-        }
-        manage.onclick = () => {
-          const current = music.bards.get(slot);
-          if (!current) return;
-          music.userInterface.bard1.setBard(current);
-          // The native modal reads bard1 in didOpen, after equipment() returns.
-          music.userInterface.bard1.equipment();
-        };
-        heading.append(manage);
         card.append(heading);
         const enhancements = element("div", "d-flex flex-wrap mb-2");
-        if (bard.isUpgraded) enhancements.append(element("span", "badge badge-success mr-1", "Upgraded"));
-        if (bard.socket) enhancements.append(element("span", "badge badge-success mr-1", `Socket: ${bard.socket.name}`));
-        if (bard.utility) enhancements.append(element("span", "badge badge-success mr-1", `Utility: ${bard.utility.name}`));
-        if (enhancements.children.length) card.append(enhancements);
-        appendModifiers(card, music, bard.instrument);
+        for (const [state, label, applied, item] of [
+          ["upgrade", bard.isUpgraded ? "Upgraded" : "Upgrade", bard.isUpgraded],
+          ["socket", "Socket", !!bard.socket, bard.socket],
+          ["utility", "Utility", !!bard.utility, bard.utility],
+        ]) {
+          const button = element("button", `btn btn-sm ${applied ? "btn-success" : "btn-outline-success"} mr-2 mb-1`, item ? `${label}: ` : label);
+          button.type = "button";
+          button.disabled = state === "upgrade" && bard.isUpgraded;
+          button.title = item ? `${label}: ${item.name}` : label;
+          button.setAttribute("aria-label", `${button.title} for ${bard.instrument.name} bard in slot ${number}`);
+          if (item) {
+            const icon = element("img", "skill-icon-xs ml-1");
+            icon.src = item.media;
+            icon.alt = "";
+            button.append(icon);
+          }
+          button.onclick = () => openEquipment(slot, state);
+          enhancements.append(button);
+        }
+        card.append(enhancements);
+        appendModifiers(card, music, bard.instrument, level => openMastery(slot, level));
+        needsAttention ||= !bard.isUpgraded || !bard.socket || !bard.utility ||
+          music.manager.getModifiers(bard.instrument).some(modifier => canUnlockMastery(music, bard.instrument, modifier));
       } else {
         heading.append(element("span", "text-muted", "No bard hired. Choose Hire on an unlocked instrument."));
         card.append(heading);
@@ -90,7 +144,7 @@ export function installControls(ctx, music, troupe) {
       slotGrid.append(card);
     }
     slotCount.textContent = `${hired}/${slots.length} hired`;
-    rosterIndicator.hidden = !slotGrid.querySelector(".bardic-troupe-upgrade-indicator");
+    rosterIndicator.hidden = !needsAttention;
     toggle.setAttribute("aria-describedby", rosterIndicator.hidden ? "" : rosterIndicator.id);
     for (const [instrument, indicator] of masteryIndicators) {
       indicator.hidden = !music.manager.getModifiers(instrument).some(modifier => canUnlockMastery(music, instrument, modifier));
