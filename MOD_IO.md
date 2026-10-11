@@ -36,6 +36,10 @@ The roster starts collapsed whenever the interface loads, and the bar also suppo
 Cards appear in two columns when there is room and stack in one column in narrow panels.
 Hiring and bonus updates keep the roster open or closed as you left it.
 
+A gold **♫** marks a grey mastery bonus once its instrument mastery requirement is met, and appears on the instrument's **Mastery** button while any eligible bonus remains unpurchased.
+The cue also works for unhired instruments and updates as mastery levels, purchased bonuses, or loaded saves change.
+Normal GP and Essence of Music costs still apply, even when the cue is visible.
+
 Settings are saved separately for each character and immediately update the shop's prices, requirements, and labels.
 Previous troupe upgrades are still required in order.
 Changing settings keeps purchased slots and existing bards, and does not refund earlier purchases.
@@ -66,9 +70,14 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Version
 
-1.1.2
+1.2.0
 
 ## Changelog
+
+### 1.2.0
+
+- Mark eligible unpurchased mastery bonuses with a gold music-note cue in the troupe roster and on native instrument Mastery buttons.
+- Refresh cues after mastery level changes, bonus purchases, and save restoration while retaining Music's normal costs and controls.
 
 ### 1.1.2
 
@@ -95,7 +104,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Upload configuration
 
-- Upload **bardic-troupe-1.1.2.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root.
+- Upload **bardic-troupe-1.2.0.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root.
 - Exclude tests and documentation from the archive.
 - Set **[Myth] Music**, mod.io ID **3096259**, as a hard dependency in mod.io.
   The current Melvor manifest loader does not read dependency declarations from `manifest.json`.

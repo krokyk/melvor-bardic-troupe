@@ -3,20 +3,32 @@ import test from "node:test";
 import { installControls } from "./ui.mjs";
 
 class Node {
-  constructor(tag) { this.tag = tag; this.children = []; this.attributes = {}; this.innerHTML = ""; }
-  append(...nodes) { for (const node of nodes) node.parent = this; this.children.push(...nodes); }
-  replaceChildren(...nodes) { this.children = nodes; }
+  constructor(tag) { this.tag = tag; this.nodes = []; this.attributes = {}; this.innerHTML = ""; }
+  get children() { return this.nodes.filter(node => node instanceof Node); }
+  get textContent() { return this.nodes.map(node => node instanceof Node ? node.textContent : node).join(""); }
+  set textContent(value) { this.replaceChildren(String(value)); }
+  append(...nodes) { for (const node of nodes) if (node instanceof Node) node.parent = this; this.nodes.push(...nodes); }
+  prepend(...nodes) { for (const node of nodes) if (node instanceof Node) node.parent = this; this.nodes.unshift(...nodes); }
+  replaceChildren(...nodes) { for (const node of this.children) node.parent = undefined; this.nodes = []; this.append(...nodes); }
   setAttribute(name, value) { this.attributes[name] = value; }
   after(node) { this.sibling = node; }
   click() { this.onclick?.(); this.parent?.click(); }
+  querySelectorAll(selector) {
+    assert.equal(selector, "button");
+    return descendants(this).slice(1).filter(node => node.tag === "button");
+  }
 }
 
 function descendants(node) {
   return [node, ...node.children.flatMap(descendants)];
 }
 
-function fixture(t) {
-  const originals = { document: globalThis.document, SwalLocale: globalThis.SwalLocale };
+function indicators(node) {
+  return descendants(node).filter(child => child.className?.split(" ").includes("bardic-troupe-upgrade-indicator"));
+}
+
+function fixture(t, { masteryLabel = "Mastery" } = {}) {
+  const originals = { document: globalThis.document, SwalLocale: globalThis.SwalLocale, getLangString: globalThis.getLangString };
   t.after(() => {
     for (const [key, value] of Object.entries(originals)) {
       if (value === undefined) delete globalThis[key];
@@ -25,7 +37,9 @@ function fixture(t) {
   });
   const native = new Node("div");
   native.append(new Node("native-bard-component"));
-  globalThis.document = { createElement: tag => new Node(tag), getElementById: () => native };
+  const elements = new Map([["bard-container", native]]);
+  globalThis.document = { createElement: tag => new Node(tag), getElementById: id => elements.get(id) };
+  globalThis.getLangString = key => key === "Myth_Music_Mastery" ? masteryLabel : key;
   const swal = globalThis.SwalLocale = {
     closed: false,
     fire(options) { this.options = options; },
@@ -33,13 +47,31 @@ function fixture(t) {
   };
   const instrument = { name: "<img onerror=alert(1)>", media: "instrument.svg", id: "music:lute" };
   const existing = {
-    instrument: { name: "Harp", media: "harp.svg" },
+    instrument: { name: "Harp", media: "harp.svg", id: "music:harp" },
     slot: 4,
     isUpgraded: true,
     socket: { name: "Polished Ruby Gem" },
     utility: { name: "<Pristine Leather>" }
   };
   const bards = new Map([[4, existing]]);
+  const modifiers = new Map();
+  const masteryLevels = new Map();
+  const instrumentButtons = new Map();
+  const nativeMasteryCalls = [];
+  const instruments = new Map([existing.instrument, instrument].map((target, index) => {
+    const localId = `instrument-${index}`;
+    const card = new Node("div");
+    const buttons = ["Train", "Hire", masteryLabel].map(label => {
+      const button = new Node("button"); button.textContent = ` ${label} `; return button;
+    });
+    buttons[2].onclick = () => nativeMasteryCalls.push(target);
+    card.append(...buttons);
+    elements.set(localId, card);
+    instrumentButtons.set(target, { train: buttons[0], hire: buttons[1], mastery: buttons[2] });
+    modifiers.set(target, [{ description: "<b>Native modifier</b>", isActive: true }]);
+    masteryLevels.set(target, 1);
+    return [target, { localId }];
+  }));
   let modalBard;
   const bridge = {
     setBard(bard) { this.bard = bard; },
@@ -48,8 +80,9 @@ function fixture(t) {
   class Music {}
   const music = Object.assign(new Music(), {
     bards: { get: slot => bards.get(slot), isHired: () => false },
-    userInterface: { bard1: bridge },
-    manager: { getModifiers: () => [{ description: "<b>Native modifier</b>", isActive: true }] },
+    userInterface: { bard1: bridge, instruments },
+    manager: { getModifiers: target => modifiers.get(target) ?? [] },
+    getMasteryLevel: target => masteryLevels.get(target) ?? 1,
     renderQueue: { bardModifiers: true }
   });
   const troupe = {
@@ -64,7 +97,8 @@ function fixture(t) {
     onInterfaceReady(callback) { this.ready = callback; }
   };
   installControls(ctx, music, troupe);
-  return { native, swal, instrument, existing, bridge, music, troupe, patches, ctx, modalBard: () => modalBard };
+  const refresh = () => { music.renderQueue.bardModifiers = true; patches.get("renderBardModifiers")(); };
+  return { native, swal, instrument, existing, bridge, music, troupe, patches, ctx, modifiers, masteryLevels, instrumentButtons, nativeMasteryCalls, refresh, modalBard: () => modalBard };
 }
 
 test("roster retains native controls and uses the native equipment modal for extra slots", t => {
@@ -161,4 +195,94 @@ test("an unavailable instrument cannot show hire buttons", t => {
   f.patches.get("hire")(undefined, f.instrument);
   assert.equal(f.swal.options.icon, "warning");
   assert.equal(f.swal.options.html, undefined);
+});
+
+test("mastery indicators start at the exact level and precede only eligible unpurchased bonus rows", t => {
+  const f = fixture(t);
+  const instrument = f.existing.instrument;
+  f.modifiers.set(instrument, [
+    { level: 40, isActive: false, isUpgrade: false, description: "Available at 40" },
+    { level: 40, isActive: true, isUpgrade: false, description: "Already purchased" },
+    { level: 75, isActive: false, isUpgrade: false, description: "Future tier" },
+    { level: 40, isActive: false, isUpgrade: true, description: "Instrument upgrade" },
+    { level: 999, isActive: false, isUpgrade: true, description: "Essence enhancement" },
+  ]);
+  f.masteryLevels.set(instrument, 39);
+  f.ctx.ready();
+  const buttonMarker = indicators(f.instrumentButtons.get(instrument).mastery)[0];
+  assert.equal(buttonMarker.hidden, true);
+  assert.equal(indicators(f.native.sibling).length, 0);
+  f.masteryLevels.set(instrument, 40);
+  f.refresh();
+  const rowMarkers = indicators(f.native.sibling);
+  assert.equal(rowMarkers.length, 1);
+  const marker = rowMarkers[0];
+  assert.equal(marker.parent.children[0], marker, "put the marker before the mastery-level label");
+  assert.equal(marker.parent.children.at(-1).innerHTML, "Available at 40");
+  assert.equal(marker.textContent, "♫");
+  assert.equal(marker.attributes.role, "img");
+  assert.equal(marker.attributes["aria-label"], "Mastery bonus available to unlock (costs still apply).");
+  assert.equal(marker.title, marker.attributes["aria-label"]);
+  assert.equal(buttonMarker.hidden, false);
+  assert.equal(f.troupe.request, undefined, "indicators must not hire or purchase anything");
+  assert.equal(f.nativeMasteryCalls.length, 0);
+});
+
+test("mastery indicators refresh after bonus purchases and mastery rollback while another tier remains eligible", t => {
+  const f = fixture(t);
+  const instrument = f.existing.instrument;
+  const bonuses = [40, 75].map(level => ({ level, isActive: false, isUpgrade: false, description: `Tier ${level}` }));
+  f.modifiers.set(instrument, bonuses);
+  f.masteryLevels.set(instrument, 99);
+  f.ctx.ready();
+  const button = f.instrumentButtons.get(instrument).mastery;
+  const marker = indicators(button)[0];
+  assert.equal(marker.hidden, false);
+  assert.equal(indicators(f.native.sibling).length, 2);
+  bonuses[0].isActive = true;
+  f.refresh();
+  assert.equal(marker.hidden, false, "the second eligible tier still needs attention");
+  assert.equal(indicators(f.native.sibling).length, 1);
+  bonuses[1].isActive = true;
+  f.refresh();
+  assert.equal(marker.hidden, true);
+  assert.equal(indicators(f.native.sibling).length, 0);
+  bonuses[0].isActive = false;
+  f.masteryLevels.set(instrument, 39);
+  f.refresh();
+  assert.equal(marker.hidden, true);
+  assert.equal(indicators(f.native.sibling).length, 0);
+  f.masteryLevels.set(instrument, 40);
+  f.refresh();
+  assert.equal(marker.hidden, false);
+  assert.equal(indicators(f.native.sibling).length, 1);
+  assert.deepEqual(indicators(button), [marker], "refresh the cached native marker without duplicating it");
+});
+
+test("unhired instruments retain a localized native Mastery button and one cached marker after label injection", t => {
+  const f = fixture(t, { masteryLabel: "Meisterung" });
+  const instrument = f.instrument;
+  f.modifiers.set(instrument, [{ level: 40, isActive: false, isUpgrade: false, description: "Available" }]);
+  f.masteryLevels.set(instrument, 40);
+  const buttons = f.instrumentButtons.get(instrument);
+  const component = f.music.userInterface.instruments.get(instrument);
+  const card = document.getElementById(component.localId);
+  card.replaceChildren(buttons.hire, buttons.mastery, buttons.train);
+  f.ctx.ready();
+  assert.equal(indicators(f.native.sibling).length, 0, "an unhired instrument has no roster row");
+  const marker = indicators(buttons.mastery)[0];
+  assert(marker, "find the translated native label independently of button order");
+  assert.equal(marker.hidden, false);
+  assert.equal(marker.attributes.role, "img");
+  assert.equal(marker.title, "Mastery bonus available to unlock (costs still apply).");
+  assert.equal(buttons.mastery.textContent.trim(), "♫ Meisterung", "prepending changes the native button's combined label");
+  f.refresh(); f.refresh();
+  assert.deepEqual(indicators(buttons.mastery), [marker]);
+  assert.equal(indicators(buttons.hire).length, 0);
+  assert.equal(indicators(buttons.train).length, 0);
+  marker.click();
+  assert.deepEqual(f.nativeMasteryCalls, [instrument], "the new child still bubbles to Music's existing click handler");
+  f.masteryLevels.set(instrument, 39);
+  f.refresh();
+  assert.equal(marker.hidden, true, "cached marker updates even though its injection changed the matching text");
 });

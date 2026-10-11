@@ -36,6 +36,11 @@
   text-align: left;
 }
 
+.bardic-troupe-upgrade-indicator {
+  font-size: 1.15em;
+  font-weight: bold;
+}
+
 @container (min-width: 46rem) {
   #bardic-troupe-slots {
     grid-template-columns: repeat(2, minmax(0, 1fr));

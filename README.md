@@ -1,7 +1,7 @@
 # Bardic Troupe
 
 Bardic Troupe is a Melvor Idle addon for [Myth] Music that lets you hire a different bard for every available instrument and keep their bonuses active together.
-Version: **1.1.2**.
+Version: **1.2.0**.
 
 ## Requirements
 
@@ -29,6 +29,11 @@ The bar also supports Enter and Space when focused.
 Bard cards use two columns when the panel is at least 46rem wide, or 736px at the standard text size, and stack in one column when the panel is narrower.
 Hiring or refreshing bard bonuses keeps the roster in its current open or closed state.
 The **Instrument** buttons continue to open Music's normal enhancement controls.
+
+A gold **♫** at the start of a grey mastery bonus means the instrument's mastery level meets its requirement and the bonus is ready to unlock.
+The same mark appears on an instrument card's **Mastery** button while any eligible bonus remains unpurchased, including on instruments without a hired bard.
+The cue remains until those bonuses are unlocked and updates when mastery levels, purchased bonuses, or loaded saves change.
+Normal GP and Essence of Music costs still apply; the cue signals mastery-level eligibility even if you cannot afford the purchase yet.
 
 Music's **Band Practice** purchase is hidden and blocked while this addon is enabled.
 An already purchased Band Practice slot is preserved, and Music's master ancient relic still grants its additional slot.
@@ -60,7 +65,7 @@ There is intentionally no browser-local storage fallback.
 
 ## Package and development
 
-The release archive is **bardic-troupe-1.1.2.zip** and contains these seven files at its root:
+The release archive is **bardic-troupe-1.2.0.zip** and contains these seven files at its root:
 
 ```text
 manifest.json

@@ -5,9 +5,24 @@ function element(tag, className, text) {
   return node;
 }
 
+function canUnlockMastery(music, instrument, modifier) {
+  return !modifier.isActive && !modifier.isUpgrade && modifier.level < 100 &&
+    music.getMasteryLevel(instrument) >= modifier.level;
+}
+
+function upgradeIndicator() {
+  const indicator = element("span", "bardic-troupe-upgrade-indicator text-warning mr-1", "♫");
+  const description = "Mastery bonus available to unlock (costs still apply).";
+  indicator.setAttribute("role", "img");
+  indicator.setAttribute("aria-label", description);
+  indicator.title = description;
+  return indicator;
+}
+
 function appendModifiers(container, music, instrument) {
   for (const modifier of music.manager.getModifiers(instrument)) {
     const row = element("div", modifier.isActive ? "text-success" : "myth-text-grey");
+    if (canUnlockMastery(music, instrument, modifier)) row.append(upgradeIndicator());
     if (modifier.isUpgrade) {
       row.append(element("span", "mr-1", "Upgrade: "));
     } else if (!modifier.isActive) {
@@ -24,6 +39,7 @@ export function installControls(ctx, music, troupe) {
   let roster;
   let slotGrid;
   let slotCount;
+  const masteryIndicators = new Map();
 
   function render() {
     if (!slotGrid) return;
@@ -67,6 +83,9 @@ export function installControls(ctx, music, troupe) {
       slotGrid.append(card);
     }
     slotCount.textContent = `${hired}/${slots.length} hired`;
+    for (const [instrument, indicator] of masteryIndicators) {
+      indicator.hidden = !music.manager.getModifiers(instrument).some(modifier => canUnlockMastery(music, instrument, modifier));
+    }
   }
 
   ctx.patch(music.constructor, "hire").replace(function (_original, instrument) {
@@ -154,6 +173,17 @@ export function installControls(ctx, music, troupe) {
     roster.append(panel);
     native.after(roster);
     native.hidden = true;
+    for (const [instrument, component] of music.userInterface.instruments) {
+      const card = document.getElementById(component.localId);
+      // PetiteVue removes @click attributes, so identify the native button by its localized label before adding the marker.
+      const mastery = [...card?.querySelectorAll("button") ?? []]
+        .find(button => button.textContent.trim() === getLangString("Myth_Music_Mastery"));
+      if (!mastery) continue;
+      const indicator = upgradeIndicator();
+      indicator.hidden = true;
+      mastery.prepend(indicator);
+      masteryIndicators.set(instrument, indicator);
+    }
     render();
   });
 }
