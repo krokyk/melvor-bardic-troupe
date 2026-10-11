@@ -31,6 +31,7 @@ The bar also supports Enter and Space when focused.
 Bard cards use two columns when the panel is at least 46rem wide, or 736px at the standard text size, and stack in one column when the panel is narrower.
 Hiring or refreshing bard bonuses keeps the roster in its current open or closed state.
 Each hired bard has separate **Upgrade**, **Socket**, and **Utility** shortcut buttons instead of an Instrument button.
+All roster shortcuts match the compact height of Melvor's labels, with item icons scaled to fit.
 Missing enhancements use a green outline; applied enhancements use solid green.
 An upgraded instrument shows a disabled **Upgraded** button.
 Socket and Utility buttons show the equipped item's icon when filled, with its name in the tooltip and accessible label, and remain clickable so you can change the item.

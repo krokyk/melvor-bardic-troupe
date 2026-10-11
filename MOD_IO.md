@@ -38,6 +38,7 @@ The roster starts collapsed whenever the interface loads, and the bar also suppo
 Cards appear in two columns when there is room and stack in one column in narrow panels.
 Hiring and bonus updates keep the roster open or closed as you left it.
 
+All roster shortcuts match the compact height of Melvor's labels, with item icons scaled to fit.
 Missing enhancements have green outlined buttons; applied enhancements have solid green buttons.
 The completed **Upgraded** button is disabled, while **Socket** and **Utility** remain clickable and show the equipped item's icon, with its name in the tooltip.
 Each shortcut opens the matching Music menu and retains normal material requirements.
@@ -87,6 +88,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 - Replace the roster's Instrument button and status badges with direct Upgrade, Socket, and Utility menu shortcuts, using outlines for missing enhancements and solid green for applied ones.
 - Show equipped gem and utility icons, keep their selection menus available, and disable the completed Upgraded button.
+- Size roster shortcuts like native labels and scale gem and utility icons to fit.
 - Add Mastery 40, 75, and 99 shortcuts with grey, green outlined, and solid green states for locked, available, and purchased bonuses.
 - Open only Music's native confirmation for an available mastery tier, close it after purchase or cancellation, and disable purchased mastery buttons while retaining normal costs and skill-card controls.
 - Keep the gold music-note cue on native instrument Mastery buttons while eligible bonuses remain unpurchased.

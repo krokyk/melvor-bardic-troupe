@@ -35,6 +35,20 @@
   font-weight: bold;
 }
 
+#bardic-troupe-slots .btn {
+  /* Match native badge height, including the button's 1px borders. */
+  padding: calc(0.25em - 1px) 0.4em;
+  font-size: 75%;
+  line-height: 1;
+}
+
+#bardic-troupe-slots .btn > img {
+  width: 1em;
+  height: 1em;
+  margin: 0;
+  vertical-align: top;
+}
+
 .bardic-troupe-mastery-row {
   display: flex;
   align-items: flex-start;
