@@ -67,6 +67,14 @@ Saving without it can discard purchased troupe slots, additional bards, and thei
 
 https://github.com/krokyk/melvor-bardic-troupe
 
+## Listing tags
+
+| Field | Value |
+| --- | --- |
+| Type tags | QoL, Cheat, Non-Combat, UI, Offline |
+| Platform tags | Desktop, Browser, iOS, Android |
+| Game version | 1.3.1 |
+
 ## Community options
 
 - Allow comments: Yes.
