@@ -5,7 +5,7 @@ export function configureUpgrades(ctx, game, purchases) {
   const settings = ctx.settings.section("Bardic Troupe");
   const fields = [
     {
-      name: "troupe-slot-price", label: "Price per slot (GP)", default: 500_000_000, min: 0,
+      name: "troupe-slot-price", label: "Price per slot (GP)", default: 1_000_000_000, min: 0,
       hint: "Whole number, including 0 for free. Changes do not refund existing purchases.",
       apply(value) {
         for (const purchase of purchases) {

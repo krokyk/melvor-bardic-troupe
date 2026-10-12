@@ -1,7 +1,7 @@
 # Bardic Troupe
 
 Bardic Troupe is a Melvor Idle addon for [Myth] Music that lets you hire a different bard for every available instrument and keep their bonuses active together.
-Version: **2.1.1**.
+Version: **2.1.2**.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ Version: **2.1.1**.
 ## How it works
 
 1. Open the **Bardic Troupe** shop category.
-2. Buy **Bardic Troupe I**, **Bardic Troupe II**, and subsequent upgrades in order for **500,000,000 GP each by default**.
+2. Buy **Bardic Troupe I**, **Bardic Troupe II**, and subsequent upgrades in order for **1,000,000,000 GP each by default**.
    Each purchase unlocks one additional bard slot.
 3. Choose **Hire** on an unlocked Music instrument and select an empty slot or a bard to replace.
 4. Use **Upgrade**, **Socket**, **Utility**, or a **Mastery** button on a hired bard to open the matching Music menu.
@@ -78,7 +78,7 @@ The third prayer is stored with the addon and restored when eligible, while the 
 ## Mod Settings
 
 Open Bardic Troupe in Melvor's native **Mod Settings** to change the required Music skill level and GP price for all troupe slot upgrades together.
-The defaults are **Music level 100** and **500,000,000 GP per slot**.
+The defaults are **Music level 100** and **1,000,000,000 GP per slot**.
 The level must be a positive whole number and uses your actual skill level, not your virtual level.
 Set it to **99 or lower** if your character is capped at level 99.
 The price must be a nonnegative whole number; **0 makes slot purchases free**.
@@ -102,7 +102,7 @@ There is intentionally no browser-local storage fallback.
 
 ## Package and development
 
-The release archive is **bardic-troupe-2.1.1.zip** and contains these runtime files, with `manifest.json` at its root:
+The release archive is **bardic-troupe-2.1.2.zip** and contains these runtime files, with `manifest.json` at its root:
 
 ```text
 manifest.json

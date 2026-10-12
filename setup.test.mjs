@@ -219,7 +219,7 @@ test("Band Practice disappears from display and buying while existing ownership 
   assert.deepEqual(f.troupe().slots(), [1, 2]);
 });
 
-test("native purchases enforce the chain, charge 500M, and stop before redundant slots", async t => {
+test("native purchases enforce the chain, charge 1B, and stop before redundant slots", async t => {
   const f = await fixture(t, { instrumentCount: 3 });
   await f.hooks.mods();
   const [first, second] = f.troupe().purchases;
@@ -227,7 +227,7 @@ test("native purchases enforce the chain, charge 500M, and stop before redundant
   game.shop.buyItemOnClick(second);
   assert.equal(game.shop.getPurchaseCount(second), 0);
   game.shop.buyItemOnClick(first);
-  assert.equal(game.gp.amount, initial - 500_000_000);
+  assert.equal(game.gp.amount, initial - 1_000_000_000);
   assert.deepEqual(f.troupe().slots(), [1, 4]);
   f.music.manager.isMasterAncientRelicUnlocked = true;
   game.shop.buyItemOnClick(second);
@@ -316,7 +316,7 @@ test("saved slot settings apply on character load and QuickLoad before subsequen
   await f.hooks.mods();
   const [first, second] = f.troupe().purchases;
   game.decode({ settings: { "troupe-slot-price": 4321, "troupe-slot-level": 99 } });
-  assert.equal(first.costs.currencies[0].cost, 500_000_000);
+  assert.equal(first.costs.currencies[0].cost, 1_000_000_000);
   f.hooks.character();
   assert.equal(first.costs.currencies[0].cost, 4321);
   assert.equal(first.purchaseRequirements[0].level, 99);
@@ -337,6 +337,7 @@ test("saved slot settings apply on character load and QuickLoad before subsequen
 
 test("sixteenth Cello hire, third prayer, and enhancements survive reload and clear on replacement", async t => {
   const f = await fixture(t, { instrumentCount: 15, celloEnabled: true });
+  game.gp.amount = 16_000_000_000;
   await f.hooks.mods();
   const cello = f.music.actions.getObjectByID(`${core.namespace}:Cello`);
   assert.equal(f.instruments.length, 16);

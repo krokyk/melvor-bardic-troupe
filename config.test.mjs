@@ -23,7 +23,7 @@ function fixture(count = 3) {
     };
     purchases.push({
       id: `KrokyBardicTroupe:Slot_${index + 1}`,
-      costs: { currencies: [{ currency: otherCurrency, cost: 7 }, { currency: gp, cost: 500_000_000 }] },
+      costs: { currencies: [{ currency: otherCurrency, cost: 7 }, { currency: gp, cost: 1_000_000_000 }] },
       purchaseRequirements: previous ? [prerequisite, level] : [level],
     });
   }
@@ -67,7 +67,7 @@ function fixture(count = 3) {
 test("shared native settings cover every slot, retain other currencies and update render flags", () => {
   const m = fixture();
   assert.equal(m.fields.size, 2);
-  assert.equal(m.settings.get("troupe-slot-price"), 500_000_000);
+  assert.equal(m.settings.get("troupe-slot-price"), 1_000_000_000);
   assert.equal(m.settings.get("troupe-slot-level"), 100);
   m.settings.set("troupe-slot-price", 234);
   m.settings.set("troupe-slot-level", 99);
@@ -112,10 +112,10 @@ test("restored settings apply to every purchase and invalid saved values reset t
   m.settings.restore("troupe-slot-price", -100);
   m.settings.restore("troupe-slot-level", 99.5);
   m.applySaved();
-  assert.equal(m.settings.get("troupe-slot-price"), 500_000_000);
+  assert.equal(m.settings.get("troupe-slot-price"), 1_000_000_000);
   assert.equal(m.settings.get("troupe-slot-level"), 100);
   for (const purchase of m.purchases) {
-    assert.equal(m.price(purchase), 500_000_000);
+    assert.equal(m.price(purchase), 1_000_000_000);
     assert.equal(m.level(purchase).level, 100);
   }
 });
@@ -186,7 +186,7 @@ test("one-instrument Music installs settings and restores defaults without gener
   m.settings.restore("troupe-slot-price", "bad");
   m.settings.restore("troupe-slot-level", undefined);
   m.applySaved();
-  assert.equal(m.settings.get("troupe-slot-price"), 500_000_000);
+  assert.equal(m.settings.get("troupe-slot-price"), 1_000_000_000);
   assert.equal(m.settings.get("troupe-slot-level"), 100);
   m.settings.set("troupe-slot-price", 0);
   m.settings.set("troupe-slot-level", 1);

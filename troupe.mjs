@@ -1,5 +1,5 @@
 export const namespace = "KrokyBardicTroupe";
-export const slotPrice = 500_000_000;
+export const slotPrice = 1_000_000_000;
 
 function roman(number) {
   let result = "";

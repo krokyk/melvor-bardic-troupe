@@ -85,11 +85,11 @@ function state(music) {
   };
 }
 
-test("shop tiers default to 500M and Music level 100 with the preceding purchase required", () => {
+test("shop tiers default to 1B and Music level 100 with the preceding purchase required", () => {
   const { music } = fixture({ count: 15 });
   const data = createShopData(music);
   const purchases = data.data.shopPurchases;
-  assert.equal(slotPrice, 500_000_000);
+  assert.equal(slotPrice, 1_000_000_000);
   assert.equal(data.namespace, namespace);
   assert.equal(purchases.length, 14);
   assert.equal(purchases[0].customName, "Bardic Troupe I");
@@ -98,7 +98,7 @@ test("shop tiers default to 500M and Music level 100 with the preceding purchase
   assert.equal(purchases[13].customName, "Bardic Troupe XIV");
   for (const [index, purchase] of purchases.entries()) {
     const previous = index ? [{ type: "ShopPurchase", purchaseID: `${namespace}:Slot_${index}`, count: 1 }] : [];
-    assert.deepEqual(purchase.cost.currencies, [{ currency: "melvorD:GP", type: "Fixed", cost: 500_000_000 }]);
+    assert.deepEqual(purchase.cost.currencies, [{ currency: "melvorD:GP", type: "Fixed", cost: 1_000_000_000 }]);
     assert.deepEqual(purchase.unlockRequirements, previous);
     assert.deepEqual(purchase.purchaseRequirements, [{ type: "SkillLevel", skillID: music.id, level: 100 }, ...previous]);
     assert.equal(purchase.defaultBuyLimit, 1);

@@ -18,7 +18,7 @@ Buy additional slots in order, with a configurable Music level requirement and G
 **Kroky's Bardic Troupe** expands [[Myth] Music](https://mod.io/g/melvoridle/m/myth-music) so you can hire a full ensemble and keep their passive bonuses active together while you train other skills.
 
 - Buy **Bardic Troupe I**, **Bardic Troupe II**, and later upgrades in order from the **Bardic Troupe** shop category.
-  The defaults are **actual Music level 100** and **500,000,000 GP per additional slot**.
+  The defaults are **actual Music level 100** and **1,000,000,000 GP per additional slot**.
 - Set a shared Music level requirement and GP price for every troupe slot upgrade in native **Mod Settings**.
   Choose a positive whole level and a nonnegative whole GP price; **0 GP makes slots free**.
   The level uses your actual skill level, not your virtual level, so choose **99 or lower** if your character is capped at 99.
@@ -103,9 +103,13 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Version
 
-2.1.1
+2.1.2
 
 ## Changelog
+
+### 2.1.2
+
+- Set the default slot price to 1B GP and retain the default requirement of actual Music level 100.
 
 ### 2.1.1
 
@@ -164,7 +168,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Upload configuration
 
-- Upload **bardic-troupe-2.1.1.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `cello.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/cello.png`.
+- Upload **bardic-troupe-2.1.2.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `cello.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/cello.png`.
 - Exclude tests and documentation from the archive.
 - Set **[Myth] Music**, mod.io ID **3096259**, as a hard dependency in mod.io.
   The current Melvor manifest loader does not read dependency declarations from `manifest.json`.
