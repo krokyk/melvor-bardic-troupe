@@ -3,9 +3,10 @@ import test from "node:test";
 import { setup } from "./setup.mjs";
 import * as core from "./troupe.mjs";
 import * as config from "./config.mjs";
+import * as cello from "./cello.mjs";
 
-async function fixture(t, { instrumentCount = 4, missingMusic = false } = {}) {
-  const globals = ["game", "Shop", "ShopTabMenu", "ShopCostsAndUnlock", "shopMenu"];
+async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnabled = false } = {}) {
+  const globals = ["game", "Shop", "ShopTabMenu", "ShopCostsAndUnlock", "shopMenu", "cloudManager", "loadedLangJson", "notifyPlayer", "getLangString"];
   const previous = new Map(globals.map(key => [key, globalThis[key]]));
   t.after(() => {
     for (const [key, value] of previous) {
@@ -48,6 +49,7 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false } = {}) {
   class ShopTabMenu { shouldShowItem() { return 1; } }
   class ShopCostsAndUnlock { updatePurchaseRequirements() {} }
   class Music {
+    computeProvidedStats() { this.computations = (this.computations ?? 0) + 1; }
     encode(writer) { writer.bards = this.bards.all().map(bard => ({ ...bard })); return writer; }
     decode(writer) {
       this.bards.clear();
@@ -63,8 +65,24 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false } = {}) {
     isHired(key) { return this.bards.has(key); },
     clear() { this.bards.clear(); },
   };
+  class Player {
+    get activePrayers() { return this.equipmentSets[this.selectedEquipmentSet].prayerSelection; }
+    canEnablePrayer() { return true; }
+    togglePrayer(prayer) {
+      if (this.activePrayers.has(prayer)) this.activePrayers.delete(prayer);
+      else if (this.activePrayers.size < 2) this.activePrayers.add(prayer);
+    }
+    render() {}
+    encode(writer) { writer.prayers = this.equipmentSets.map(set => [...set.prayerSelection].map(prayer => prayer.id)); }
+  }
+  const prayers = [1, 2, 3, 4].map(id => ({ id: `prayer:${id}`, isUnholy: false, isAbyssal: false }));
+  const player = Object.assign(new Player(), {
+    selectedEquipmentSet: 0, equipmentSets: [{ prayerSelection: new Set() }], renderQueue: {},
+    manager: { computeAllStats() {} },
+  });
   class Game {
     encode(writer = {}) {
+      player.encode(writer);
       this.music.encode(writer);
       writer.counts = [...counts];
       writer.troupe = structuredClone(storage.get("troupe"));
@@ -72,6 +90,7 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false } = {}) {
       return writer;
     }
     decode(writer) {
+      player.equipmentSets = (writer.prayers ?? [[]]).map(ids => ({ prayerSelection: new Set(ids.map(id => prayers.find(prayer => prayer.id === id))) }));
       counts.clear();
       for (const [purchase, count] of writer.counts ?? []) counts.set(purchase, count);
       this.music.decode(writer);
@@ -85,12 +104,18 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false } = {}) {
     }
   }
   globalThis.Shop = Shop;
+  globalThis.cloudManager = { hasTotHEntitlementAndIsEnabled: celloEnabled };
+  globalThis.loadedLangJson = {};
+  globalThis.notifyPlayer = () => {};
+  globalThis.getLangString = key => key;
   globalThis.ShopTabMenu = ShopTabMenu;
   globalThis.ShopCostsAndUnlock = ShopCostsAndUnlock;
   globalThis.game = Object.assign(new Game(), {
     shop: new Shop(),
     gp: { amount: 10_000_000_000, canAfford(cost) { return this.amount >= cost; }, remove(cost) { this.amount -= cost; } },
     items: { getObjectByID: () => undefined },
+    combat: { player }, renderQueue: {},
+    prayers: { getObjectByID: id => prayers.find(prayer => prayer.id === id) },
   });
   const music = Object.assign(new Music(), {
     id: "mythMusic:Music", version: 4, level: 120, isUnlocked: true, game,
@@ -102,21 +127,24 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false } = {}) {
       getHireCostModifier: () => 0,
     },
     bards, userInterface: { instruments: new Map() }, renderQueue: {},
-    computeProvidedStats() { this.computations = (this.computations ?? 0) + 1; },
-    isMasteryActionUnlocked: () => true,
+    isMasteryActionUnlocked: instrument => instrument.level <= music.level,
   });
   if (!missingMusic) game.music = music;
   const ctx = {
     async loadModule(path) {
       if (path === "troupe.mjs") return core;
       if (path === "config.mjs") return config;
+      if (path === "cello.mjs") return cello;
       assert.equal(path, "ui.mjs");
       return { installControls(_ctx, _music, controller) { troupe = controller; } };
     },
     onModsLoaded(fn) { hooks.mods = fn; },
     onCharacterLoaded(fn) { hooks.character = () => { unlocked = true; fn(); }; },
     gameData: { async addPackage(data) {
-      for (const purchase of data.data.shopPurchases) registry.set(`${core.namespace}:${purchase.id}`, {
+      for (const skill of data.data.skillData ?? []) {
+        instruments.push(...skill.data.instruments.map(instrument => ({ ...instrument, id: `${core.namespace}:${instrument.id}` })));
+      }
+      for (const purchase of data.data.shopPurchases ?? []) registry.set(`${core.namespace}:${purchase.id}`, {
         ...purchase, id: `${core.namespace}:${purchase.id}`,
         costs: { currencies: purchase.cost.currencies.map(cost => ({ ...cost, currency: game.gp })) },
         purchaseRequirements: purchase.purchaseRequirements.map(requirement => ({ ...requirement, skill: music })),
@@ -153,7 +181,7 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false } = {}) {
     },
   };
   await setup(ctx);
-  return { hooks, storage, sections, counts, instruments, band, unrelated, registry, music, troupe: () => troupe };
+  return { hooks, storage, sections, counts, instruments, band, unrelated, registry, music, player, prayers, troupe: () => troupe };
 }
 
 test("dependency is checked after all mods load, before touching shop data", async t => {
@@ -292,4 +320,39 @@ test("saved slot settings apply on character load and QuickLoad before subsequen
   game.shop.buyItemOnClick(first);
   assert.equal(game.shop.getPurchaseCount(first), 1);
   assert.equal(game.gp.amount, gp - 4321);
+});
+
+test("sixteenth Cello hire, third prayer, and enhancements survive reload and clear on replacement", async t => {
+  const f = await fixture(t, { instrumentCount: 15, celloEnabled: true });
+  await f.hooks.mods();
+  const cello = f.music.actions.getObjectByID(`${core.namespace}:Cello`);
+  assert.equal(f.instruments.length, 16);
+  f.hooks.character();
+  for (const purchase of f.troupe().purchases) game.shop.buyItemOnClick(purchase);
+  assert.equal(f.troupe().slots().length, 16);
+  const slot = f.troupe().slots().at(-1);
+  f.music.level = 117;
+  assert.equal(f.troupe().hire(cello, slot), false);
+  f.music.level = 118;
+  assert.equal(f.troupe().hire(cello, slot), true);
+  f.music.bards.get(slot).isUpgraded = true;
+  f.music.computeProvidedStats(true);
+  for (const prayer of f.prayers.slice(0, 3)) f.player.togglePrayer(prayer, false);
+  assert.equal(f.player.activePrayers.size, 3);
+  const saved = game.encode();
+  assert.deepEqual(saved.prayers, [["prayer:1", "prayer:2"]]);
+  assert.deepEqual(saved.troupe.celloPrayers, ["prayer:3"]);
+  assert.equal(saved.troupe.bards[0].instrument, cello.id);
+  game.decode(saved);
+  assert.equal(f.music.bards.get(slot).isUpgraded, true);
+  assert.equal(f.player.activePrayers.size, 3);
+  f.player.togglePrayer(f.prayers[3], false);
+  assert.equal(f.player.activePrayers.size, 3);
+  assert.equal(f.troupe().hire(f.instruments[0], slot), true);
+  assert.equal(f.player.activePrayers.size, 2);
+  game.decode(saved);
+  assert.equal(f.player.activePrayers.size, 3);
+  game.decode({ counts: saved.counts, prayers: saved.prayers });
+  assert.equal(f.player.activePrayers.size, 2);
+  assert.equal(f.music.bards.get(slot), undefined);
 });

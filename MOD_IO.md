@@ -23,6 +23,8 @@ Buy additional slots in order, with a configurable Music level requirement and G
   Choose a positive whole level and a nonnegative whole GP price; **0 GP makes slots free**.
   The level uses your actual skill level, not your virtual level, so choose **99 or lower** if your character is capped at 99.
 - Expand your capacity to cover every instrument in Music, with **one hired bard per different instrument**.
+- Train and hire **Cello**, a powerful combat bard unlocked at **Music level 118** with **Throne of the Herald enabled**.
+  With all Music content enabled, the troupe supports sixteen different instruments.
 - Keep Music's normal instrument unlocks, mastery bonuses, hiring costs, upgrades, sockets, and utilities.
 - Retain an already purchased **Band Practice** slot and the master ancient relic's additional slot.
   Band Practice is hidden and cannot be purchased while this addon is enabled.
@@ -54,7 +56,20 @@ Settings are saved separately for each character and immediately update the shop
 Previous troupe upgrades are still required in order.
 Changing settings keeps purchased slots and existing bards, and does not refund earlier purchases.
 
-This expands passive hired bards; active instrument training stays unchanged.
+Cello provides these bonuses while hired, at the same strength under Music's Standard and Hardcore modifier settings:
+
+- **Mastery 1:** +50 percentage points each to ammunition, rune, food, Prayer-point, and Summoning-tablet preservation; −3 flat Prayer-point cost, with a minimum modified cost of 1 before preservation.
+- **Mastery 40:** +20 percentage points critical-hit chance, +100 percentage points critical damage multiplier, and +10% lifesteal.
+- **Mastery 75:** +20 percentage points Normal Damage Reduction and +100% evasion against all three attack styles.
+- **Mastery 99:** +100% accuracy and maximum hit for melee, ranged, and magic; +20% of maximum hit added to minimum hit; −20% attack interval.
+- **Instrument upgrade:** Allows a third active prayer, for a maximum of three while the upgraded Cello bard is hired at Music level 118 or higher.
+
+Normal game caps and combat rules apply, including the 80% combat preservation cap and prayer-book restrictions.
+Cello uses Music's normal mastery purchases, upgrade costs, sockets, and utilities.
+Losing the Cello upgrade removes prayers beyond the first two from every equipment set.
+The addon saves the third prayer separately and restores it when eligible; native saves contain at most two prayers per equipment set.
+
+Train one Music instrument at a time.
 For training several instruments at once, use the optional **Kroky's Workforce** mod.
 
 **Requires [Myth] Music (mod.io ID 3096259).**
@@ -71,7 +86,7 @@ https://github.com/krokyk/melvor-bardic-troupe
 
 | Field | Value |
 | --- | --- |
-| Type tags | QoL, Cheat, Non-Combat, UI, Offline |
+| Type tags | QoL, Cheat, Combat, Non-Combat, UI, Offline |
 | Platform tags | Desktop, Browser, iOS, Android |
 | Game version | 1.3.1 |
 
@@ -88,9 +103,16 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Version
 
-2.0.0
+2.1.0
 
 ## Changelog
+
+### 2.1.0
+
+- Add Cello at Music level 118 with Throne of the Herald enabled, including training, mastery, completion, Concert Pass XP, and instrument artwork.
+- Expand the troupe shop to accommodate the additional instrument using the shared slot settings.
+- Add combat preservation, Prayer cost reduction, critical hits, lifesteal, evasion, Damage Reduction, accuracy, damage, and attack speed bonuses.
+- Allow three prayers while the upgraded Cello bard is hired, with prayer-book restrictions, addon save restoration, and cleanup when the upgrade is lost.
 
 ### 2.0.0
 
@@ -138,7 +160,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Upload configuration
 
-- Upload **bardic-troupe-2.0.0.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root.
+- Upload **bardic-troupe-2.1.0.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `cello.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/cello.png`.
 - Exclude tests and documentation from the archive.
 - Set **[Myth] Music**, mod.io ID **3096259**, as a hard dependency in mod.io.
   The current Melvor manifest loader does not read dependency declarations from `manifest.json`.

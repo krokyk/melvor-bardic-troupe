@@ -1,8 +1,9 @@
 export async function setup(ctx) {
-  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }] = await Promise.all([
+  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installCello }] = await Promise.all([
     ctx.loadModule("troupe.mjs"),
     ctx.loadModule("ui.mjs"),
     ctx.loadModule("config.mjs"),
+    ctx.loadModule("cello.mjs"),
   ]);
   ctx.onModsLoaded(async () => {
     const music = game.music;
@@ -10,6 +11,8 @@ export async function setup(ctx) {
         !music.bards?.bards || !music.userInterface) {
       throw new Error("Bardic Troupe requires [Myth] Music (mod.io ID 3096259), with Music save format 4. Enable Music and reload Melvor.");
     }
+    let storageReady = false;
+    const cello = await installCello(ctx, music, () => storageReady);
     const data = createShopData(music);
     await ctx.gameData.addPackage(data);
     const purchases = data.data.shopPurchases.map(purchase => game.shop.purchases.getObjectByID(`${namespace}:${purchase.id}`));
@@ -33,14 +36,22 @@ export async function setup(ctx) {
       if (typeof shopMenu !== "undefined") shopMenu.tabs.get(purchase.category)?.menu.updateItemSelection();
     });
     // shortcut: unlinked Creator Toolkit builds may lose characterStorage; link a mod.io listing for saved rosters.
-    let storageReady = false;
+    const restore = () => {
+      settings.applySaved();
+      const saved = ctx.characterStorage.getItem("troupe");
+      troupe.restore(saved);
+      cello?.restorePrayers(saved?.version === 1 ? saved.celloPrayers : undefined);
+    };
     ctx.onCharacterLoaded(() => {
       storageReady = true;
-      settings.applySaved();
-      troupe.restore(ctx.characterStorage.getItem("troupe"));
+      restore();
     });
     ctx.patch(game.constructor, "encode").before(function () {
-      if (storageReady) ctx.characterStorage.setItem("troupe", troupe.save());
+      if (storageReady) {
+        const saved = troupe.save();
+        if (cello) saved.celloPrayers = cello.savePrayers();
+        ctx.characterStorage.setItem("troupe", saved);
+      }
     });
     ctx.patch(music.constructor, "encode").replace(function (original, ...args) {
       return troupe.encodeNative(original, ...args);
@@ -50,10 +61,7 @@ export async function setup(ctx) {
       if (storageReady) ctx.characterStorage.removeItem("troupe");
     });
     ctx.patch(game.constructor, "decode").after(function () {
-      if (storageReady) {
-        settings.applySaved();
-        troupe.restore(ctx.characterStorage.getItem("troupe"));
-      }
+      if (storageReady) restore();
     });
     installControls(ctx, music, troupe);
   });

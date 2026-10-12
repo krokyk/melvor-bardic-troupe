@@ -1,7 +1,7 @@
 # Bardic Troupe
 
 Bardic Troupe is a Melvor Idle addon for [Myth] Music that lets you hire a different bard for every available instrument and keep their bonuses active together.
-Version: **2.0.0**.
+Version: **2.1.0**.
 
 ## Requirements
 
@@ -20,7 +20,7 @@ Version: **2.0.0**.
 Slot purchases require **actual Music level 100 by default**, with a shared level requirement and GP price configurable in Mod Settings.
 Further purchases stop being offered once your total slot capacity covers every instrument registered by Music, including instruments you have not unlocked yet.
 Each instrument can have only one hired bard.
-Music's training, instrument unlocks, mastery bonuses, hiring costs, and instrument enhancements retain their normal behavior.
+Music's existing instruments retain their normal training, unlocks, mastery bonuses, hiring costs, and enhancements.
 Replacing a bard loses that bard's upgrade, socket, and utility, as in Music.
 
 The compact **Toggle Bardic Troupe** bar shows an eye icon and the number of hired bards out of your total slots.
@@ -47,6 +47,33 @@ This cue also works for unhired instruments, and all roster states and cues upda
 
 Music's **Band Practice** purchase is hidden and blocked while this addon is enabled.
 An already purchased Band Practice slot is preserved, and Music's master ancient relic still grants its additional slot.
+
+## Cello
+
+Cello unlocks at **Music level 118** with **Throne of the Herald enabled**.
+With all Music content enabled, it is the sixteenth instrument and the troupe can hold all sixteen different bards.
+The extra slot uses the same sequential purchases, configurable level requirement, and GP price as the other troupe slots.
+Cello trains every 3 seconds before interval modifiers, grants 547 base Music XP, and has a base maximum tip of 705 GP before mastery and GP modifiers.
+Its associated skills are Attack, Strength, Ranged, Magic, Defence, Hitpoints, Prayer, and Summoning, including Concert Pass XP.
+
+| Bonus tier | Bonuses while hired |
+| --- | --- |
+| Mastery 1 | +50 percentage points each to ammunition, rune, food, Prayer-point, and Summoning-tablet preservation; −3 flat Prayer-point cost. |
+| Mastery 40 | +20 percentage points critical-hit chance, +100 percentage points critical damage multiplier, and +10% lifesteal. |
+| Mastery 75 | +20 percentage points Normal Damage Reduction and +100% melee, ranged, and magic evasion. |
+| Mastery 99 | +100% melee, ranged, and magic accuracy and maximum hit; +20% of maximum hit added to minimum hit; −20% attack interval. |
+| Instrument upgrade | Allows three active prayers in total. |
+
+These bonuses have the same strength under Music's Standard and Hardcore modifier settings.
+Normal game caps and combat rules apply, including the 80% combat preservation cap and minimum modified Prayer-point cost of 1 before preservation.
+The critical bonus adds to the combat sheet, so base values of 0% chance and 150% multiplier become 20% and 250%.
+Mastery bonuses require the usual Music mastery purchases, and the instrument upgrade uses the usual Essence of Music cost.
+Cello supports Music's sockets, utilities, mastery pool, completion, and saved mastery progress.
+
+The third prayer requires the upgraded Cello bard to remain hired and Music level 118 or higher.
+Prayers must belong to the same prayer book and still meet the game's normal equipment, damage-type, and resource checks.
+Losing the upgrade removes prayers beyond the first two from every equipment set.
+The third prayer is stored with the addon and restored when eligible, while the native save contains at most two prayers per equipment set.
 
 ## Mod Settings
 
@@ -75,16 +102,18 @@ There is intentionally no browser-local storage fallback.
 
 ## Package and development
 
-The release archive is **bardic-troupe-2.0.0.zip** and contains these seven files at its root:
+The release archive is **bardic-troupe-2.1.0.zip** and contains these runtime files, with `manifest.json` at its root:
 
 ```text
 manifest.json
 setup.mjs
 config.mjs
 troupe.mjs
+cello.mjs
 ui.mjs
 ui.css
 icon.svg
+assets/cello.png
 ```
 
 The manifest loads `ui.css` along with the addon scripts.

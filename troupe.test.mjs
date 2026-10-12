@@ -108,7 +108,7 @@ test("shop tiers default to 500M and Music level 100 with the preceding purchase
 });
 
 test("registered instruments determine shop tiers and the capacity limit", () => {
-  for (const count of [0, 1, 10, 14, 15, 17]) {
+  for (const count of [0, 1, 10, 14, 15, 16, 17]) {
     const { music } = fixture({ count });
     assert.equal(createShopData(music).data.shopPurchases.length, Math.max(0, count - 1));
   }
