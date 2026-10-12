@@ -72,7 +72,7 @@ async function fixture(t, { enabled = true } = {}) {
     },
   };
   let ready = true;
-  const cello = await installCello(ctx, music, () => ready);
+  const cello = await installCello(ctx, music, () => ready, namespace);
   const instrument = music.actions.getObjectByID(`${namespace}:Cello`);
   const bard = { instrument, isUpgraded: true };
   if (instrument) bards.set(instrument, bard);

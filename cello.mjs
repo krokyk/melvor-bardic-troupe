@@ -1,6 +1,4 @@
-import { namespace } from "./troupe.mjs";
-
-export function createCelloData() {
+export function createCelloData(namespace) {
   const bonuses = [
     { level: 1, modifiers: {
       ammoPreservationChance: 50, runePreservationChance: 50, foodPreservationChance: 50,
@@ -30,9 +28,9 @@ export function createCelloData() {
   };
 }
 
-export async function installCello(ctx, music, isReady) {
+export async function installCello(ctx, music, isReady, namespace) {
   if (!cloudManager.hasTotHEntitlementAndIsEnabled) return;
-  await ctx.gameData.addPackage(createCelloData());
+  await ctx.gameData.addPackage(createCelloData(namespace));
   loadedLangJson.Myth_Music_Instrument_Cello = "Cello";
   const instrument = music.actions.getObjectByID(`${namespace}:Cello`);
   const game = music.game;

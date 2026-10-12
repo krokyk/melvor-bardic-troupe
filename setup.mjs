@@ -12,7 +12,7 @@ export async function setup(ctx) {
       throw new Error("Bardic Troupe requires [Myth] Music (mod.io ID 3096259), with Music save format 4. Enable Music and reload Melvor.");
     }
     let storageReady = false;
-    const cello = await installCello(ctx, music, () => storageReady);
+    const cello = await installCello(ctx, music, () => storageReady, namespace);
     const data = createShopData(music);
     await ctx.gameData.addPackage(data);
     const purchases = data.data.shopPurchases.map(purchase => game.shop.purchases.getObjectByID(`${namespace}:${purchase.id}`));

@@ -1,9 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import { setup } from "./setup.mjs";
 import * as core from "./troupe.mjs";
 import * as config from "./config.mjs";
 import * as cello from "./cello.mjs";
+
+test("setup loads through Melvor's standalone module URLs", async () => {
+  let registered = false;
+  await setup({
+    async loadModule(path) {
+      const source = await readFile(new URL(path, import.meta.url));
+      return import(`data:text/javascript;base64,${source.toString("base64")}`);
+    },
+    onModsLoaded() { registered = true; },
+  });
+  assert.equal(registered, true);
+});
 
 async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnabled = false } = {}) {
   const globals = ["game", "Shop", "ShopTabMenu", "ShopCostsAndUnlock", "shopMenu", "cloudManager", "loadedLangJson", "notifyPlayer", "getLangString"];
