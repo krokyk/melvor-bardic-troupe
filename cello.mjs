@@ -41,7 +41,10 @@ export function createCelloData(namespace) {
 
 export async function installCello(ctx, music, isReady, namespace) {
   if (!cloudManager.hasTotHEntitlementAndIsEnabled) return;
-  await ctx.gameData.addPackage(createCelloData(namespace));
+  const { modifications, ...instrumentPackage } = createCelloData(namespace);
+  // Music resolves instrument modifiers before modifications in the same package are applied.
+  await ctx.gameData.addPackage({ namespace, modifications });
+  await ctx.gameData.addPackage(instrumentPackage);
   loadedLangJson.Myth_Music_Instrument_Cello = "Cello";
   const instrument = music.actions.getObjectByID(`${namespace}:Cello`);
   const game = music.game;

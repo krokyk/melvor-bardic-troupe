@@ -58,10 +58,24 @@ async function fixture(t, { enabled = true } = {}) {
     actions: { allObjects: instruments, getObjectByID: id => instruments.find(instrument => instrument.id === id) },
   });
   const packages = [];
+  let skillDoublingScopeRegistered = false;
   const ctx = {
     gameData: { async addPackage(data) {
       packages.push(data);
-      instruments.push(...data.data.skillData[0].data.instruments.map(instrument => ({ ...instrument, id: `${namespace}:${instrument.id}` })));
+      // Native package loading resolves instrument data before applying package modifications.
+      for (const instrument of data.data?.skillData?.[0].data.instruments ?? []) {
+        for (const tier of [...instrument.standardModifiers, ...instrument.hardcoreModifiers]) {
+          if (typeof tier.modifiers.skillItemDoublingChance === "number") {
+            assert.ok(skillDoublingScopeRegistered, 'No scoping exists for scope: value for modifier "melvorD:skillItemDoublingChance"');
+          }
+        }
+        instruments.push({ ...instrument, id: `${namespace}:${instrument.id}` });
+      }
+      for (const modification of data.modifications?.modifiers ?? []) {
+        if (modification.id === "melvorD:skillItemDoublingChance" && modification.allowedScopes.some(scope => Object.keys(scope.scopes).length === 0)) {
+          skillDoublingScopeRegistered = true;
+        }
+      }
     } },
     patch(Class, name) {
       const original = Class.prototype[name];
@@ -81,6 +95,9 @@ async function fixture(t, { enabled = true } = {}) {
 
 test("Cello registers before capacity calculation with all combat tiers and both modifier settings", async t => {
   const f = await fixture(t);
+  assert.equal(f.packages.length, 2);
+  assert.equal(f.packages[0].data, undefined);
+  assert.equal(f.packages[1].modifications, undefined);
   assert.equal(f.instrument.level, 118);
   assert.equal(f.instrument.baseInterval, 3000);
   assert.equal(f.instrument.baseExperience, 547);
