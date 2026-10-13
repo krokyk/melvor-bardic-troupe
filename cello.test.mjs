@@ -86,7 +86,8 @@ test("Cello registers before capacity calculation with all combat tiers and both
   assert.equal(f.instrument.baseExperience, 547);
   assert.deepEqual(f.instrument.standardModifiers.map(bonus => bonus.level), [1, 40, 75, 99, 999]);
   assert.deepEqual(f.instrument.hardcoreModifiers, f.instrument.standardModifiers);
-  assert.deepEqual(f.instrument.standardModifiers[1].modifiers, { critChance: 20, critMultiplier: 100, lifesteal: 10 });
+  const { skillItemDoublingChance, skillPreservationChance, ...combat } = f.instrument.standardModifiers[1].modifiers;
+  assert.deepEqual(combat, { critChance: 20, critMultiplier: 100, lifesteal: 10 });
   assert.equal(f.instrument.standardModifiers[0].modifiers.flatPrayerPointCost, -3);
   assert.equal(f.music.getMaxTotalMasteryLevels(), 16 * 99);
   assert.equal(f.music.getTotalCurrentMasteryLevels(), 55);
@@ -99,6 +100,26 @@ test("Cello registers before capacity calculation with all combat tiers and both
   assert.equal(troupe.slots().length, 16);
   assert.equal(troupe.canBuySlot(), false);
   assert.equal(loadedLangJson.Myth_Music_Instrument_Cello, "Cello");
+});
+
+test("all five Cello tiers add 10 points of skill doubling and preservation under both modifier settings", async t => {
+  const f = await fixture(t);
+  const modification = f.packages[0].modifications.modifiers[0];
+  assert.equal(modification.id, "melvorD:skillItemDoublingChance");
+  assert.deepEqual(modification.allowedScopes[0].scopes, {});
+  for (const bonuses of [f.instrument.standardModifiers, f.instrument.hardcoreModifiers]) {
+    let preservation = 0;
+    let doubling = 0;
+    for (const [index, { modifiers }] of bonuses.entries()) {
+      assert.equal(modifiers.skillPreservationChance, 10);
+      assert.equal(modifiers.skillItemDoublingChance, 10);
+      assert.equal(modifiers.globalItemDoublingChance, undefined, "skill bonuses must not increase combat loot doubling");
+      preservation += modifiers.skillPreservationChance;
+      doubling += modifiers.skillItemDoublingChance;
+      assert.equal(preservation, (index + 1) * 10);
+      assert.equal(doubling, (index + 1) * 10);
+    }
+  }
 });
 
 test("without Throne of the Herald no Cello, additional slot, or prayer patch is registered", async t => {

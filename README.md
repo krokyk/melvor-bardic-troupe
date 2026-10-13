@@ -1,7 +1,7 @@
 # Bardic Troupe
 
 Bardic Troupe is a Melvor Idle addon for [Myth] Music that lets you hire a different bard for every available instrument and keep their bonuses active together.
-Version: **2.1.1**.
+Version: **2.2.0**.
 
 ## Requirements
 
@@ -64,6 +64,10 @@ Its associated skills are Attack, Strength, Ranged, Magic, Defence, Hitpoints, P
 | Mastery 99 | +100% melee, ranged, and magic accuracy and maximum hit; +20% of maximum hit added to minimum hit; −20% attack interval. |
 | Instrument upgrade | Allows three active prayers in total. |
 
+Each of these five tiers also adds **+10 percentage points to skill item doubling and resource preservation** while the Cello bard is hired.
+The base tier, purchased Mastery 40, 75, and 99 bonuses, and the instrument upgrade stack to **+50 percentage points each** when all five are active.
+Doubling applies to skill outputs, including Alt. Magic and modded skills, and adds to existing bonuses under the game's normal doubling and preservation caps.
+
 These bonuses have the same strength under Music's Standard and Hardcore modifier settings.
 Normal game caps and combat rules apply, including the 80% combat preservation cap and minimum modified Prayer-point cost of 1 before preservation.
 The critical bonus adds to the combat sheet, so base values of 0% chance and 150% multiplier become 20% and 250%.
@@ -102,7 +106,7 @@ There is intentionally no browser-local storage fallback.
 
 ## Package and development
 
-The release archive is **bardic-troupe-2.1.1.zip** and contains these runtime files, with `manifest.json` at its root:
+The release archive is **bardic-troupe-2.2.0.zip** and contains these runtime files, with `manifest.json` at its root:
 
 ```text
 manifest.json

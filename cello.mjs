@@ -1,18 +1,29 @@
 export function createCelloData(namespace) {
+  const skillBonuses = {
+    skillItemDoublingChance: 10,
+    skillPreservationChance: 10,
+  };
   const bonuses = [
     { level: 1, modifiers: {
+      ...skillBonuses,
       ammoPreservationChance: 50, runePreservationChance: 50, foodPreservationChance: 50,
       prayerPointPreservationChance: 50, summoningChargePreservationChance: 50, flatPrayerPointCost: -3,
     } },
-    { level: 40, modifiers: { critChance: 20, critMultiplier: 100, lifesteal: 10 } },
+    { level: 40, modifiers: { ...skillBonuses, critChance: 20, critMultiplier: 100, lifesteal: 10 } },
     { level: 75, modifiers: {
+      ...skillBonuses,
       flatResistance: [{ damageTypeID: "melvorD:Normal", value: 20 }], evasion: 100,
     } },
-    { level: 99, modifiers: { accuracyRating: 100, maxHit: 100, minHitBasedOnMaxHit: 20, attackInterval: -20 } },
-    { level: 999, modifiers: { [`${namespace}:thirdPrayer`]: 1 } },
+    { level: 99, modifiers: { ...skillBonuses, accuracyRating: 100, maxHit: 100, minHitBasedOnMaxHit: 20, attackInterval: -20 } },
+    { level: 999, modifiers: { ...skillBonuses, [`${namespace}:thirdPrayer`]: 1 } },
   ];
   return {
     namespace,
+    // Native skill-only doubling needs an unscoped description to cover every skill compactly.
+    modifications: { modifiers: [{
+      id: "melvorD:skillItemDoublingChance",
+      allowedScopes: [{ scopes: {}, descriptions: [{ text: "+${value}% Chance to Double Items in Skills", above: 0, includeSign: false }] }],
+    }] },
     data: {
       modifiers: [{
         id: "thirdPrayer", isCombat: true, allowEnemy: false, allowNegative: false,
