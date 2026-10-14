@@ -154,10 +154,10 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
     onModsLoaded(fn) { hooks.mods = fn; },
     onCharacterLoaded(fn) { hooks.character = () => { unlocked = true; fn(); }; },
     gameData: { async addPackage(data) {
-      for (const skill of data.data.skillData ?? []) {
+      for (const skill of data.data?.skillData ?? []) {
         instruments.push(...skill.data.instruments.map(instrument => ({ ...instrument, id: `${core.namespace}:${instrument.id}` })));
       }
-      for (const purchase of data.data.shopPurchases ?? []) registry.set(`${core.namespace}:${purchase.id}`, {
+      for (const purchase of data.data?.shopPurchases ?? []) registry.set(`${core.namespace}:${purchase.id}`, {
         ...purchase, id: `${core.namespace}:${purchase.id}`,
         costs: { currencies: purchase.cost.currencies.map(cost => ({ ...cost, currency: game.gp })) },
         purchaseRequirements: purchase.purchaseRequirements.map(requirement => ({ ...requirement, skill: music })),

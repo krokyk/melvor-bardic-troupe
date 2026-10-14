@@ -23,7 +23,7 @@ Buy additional slots in order, with a configurable Music level requirement and G
   Choose a positive whole level and a nonnegative whole GP price; **0 GP makes slots free**.
   The level uses your actual skill level, not your virtual level, so choose **99 or lower** if your character is capped at 99.
 - Expand your capacity to cover every instrument in Music, with **one hired bard per different instrument**.
-- Train and hire **Cello**, a powerful combat bard unlocked at **Music level 118** with **Throne of the Herald enabled**.
+- Train and hire **Cello**, a powerful combat and skilling bard unlocked at **Music level 118** with **Throne of the Herald enabled**.
   With all Music content enabled, the troupe supports sixteen different instruments.
 - Keep Music's normal instrument unlocks, mastery bonuses, hiring costs, upgrades, sockets, and utilities.
 - Retain an already purchased **Band Practice** slot and the master ancient relic's additional slot.
@@ -64,6 +64,10 @@ Cello provides these bonuses while hired, at the same strength under Music's Sta
 - **Mastery 99:** +100% accuracy and maximum hit for melee, ranged, and magic; +20% of maximum hit added to minimum hit; −20% attack interval.
 - **Instrument upgrade:** Allows a third active prayer, for a maximum of three while the upgraded Cello bard is hired at Music level 118 or higher.
 
+Each of these five tiers also adds **+10 percentage points to skill item doubling and resource preservation** while the Cello bard is hired.
+These bonuses stack to **+50 percentage points each** with the base tier, all three purchased mastery bonuses, and the instrument upgrade active.
+Doubling applies to skill outputs, including Alt. Magic and modded skills, and adds to existing bonuses under the game's normal doubling and preservation caps.
+
 Normal game caps and combat rules apply, including the 80% combat preservation cap and prayer-book restrictions.
 Cello uses Music's normal mastery purchases, upgrade costs, sockets, and utilities.
 Losing the Cello upgrade removes prayers beyond the first two from every equipment set.
@@ -97,15 +101,24 @@ https://github.com/krokyk/melvor-bardic-troupe
 
 ## Listing image
 
-`assets/listing-image.png`
+`assets/cover.png`
 
 Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Version
 
-2.1.2
+2.2.1
 
 ## Changelog
+
+### 2.2.1
+
+- Register the skill-doubling modifier scope before Cello's instrument data to fix startup errors in Creator Toolkit and mod.io installations.
+
+### 2.2.0
+
+- Add +10 percentage points to skill item doubling and resource preservation at each Cello tier, reaching +50 points each when all mastery bonuses are purchased and the hired bard is upgraded.
+- Apply doubling to skill outputs, including Alt. Magic and modded skills, with normal game caps and the same strength under Standard and Hardcore settings.
 
 ### 2.1.2
 
@@ -168,7 +181,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Upload configuration
 
-- Upload **bardic-troupe-2.1.2.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `cello.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/cello.png`.
+- Upload **bardic-troupe-2.2.1.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `cello.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/cello.png`.
 - Exclude tests and documentation from the archive.
 - Set **[Myth] Music**, mod.io ID **3096259**, as a hard dependency in mod.io.
   The current Melvor manifest loader does not read dependency declarations from `manifest.json`.
