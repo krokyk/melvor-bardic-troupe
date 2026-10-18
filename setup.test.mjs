@@ -5,6 +5,7 @@ import { setup } from "./setup.mjs";
 import * as core from "./troupe.mjs";
 import * as config from "./config.mjs";
 import * as cello from "./cello.mjs";
+import * as bonuses from "./bonuses.mjs";
 
 test("setup loads through Melvor's standalone module URLs", async () => {
   let registered = false;
@@ -148,6 +149,7 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
       if (path === "troupe.mjs") return core;
       if (path === "config.mjs") return config;
       if (path === "cello.mjs") return cello;
+      if (path === "bonuses.mjs") return bonuses;
       assert.equal(path, "ui.mjs");
       return { installControls(_ctx, _music, controller) { troupe = controller; } };
     },
@@ -321,7 +323,7 @@ test("saved slot settings apply on character load and QuickLoad before subsequen
   assert.equal(first.costs.currencies[0].cost, 4321);
   assert.equal(first.purchaseRequirements[0].level, 99);
   const saved = game.encode();
-  assert.deepEqual(saved.settings, { "troupe-slot-price": 4321, "troupe-slot-level": 99 });
+  assert.deepEqual(saved.settings, { "troupe-slot-price": 4321, "troupe-slot-level": 99, "extra-preservation-and-doubling": false });
   const settings = f.sections.get("Bardic Troupe");
   settings.set("troupe-slot-price", 0);
   settings.set("troupe-slot-level", 120);
@@ -333,6 +335,35 @@ test("saved slot settings apply on character load and QuickLoad before subsequen
   game.shop.buyItemOnClick(first);
   assert.equal(game.shop.getPurchaseCount(first), 1);
   assert.equal(game.gp.amount, gp - 4321);
+});
+
+test("the character setting restores before offline processing and QuickLoad defaults missing older values to OFF", async t => {
+  const f = await fixture(t);
+  const guitar = f.instruments[0];
+  guitar.id = "mythMusic:Guitar";
+  const modes = Object.fromEntries(["standard", "hardcore"].map(mode => [mode, [{ level: 1, modifiers: [] }]]));
+  guitar.modifiers = mode => modes[mode];
+  game.getModifierValuesFromData = data => Object.entries(data).map(([id, value]) => ({ modifier: { id }, value }));
+  await f.hooks.mods();
+  const name = "extra-preservation-and-doubling";
+  const settings = f.sections.get("Bardic Troupe");
+  game.decode({ settings: { [name]: true } });
+  assert.equal(modes.standard[0].modifiers.length, 0, "saved settings wait until character restoration");
+  f.hooks.character();
+  assert.equal(modes.standard[0].modifiers[0].value, 5);
+  const saved = game.encode();
+  assert.equal(saved.settings[name], true);
+  settings.set(name, false);
+  assert.equal(modes.standard[0].modifiers, undefined);
+  game.decode(saved);
+  assert.equal(settings.get(name), true);
+  assert.equal(modes.standard[0].modifiers.length, 1);
+  assert.equal(modes.hardcore[0].modifiers.length, 1);
+  game.decode({ settings: { "troupe-slot-price": 1234 } });
+  assert.equal(settings.get(name), false, "an older save cannot reuse the enabled setting from a later save");
+  assert.equal(modes.standard[0].modifiers, undefined);
+  game.decode(saved);
+  assert.equal(modes.standard[0].modifiers.length, 1, "reloading an enabled save adds exactly one value");
 });
 
 test("sixteenth Cello hire, third prayer, and enhancements survive reload and clear on replacement", async t => {

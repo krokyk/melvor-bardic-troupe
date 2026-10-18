@@ -1,7 +1,7 @@
 # Bardic Troupe
 
 Bardic Troupe is a Melvor Idle addon for [Myth] Music that lets you hire a different bard for every available instrument and keep their bonuses active together.
-Version: **2.2.1**.
+Version: **2.2.2**.
 
 ## Requirements
 
@@ -48,6 +48,38 @@ This cue also works for unhired instruments, and all roster states and cues upda
 Music's **Band Practice** purchase is hidden and blocked while this addon is enabled.
 An already purchased Band Practice slot is preserved, and Music's master ancient relic still grants its additional slot.
 
+## Extra preservation and doubling
+
+The per-character **Extra preservation and doubling** toggle is **OFF by default for new and existing characters**.
+Enable it in Mod Settings to add **Chance to Double Items in Skills** and **Chance to Preserve Resources in Skills** to the fifteen instruments before Cello.
+Every award below adds **5 percentage points** to one bonus at the listed tier; no tier receives both additions.
+
+| Instrument | Extra doubling tier | Extra preservation tier |
+| --- | --- | --- |
+| Guitar | Base | — |
+| Banjo | Mastery 75 | Base |
+| Snare Drum | Base | Mastery 75 |
+| Accordion | — | Base |
+| Bouzouki | Mastery 40 | Mastery 99 |
+| Flute | — | Mastery 99 |
+| Maraca | Mastery 40 | Instrument upgrade |
+| Xylophone | — | Mastery 40 |
+| Saxophone | Mastery 99 | — |
+| Violin | Mastery 99 | Mastery 40 |
+| Djembe | Instrument upgrade | — |
+| French Horn | — | Mastery 75 |
+| Harp | Mastery 75 | — |
+| Tambourine | Instrument upgrade | — |
+| Trumpet | — | Instrument upgrade |
+
+The ten awards per bonus total **+50 percentage points each** when all relevant bards are hired and their listed tiers are active.
+Each of the five tiers contains two doubling awards and two preservation awards across the troupe.
+Normal instrument levels, mastery purchases, upgrade costs, expansion requirements, and game caps still apply; unavailable expansion shares are not reassigned.
+The additions have the same strength under Music's Standard and Hardcore modifier settings.
+Changing the toggle immediately refreshes active bonuses and descriptions.
+When OFF, the additions disappear from all descriptions and have no effect, while Music's original bonuses, purchased masteries, and instrument enhancements are retained.
+Cello no longer grants these two skill bonuses, regardless of the toggle.
+
 ## Cello
 
 Cello unlocks at **Music level 118** with **Throne of the Herald enabled**.
@@ -63,10 +95,6 @@ Its associated skills are Attack, Strength, Ranged, Magic, Defence, Hitpoints, P
 | Mastery 75 | +20 percentage points Normal Damage Reduction and +100% melee, ranged, and magic evasion. |
 | Mastery 99 | +100% melee, ranged, and magic accuracy and maximum hit; +20% of maximum hit added to minimum hit; −20% attack interval. |
 | Instrument upgrade | Allows three active prayers in total. |
-
-Each of these five tiers also adds **+10 percentage points to skill item doubling and resource preservation** while the Cello bard is hired.
-The base tier, purchased Mastery 40, 75, and 99 bonuses, and the instrument upgrade stack to **+50 percentage points each** when all five are active.
-Doubling applies to skill outputs, including Alt. Magic and modded skills, and adds to existing bonuses under the game's normal doubling and preservation caps.
 
 These bonuses have the same strength under Music's Standard and Hardcore modifier settings.
 Normal game caps and combat rules apply, including the 80% combat preservation cap and minimum modified Prayer-point cost of 1 before preservation.
@@ -87,6 +115,8 @@ The level must be a positive whole number and uses your actual skill level, not 
 Set it to **99 or lower** if your character is capped at level 99.
 The price must be a nonnegative whole number; **0 makes slot purchases free**.
 
+The **Extra preservation and doubling** toggle controls the optional skill bonuses described above and defaults to OFF.
+
 Changes immediately update the shop's prices, requirements, and labels.
 You must still buy each preceding troupe upgrade first.
 Purchased slots and existing bards are retained, and price changes do not refund previous purchases.
@@ -106,7 +136,7 @@ There is intentionally no browser-local storage fallback.
 
 ## Package and development
 
-The release archive is **bardic-troupe-2.2.1.zip** and contains these runtime files, with `manifest.json` at its root:
+The release archive is **bardic-troupe-2.2.2.zip** and contains these runtime files, with `manifest.json` at its root:
 
 ```text
 manifest.json
@@ -114,6 +144,7 @@ setup.mjs
 config.mjs
 troupe.mjs
 cello.mjs
+bonuses.mjs
 ui.mjs
 ui.css
 icon.svg

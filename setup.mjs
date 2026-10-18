@@ -1,9 +1,10 @@
 export async function setup(ctx) {
-  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installCello }] = await Promise.all([
+  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installCello }, { installSkillBonuses }] = await Promise.all([
     ctx.loadModule("troupe.mjs"),
     ctx.loadModule("ui.mjs"),
     ctx.loadModule("config.mjs"),
     ctx.loadModule("cello.mjs"),
+    ctx.loadModule("bonuses.mjs"),
   ]);
   ctx.onModsLoaded(async () => {
     const music = game.music;
@@ -18,6 +19,7 @@ export async function setup(ctx) {
     const purchases = data.data.shopPurchases.map(purchase => game.shop.purchases.getObjectByID(`${namespace}:${purchase.id}`));
     const settings = configureUpgrades(ctx, game, purchases);
     const troupe = new Troupe(music, purchases);
+    const bonuses = await installSkillBonuses(ctx, music, troupe);
     const bandPractice = game.shop.purchases.getObjectByID("mythMusic:Band_Practice");
     const bandIndex = game.shop.purchaseDisplayOrder.indexOf(bandPractice);
     if (bandIndex !== -1) game.shop.purchaseDisplayOrder.splice(bandIndex, 1);
@@ -38,6 +40,7 @@ export async function setup(ctx) {
     // shortcut: unlinked Creator Toolkit builds may lose characterStorage; link a mod.io listing for saved rosters.
     const restore = () => {
       settings.applySaved();
+      bonuses.applySaved();
       const saved = ctx.characterStorage.getItem("troupe");
       troupe.restore(saved);
       cello?.restorePrayers(saved?.version === 1 ? saved.celloPrayers : undefined);
@@ -58,7 +61,10 @@ export async function setup(ctx) {
     });
     ctx.patch(game.constructor, "decode").before(function () {
       // QuickLoad must not reuse storage left over from a newer save with Troupe enabled.
-      if (storageReady) ctx.characterStorage.removeItem("troupe");
+      if (storageReady) {
+        bonuses.resetForLoad();
+        ctx.characterStorage.removeItem("troupe");
+      }
     });
     ctx.patch(game.constructor, "decode").after(function () {
       if (storageReady) restore();

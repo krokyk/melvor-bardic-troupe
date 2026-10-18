@@ -23,8 +23,10 @@ Buy additional slots in order, with a configurable Music level requirement and G
   Choose a positive whole level and a nonnegative whole GP price; **0 GP makes slots free**.
   The level uses your actual skill level, not your virtual level, so choose **99 or lower** if your character is capped at 99.
 - Expand your capacity to cover every instrument in Music, with **one hired bard per different instrument**.
-- Train and hire **Cello**, a powerful combat and skilling bard unlocked at **Music level 118** with **Throne of the Herald enabled**.
+- Train and hire **Cello**, a powerful combat bard unlocked at **Music level 118** with **Throne of the Herald enabled**.
   With all Music content enabled, the troupe supports sixteen different instruments.
+- Enable the optional **Extra preservation and doubling** bonuses in Mod Settings, with separate +5-point awards across the fifteen instruments before Cello.
+  The toggle defaults to **OFF for new and existing characters**.
 - Keep Music's normal instrument unlocks, mastery bonuses, hiring costs, upgrades, sockets, and utilities.
 - Retain an already purchased **Band Practice** slot and the master ancient relic's additional slot.
   Band Practice is hidden and cannot be purchased while this addon is enabled.
@@ -56,6 +58,34 @@ Settings are saved separately for each character and immediately update the shop
 Previous troupe upgrades are still required in order.
 Changing settings keeps purchased slots and existing bards, and does not refund earlier purchases.
 
+**Extra preservation and doubling** adds **Chance to Double Items in Skills** and **Chance to Preserve Resources in Skills** at these tiers when enabled.
+Each award adds **5 percentage points** to one bonus; no tier receives both additions.
+
+| Instrument | Extra doubling tier | Extra preservation tier |
+| --- | --- | --- |
+| Guitar | Base | — |
+| Banjo | Mastery 75 | Base |
+| Snare Drum | Base | Mastery 75 |
+| Accordion | — | Base |
+| Bouzouki | Mastery 40 | Mastery 99 |
+| Flute | — | Mastery 99 |
+| Maraca | Mastery 40 | Instrument upgrade |
+| Xylophone | — | Mastery 40 |
+| Saxophone | Mastery 99 | — |
+| Violin | Mastery 99 | Mastery 40 |
+| Djembe | Instrument upgrade | — |
+| French Horn | — | Mastery 75 |
+| Harp | Mastery 75 | — |
+| Tambourine | Instrument upgrade | — |
+| Trumpet | — | Instrument upgrade |
+
+The ten awards per bonus total **+50 percentage points each** when all relevant bards are hired and their listed tiers are active.
+Normal levels, mastery purchases, instrument upgrades, expansion requirements, and game caps still apply; unavailable expansion shares are not reassigned.
+The additions are identical under Music's Standard and Hardcore modifier settings.
+The toggle is saved per character, defaults to OFF, and immediately updates active bonuses and descriptions when changed.
+When OFF, only the additions disappear completely; Music's original bonuses, purchased masteries, and instrument enhancements are retained.
+Cello no longer grants these two skill bonuses, regardless of the toggle.
+
 Cello provides these bonuses while hired, at the same strength under Music's Standard and Hardcore modifier settings:
 
 - **Mastery 1:** +50 percentage points each to ammunition, rune, food, Prayer-point, and Summoning-tablet preservation; −3 flat Prayer-point cost, with a minimum modified cost of 1 before preservation.
@@ -63,10 +93,6 @@ Cello provides these bonuses while hired, at the same strength under Music's Sta
 - **Mastery 75:** +20 percentage points Normal Damage Reduction and +100% evasion against all three attack styles.
 - **Mastery 99:** +100% accuracy and maximum hit for melee, ranged, and magic; +20% of maximum hit added to minimum hit; −20% attack interval.
 - **Instrument upgrade:** Allows a third active prayer, for a maximum of three while the upgraded Cello bard is hired at Music level 118 or higher.
-
-Each of these five tiers also adds **+10 percentage points to skill item doubling and resource preservation** while the Cello bard is hired.
-These bonuses stack to **+50 percentage points each** with the base tier, all three purchased mastery bonuses, and the instrument upgrade active.
-Doubling applies to skill outputs, including Alt. Magic and modded skills, and adds to existing bonuses under the game's normal doubling and preservation caps.
 
 Normal game caps and combat rules apply, including the 80% combat preservation cap and prayer-book restrictions.
 Cello uses Music's normal mastery purchases, upgrade costs, sockets, and utilities.
@@ -107,9 +133,17 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Version
 
-2.2.1
+2.2.2
 
 ## Changelog
+
+### 2.2.2
+
+- Add the per-character **Extra preservation and doubling** toggle, defaulting to OFF for new and existing characters.
+- Move the added skill bonuses from Cello to twenty separate +5-percentage-point awards across the fifteen earlier instruments, retaining a maximum of +50 points to each bonus.
+- Apply toggle changes immediately to active bonuses and descriptions, hiding the additions completely while OFF without changing Music's native bonuses or purchased progress.
+- Keep the additions identical under Standard and Hardcore settings, with normal tier requirements, expansion access, and game caps.
+- Retain Cello's combat bonuses and third prayer.
 
 ### 2.2.1
 
@@ -181,7 +215,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Upload configuration
 
-- Upload **bardic-troupe-2.2.1.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `cello.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/cello.png`.
+- Upload **bardic-troupe-2.2.2.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `cello.mjs`, `bonuses.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/cello.png`.
 - Exclude tests and documentation from the archive.
 - Set **[Myth] Music**, mod.io ID **3096259**, as a hard dependency in mod.io.
   The current Melvor manifest loader does not read dependency declarations from `manifest.json`.
