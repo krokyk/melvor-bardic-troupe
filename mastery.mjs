@@ -1,4 +1,4 @@
-export const mastery118Cost = 100_000_000;
+export const masteryCosts = new Map([[20, 100_000], [40, 1_000_000], [65, 10_000_000], [99, 100_000_000]]);
 
 // Music stores Banjo as Drum, Snare Drum as Banjo, and Djembe as Bongo.
 const preservation = [
@@ -15,100 +15,71 @@ const preservation = [
   ["Tambourine", "compostPreservationChance"],
 ];
 
-export function installMastery118(ctx, music, troupe, namespace) {
-  if (!cloudManager.hasTotHEntitlementAndIsEnabled) return;
+export function installMasteryTiers(ctx, music, troupe, namespace) {
   const game = music.game;
   const unlocked = new Set();
   const tiers = new Set();
+  const levels = new Map([[40, 20], [75, 40], [99, 65]]);
+  // Keep tier positions stable so Music's saved purchases retain their rewards.
+  for (const instrument of music.actions.allObjects) {
+    for (const mode of ["standard", "hardcore"]) {
+      for (const tier of instrument.modifiers(mode)) tier.level = levels.get(tier.level) ?? tier.level;
+    }
+  }
   const rewards = preservation.map(([id, modifier]) => [`mythMusic:${id}`, { [modifier]: 50 }]);
-  // Flat HP uses the game's tenfold normal-mode scaling: 10 grants 100 Hitpoints.
-  rewards.push([`${namespace}:Cello`, { flatMaxHitpoints: 10, summoningAttackInterval: -25 }]);
+  rewards.push([`${namespace}:Cello`, { summoningAttackInterval: -25, attackInterval: -10 }]);
   for (const [id, modifiers] of rewards) {
     const instrument = music.actions.getObjectByID(id);
     if (!instrument) continue;
     for (const mode of ["standard", "hardcore"]) {
-      const tier = new StatObject({}, game, "Bardic Troupe Mastery 118");
+      const tier = new StatObject({}, game, "Bardic Troupe Mastery 99");
       tier.modifiers = game.getModifierValuesFromData(modifiers);
-      tier.level = 118;
-      instrument.modifiers(mode).push(tier);
+      tier.level = 99;
+      const bonuses = instrument.modifiers(mode);
+      bonuses.splice(bonuses.findIndex(bonus => bonus.level === 999), 0, tier);
     }
     tiers.add(instrument);
   }
 
-  ctx.patch(music.constructor, "masteryLevelCap").get(function (original) {
-    return Math.max(original(), 118);
-  });
   ctx.patch(music.manager.constructor, "isModifierActive").replace(function (original, instrument, modifier) {
-    if (modifier.level === 118 && tiers.has(instrument)) return unlocked.has(instrument.id);
+    if (modifier.level === 99 && tiers.has(instrument)) return unlocked.has(instrument.id);
     return original(instrument, modifier);
   });
 
-  const isAvailable = instrument => tiers.has(instrument) && !unlocked.has(instrument.id) &&
-    music.isMasteryActionUnlocked(instrument) && music.getMasteryLevel(instrument) >= 118;
-
-  function open(instrument) {
-    if (!isAvailable(instrument)) return;
+  function open(instrument, level) {
+    const cost = masteryCosts.get(level);
+    if (!cost || !instrument || music.actions.getObjectByID(instrument.id) !== instrument) return;
+    const bonus = () => music.manager.getModifiers(instrument).find(modifier => modifier.level === level);
+    const isAvailable = () => {
+      const modifier = bonus();
+      return modifier && !modifier.isActive && !modifier.isUpgrade &&
+        music.isMasteryActionUnlocked(instrument) && music.getMasteryLevel(instrument) >= level;
+    };
+    if (!isAvailable()) return;
     const essence = game.items.getObjectByID("mythMusic:Essence_Of_Music");
-    const canAfford = () => game.gp.canAfford(mastery118Cost) && game.bank.getQty(essence) >= 1;
-    const modifier = music.manager.getModifiers(instrument).find(modifier => modifier.level === 118);
+    const canAfford = () => game.gp.canAfford(cost) && game.bank.getQty(essence) >= 1;
     return SwalLocale.fire({
-      titleText: `${instrument.name}: Mastery 118`,
-      html: `<p>${modifier.description}</p><p>100,000,000 GP + 1 Essence of Music</p>`,
+      titleText: `${instrument.name}: Mastery ${level}`,
+      html: `<p>${bonus().description}</p><p>${cost.toLocaleString("en-US")} GP + 1 Essence of Music</p>`,
       showCancelButton: true, cancelButtonText: "Back", confirmButtonText: "Unlock",
       showConfirmButton: canAfford(),
       preConfirm() {
-        if (!isAvailable(instrument) || !canAfford()) {
-          SwalLocale.showValidationMessage("Requires Mastery 118, 100,000,000 GP, and 1 Essence of Music.");
+        if (!isAvailable() || !canAfford()) {
+          SwalLocale.showValidationMessage(`Requires Mastery ${level}, ${cost.toLocaleString("en-US")} GP, and 1 Essence of Music.`);
           return false;
         }
         game.bank.removeItemQuantityByID(essence.id, 1, true);
-        game.gp.remove(mastery118Cost);
-        unlocked.add(instrument.id);
+        game.gp.remove(cost);
+        if (level === 99) unlocked.add(instrument.id);
+        else {
+          const index = instrument.modifiers(music.settings.modifierType).findIndex(modifier => modifier.level === level);
+          music.masteriesUnlocked.get(instrument)[index] = true;
+        }
         troupe.refresh();
         return true;
       },
     });
   }
-
-  ctx.patch(music.constructor, "unlockMastery").replace(function (original, instrument) {
-    if (!tiers.has(instrument)) return original(instrument);
-    const fire = SwalLocale.fire;
-    SwalLocale.fire = function (options) {
-      let observer;
-      return fire.call(this, {
-        ...options,
-        didOpen(popup) {
-          options.didOpen?.call(this, popup);
-          const row = document.createElement("div");
-          row.className = "manage-section upgrade with-bottom-border bardic-troupe-mastery118";
-          const description = document.createElement("div");
-          description.className = unlocked.has(instrument.id) ? "myth-info font-size-sm text-success" : "myth-info font-size-sm myth-text-grey";
-          description.innerHTML = `Mastery 118: ${music.manager.getModifiers(instrument).find(modifier => modifier.level === 118).description}`;
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className = "btn btn-lg btn-success ml-2";
-          button.textContent = unlocked.has(instrument.id) ? "Unlocked" : "Unlock";
-          button.disabled = !isAvailable(instrument);
-          button.setAttribute("aria-label", `${instrument.name}: Mastery 118`);
-          button.onclick = () => open(instrument);
-          row.append(description, button);
-          const append = () => {
-            const manage = popup.querySelector(".myth-music-mastery .manage");
-            if (manage && !manage.contains(row)) manage.insertBefore(row, manage.lastElementChild);
-          };
-          observer = new MutationObserver(append);
-          observer.observe(popup, { childList: true, subtree: true });
-          append();
-        },
-        didClose(...args) {
-          observer?.disconnect();
-          options.didClose?.apply(this, args);
-        },
-      });
-    };
-    try { return original(instrument); }
-    finally { SwalLocale.fire = fire; }
-  });
 
   return {
     open,

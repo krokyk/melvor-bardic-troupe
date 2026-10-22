@@ -77,7 +77,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
   const masteryLevels = new Map();
   const instrumentButtons = new Map();
   const nativeMasteryCalls = [];
-  const mastery118Calls = [];
+  const masteryCalls = [];
   const instruments = new Map([existing.instrument, instrument].map((target, index) => {
     const localId = `instrument-${index}`;
     const card = new Node("div");
@@ -131,7 +131,8 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
     patch: (_class, name) => ({ replace: callback => patches.set(name, callback) }),
     onInterfaceReady(callback) { this.ready = callback; }
   };
-  installControls(ctx, music, troupe, { open: target => mastery118Calls.push(target) });
+  const mastery = { open(target, level) { masteryCalls.push({ target, level }); return swal.result; } };
+  installControls(ctx, music, troupe, mastery);
   const refresh = () => { music.renderQueue.bardModifiers = true; patches.get("renderBardModifiers")(); };
   function didOpen(expectedSelector, { missingButton = false } = {}) {
     const priorOpens = nativeOpens.length;
@@ -154,7 +155,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
     assert.equal(nativeOpens.at(-1).popup, popup);
     return { queries, clicks };
   }
-  return { native, swal, instrument, existing, bards, bridge, music, troupe, patches, ctx, modifiers, masteryLevels, instrumentButtons, nativeMasteryCalls, mastery118Calls, nativeModalCalls, nativeOpens, refresh, didOpen };
+  return { native, swal, instrument, existing, bards, bridge, music, troupe, mastery, patches, ctx, modifiers, masteryLevels, instrumentButtons, nativeMasteryCalls, masteryCalls, nativeModalCalls, nativeOpens, refresh, didOpen };
 }
 
 test("roster retains native controls and opens each enhancement submenu for the correct extra bard", t => {
@@ -194,6 +195,18 @@ test("roster retains native controls and opens each enhancement submenu for the 
   const unrelated = { titleText: "Another modal" };
   f.swal.fire(unrelated);
   assert.equal(f.swal.options, unrelated, "future modals must use the unwrapped native fire");
+});
+
+test("The Conductor has no Bard suffix in the roster, enhancement labels, or hire confirmation", t => {
+  const f = fixture(t);
+  Object.assign(f.existing.instrument, { id: "KrokyBardicTroupe:Cello", name: "The Conductor" });
+  f.ctx.ready();
+  const card = rosterCard(f);
+  assert(descendants(card).some(node => node.textContent === "The Conductor"));
+  assert(!card.textContent.includes("The Conductor Bard"));
+  assert.equal(rosterButton(f, "Upgraded").attributes["aria-label"], "Upgraded for The Conductor in slot 2");
+  f.patches.get("hire")(undefined, f.existing.instrument);
+  assert(descendants(f.swal.options.html).some(node => node.textContent === "Hire The Conductor?"));
 });
 
 test("roster starts collapsed and retains its toggle and visibility when bonuses refresh", t => {
@@ -268,10 +281,10 @@ test("an unavailable instrument cannot show hire buttons", t => {
   assert.equal(f.swal.options.html, undefined);
 });
 
-test("roster Mastery shortcuts respect exact tier thresholds and open the matching canonical native row", t => {
+test("roster Mastery shortcuts respect all four thresholds and open the matching purchase confirmation", t => {
   const f = fixture(t);
   const instrument = f.existing.instrument;
-  const bonuses = [40, 75, 99].map(level => ({ level, isActive: false, isUpgrade: false, description: `Tier ${level}` }));
+  const bonuses = [20, 40, 65, 99].map(level => ({ level, isActive: false, isUpgrade: false, description: `Tier ${level}` }));
   f.modifiers.set(instrument, [
     { level: 1, isActive: true, isUpgrade: false, description: "Base bonus" },
     ...bonuses,
@@ -281,23 +294,23 @@ test("roster Mastery shortcuts respect exact tier thresholds and open the matchi
   const buttonMarker = indicators(f.instrumentButtons.get(instrument).mastery)[0];
   assert.equal(buttonMarker.hidden, true);
   assert.equal(rosterIndicators(f).length, 0);
-  assert.deepEqual(descendants(rosterCard(f)).filter(node => node.tag === "button" && node.textContent.startsWith("Mastery ")).map(node => node.textContent), ["Mastery 40", "Mastery 75", "Mastery 99"]);
-  for (const level of [40, 75, 99]) {
+  assert.deepEqual(descendants(rosterCard(f)).filter(node => node.tag === "button" && node.textContent.startsWith("Mastery ")).map(node => node.textContent), ["Mastery 20", "Mastery 40", "Mastery 65", "Mastery 99"]);
+  for (const level of [20, 40, 65, 99]) {
     const button = rosterButton(f, `Mastery ${level}`);
     assert(button.className.includes("btn-outline-secondary"));
     assert.equal(button.disabled, true, "all mastery tiers start locked at level 1");
   }
   const fire = f.swal.fire;
-  for (const [index, bonus] of bonuses.entries()) {
+  for (const bonus of bonuses) {
     const label = `Mastery ${bonus.level}`;
     f.masteryLevels.set(instrument, bonus.level - 1);
     f.refresh();
     const locked = rosterButton(f, label);
     assert(locked.className.includes("btn-outline-secondary"));
     assert.equal(locked.disabled, true);
-    const callsBefore = f.nativeModalCalls.length;
+    const callsBefore = f.masteryCalls.length;
     locked.onclick();
-    assert.equal(f.nativeModalCalls.length, callsBefore, "programmatic clicks below the threshold cannot open a modal");
+    assert.equal(f.masteryCalls.length, callsBefore, "programmatic clicks below the threshold cannot open a modal");
     f.masteryLevels.set(instrument, bonus.level);
     f.refresh();
     const available = rosterButton(f, label);
@@ -309,52 +322,44 @@ test("roster Mastery shortcuts respect exact tier thresholds and open the matchi
     assert.equal(buttonMarker.hidden, false);
     assert.equal(available.onclick(), f.swal.result);
     assert.equal(f.swal.fire, fire);
-    assert.equal(f.nativeModalCalls.at(-1).receiver, f.music);
-    assert.equal(f.nativeModalCalls.at(-1).target, instrument);
-    const selector = `.myth-music-mastery .manage > .manage-section:nth-child(${index + 2}) > button`;
-    assert.deepEqual(f.didOpen(selector), { queries: [selector], clicks: 1 });
+    assert.deepEqual(f.masteryCalls.at(-1), { target: instrument, level: bonus.level });
     bonus.isActive = true;
     f.refresh();
     const purchased = rosterButton(f, label);
     assert(purchased.className.includes("btn-success"));
     assert.equal(purchased.disabled, true);
     assert.equal(purchased.title, "Mastery bonus unlocked.");
-    const callsBeforePurchaseClick = f.nativeModalCalls.length;
+    const callsBeforePurchaseClick = f.masteryCalls.length;
     purchased.onclick();
-    assert.equal(f.nativeModalCalls.length, callsBeforePurchaseClick, "an unlocked tier must not open another menu");
+    assert.equal(f.masteryCalls.length, callsBeforePurchaseClick, "an unlocked tier must not open another menu");
   }
   assert.equal(rosterIndicators(f).length, 0, "roster buttons replace the old row notes");
   assert.equal(f.troupe.request, undefined, "rendering does not hire or purchase anything");
   assert.equal(f.nativeMasteryCalls.length, 0);
 });
 
-test("Mastery 118 uses its purchase controller and shares the roster and native availability cues", t => {
+test("the instrument Mastery overview uses the same remapped rows and purchase controller", t => {
   const f = fixture(t);
   const instrument = f.existing.instrument;
-  const bonus = { level: 118, isActive: false, isUpgrade: false, description: "+50% Ammo Preservation" };
-  f.modifiers.set(instrument, [bonus]);
-  f.masteryLevels.set(instrument, 117);
+  f.modifiers.set(instrument, [1, 20, 40, 65, 99].map(level => ({
+    level, isActive: level === 1, isUpgrade: false, description: `Tier ${level}`,
+  })));
+  f.masteryLevels.set(instrument, 99);
   f.ctx.ready();
-  const marker = indicators(f.instrumentButtons.get(instrument).mastery)[0];
-  assert.equal(rosterButton(f, "Mastery 118").disabled, true);
-  assert.equal(marker.hidden, true);
-  f.masteryLevels.set(instrument, 118);
-  f.refresh();
-  assert.equal(rosterButton(f, "Mastery 118").disabled, false);
-  assert.equal(marker.hidden, false);
-  rosterButton(f, "Mastery 118").onclick();
-  assert.deepEqual(f.mastery118Calls, [instrument]);
+  assert.equal(f.patches.get("unlockMastery")(undefined, instrument), f.swal.result);
+  assert.equal(f.swal.options.titleText, "Harp: Mastery");
+  assert.equal(f.swal.options.confirmButtonText, "OK");
+  const buttons = descendants(f.swal.options.html).filter(node => node.tag === "button");
+  assert.deepEqual(buttons.map(button => button.textContent), ["Mastery 20", "Mastery 40", "Mastery 65", "Mastery 99"]);
+  buttons.at(-1).onclick();
+  assert.deepEqual(f.masteryCalls, [{ target: instrument, level: 99 }]);
   assert.equal(f.nativeModalCalls.length, 0);
-  bonus.isActive = true;
-  f.refresh();
-  assert.equal(rosterButton(f, "Mastery 118").disabled, true);
-  assert.equal(marker.hidden, true);
 });
 
 test("mastery indicators refresh after bonus purchases and mastery rollback while another tier remains eligible", t => {
   const f = fixture(t);
   const instrument = f.existing.instrument;
-  const bonuses = [40, 75].map(level => ({ level, isActive: false, isUpgrade: false, description: `Tier ${level}` }));
+  const bonuses = [40, 65].map(level => ({ level, isActive: false, isUpgrade: false, description: `Tier ${level}` }));
   f.modifiers.set(instrument, bonuses);
   f.masteryLevels.set(instrument, 99);
   f.ctx.ready();
@@ -366,7 +371,7 @@ test("mastery indicators refresh after bonus purchases and mastery rollback whil
   f.refresh();
   assert.equal(marker.hidden, false, "the second eligible tier still needs attention");
   assert(rosterButton(f, "Mastery 40").className.includes("btn-success"));
-  assert(rosterButton(f, "Mastery 75").className.includes("btn-outline-success"));
+  assert(rosterButton(f, "Mastery 65").className.includes("btn-outline-success"));
   bonuses[1].isActive = true;
   f.refresh();
   assert.equal(marker.hidden, true);
@@ -478,46 +483,7 @@ test("stale roster handlers recheck bard presence, mastery level and a raced pur
   mastery.onclick();
   assert.equal(f.nativeModalCalls.length, 0, "a tier purchased since rendering cannot open a menu or spend again");
   assert.equal(f.swal.fire, fire);
-});
-
-test("roster mastery confirmation closes only after a native purchase or cancellation", t => {
-  const f = fixture(t);
-  const bonus = { level: 40, isActive: false, isUpgrade: false, description: "Tier 40" };
-  f.modifiers.set(f.existing.instrument, [bonus]);
-  f.masteryLevels.set(f.existing.instrument, 40);
-  f.ctx.ready();
-  const open = () => {
-    f.swal.closed = false;
-    rosterButton(f, "Mastery 40").onclick();
-    f.didOpen(".myth-music-mastery .manage > .manage-section:nth-child(1) > button");
-    const popup = f.swal.popup;
-    return (button, currentTarget = popup) => popup.listeners.get("click")({
-      currentTarget,
-      composedPath() {
-        return button ? [button, {
-          matches(selector) { assert.equal(selector, ".unlock .myth-footer-buttons"); return true; },
-        }, popup] : [popup];
-      },
-    });
-  };
-  const confirm = { tagName: "BUTTON", classList: { contains: () => false } };
-  const cancel = { tagName: "BUTTON", classList: { contains: name => name === "btn-danger" } };
-  let click = open();
-  click(null);
-  assert.equal(f.swal.closed, false, "ordinary popup clicks leave the confirmation open");
-  click(confirm);
-  assert.equal(f.swal.closed, false, "a failed or pending purchase must not dismiss the confirmation");
-  bonus.isActive = true;
-  click(confirm, {});
-  assert.equal(f.swal.closed, false, "an old popup must not close a different current modal");
-  click(confirm);
-  assert.equal(f.swal.closed, true, "successful native unlocking closes instead of displaying the overview");
-  bonus.isActive = false;
-  f.refresh();
-  click = open();
-  click(cancel);
-  assert.equal(f.swal.closed, true, "Back closes instead of displaying the overview");
-  assert.equal(bonus.isActive, false, "cancellation must not apply the bonus");
+  assert.deepEqual(f.masteryCalls, [], "stale mastery shortcuts cannot reach the purchase controller");
 });
 
 test("the temporary native modal wrapper restores fire when opening or fire itself throws", t => {
@@ -533,7 +499,7 @@ test("the temporary native modal wrapper restores fire when opening or fire itse
   f.bridge.equipment = failOpening;
   assert.throws(() => rosterButton(f, "Socket:").onclick(), error => error === failure);
   assert.equal(f.swal.fire, fire);
-  f.music.unlockMastery = failOpening;
+  f.mastery.open = () => { throw failure; };
   assert.throws(() => rosterButton(f, "Mastery 40").onclick(), error => error === failure);
   assert.equal(f.swal.fire, fire);
   f.bridge.equipment = equipment;

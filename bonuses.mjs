@@ -2,22 +2,22 @@
 const distribution = [
   ["Guitar", 1, "skillItemDoublingChance"],
   ["Drum", 1, "skillPreservationChance"],
-  ["Drum", 75, "skillItemDoublingChance"],
+  ["Drum", 40, "skillItemDoublingChance"],
   ["Banjo", 1, "skillItemDoublingChance"],
-  ["Banjo", 75, "skillPreservationChance"],
+  ["Banjo", 40, "skillPreservationChance"],
   ["Accordion", 1, "skillPreservationChance"],
-  ["Bouzouki", 40, "skillItemDoublingChance"],
-  ["Bouzouki", 99, "skillPreservationChance"],
-  ["Flute", 99, "skillPreservationChance"],
-  ["Maraca", 40, "skillItemDoublingChance"],
+  ["Bouzouki", 20, "skillItemDoublingChance"],
+  ["Bouzouki", 65, "skillPreservationChance"],
+  ["Flute", 65, "skillPreservationChance"],
+  ["Maraca", 20, "skillItemDoublingChance"],
   ["Maraca", 999, "skillPreservationChance"],
-  ["Xylophone", 40, "skillPreservationChance"],
-  ["Saxophone", 99, "skillItemDoublingChance"],
-  ["Violin", 40, "skillPreservationChance"],
-  ["Violin", 99, "skillItemDoublingChance"],
+  ["Xylophone", 20, "skillPreservationChance"],
+  ["Saxophone", 65, "skillItemDoublingChance"],
+  ["Violin", 20, "skillPreservationChance"],
+  ["Violin", 65, "skillItemDoublingChance"],
   ["Bongo", 999, "skillItemDoublingChance"],
-  ["French_Horn", 75, "skillPreservationChance"],
-  ["Harp", 75, "skillItemDoublingChance"],
+  ["French_Horn", 40, "skillPreservationChance"],
+  ["Harp", 40, "skillItemDoublingChance"],
   ["Tambourine", 999, "skillItemDoublingChance"],
   ["Trumpet", 999, "skillPreservationChance"],
 ];
@@ -45,7 +45,7 @@ export async function installSkillBonuses(ctx, music, troupe) {
   const settings = ctx.settings.section("Bardic Troupe");
   settings.add({
     type: "switch", name, label: "Extra preservation and doubling", default: false,
-    hint: "Enable added Chance to Double Items in Skills and Chance to Preserve Resources in Skills across instrument tiers (up to +50 percentage points each). Music's original bonuses are unchanged. Applies immediately to this character.",
+    hint: "Enable added Chance to Double Items in Skills and Chance to Preserve Resources in Skills across instrument tiers (up to +50 percentage points each). Music's original bonus values are unchanged. Applies immediately to this character.",
     onChange(value) {
       if (typeof value !== "boolean") return "Choose ON or OFF.";
       if (value === enabled) return;

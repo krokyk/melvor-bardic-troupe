@@ -96,12 +96,12 @@ test("Conductor preserves the saved Cello identity and registers the rebalanced 
   assert.deepEqual(f.instrument.standardModifiers.map(bonus => bonus.level), [1, 40, 75, 99, 999]);
   assert.deepEqual(f.instrument.hardcoreModifiers, f.instrument.standardModifiers);
   assert.equal(f.instrument.id, `${namespace}:Cello`);
-  assert.equal(f.instrument.name, "Conductor");
+  assert.equal(f.instrument.name, "The Conductor");
   assert.equal(f.instrument.media, "assets/conductor.png");
-  assert.deepEqual(f.instrument.standardModifiers[0], { level: 1 });
+  assert.deepEqual(f.instrument.standardModifiers[0], { level: 1, modifiers: { flatMaxHitpoints: 20 } });
   assert.deepEqual(f.instrument.standardModifiers[1].modifiers, { critChance: 10, critMultiplier: 50, lifesteal: 5 });
   assert.deepEqual(f.instrument.standardModifiers[2].modifiers, { flatResistance: [{ damageTypeID: "melvorD:Normal", value: 10 }], evasion: 50 });
-  assert.deepEqual(f.instrument.standardModifiers[3].modifiers, { accuracyRating: 50, maxHit: 50, minHitBasedOnMaxHit: 10, attackInterval: -10 });
+  assert.deepEqual(f.instrument.standardModifiers[3].modifiers, { accuracyRating: 50, maxHit: 50, minHitBasedOnMaxHit: 10 });
   assert.equal(f.music.getMaxTotalMasteryLevels(), 16 * 99);
   assert.equal(f.music.getTotalCurrentMasteryLevels(), 55);
   const purchases = createShopData(f.music).data.shopPurchases;
@@ -112,7 +112,7 @@ test("Conductor preserves the saved Cello identity and registers the rebalanced 
   const troupe = new Troupe(f.music, purchases);
   assert.equal(troupe.slots().length, 16);
   assert.equal(troupe.canBuySlot(), false);
-  assert.equal(loadedLangJson.Myth_Music_Instrument_Cello, "Conductor");
+  assert.equal(loadedLangJson.Myth_Music_Instrument_Cello, "The Conductor");
 });
 
 test("Conductor has no base preservation or prayer discount in either modifier mode", async t => {
@@ -124,7 +124,7 @@ test("Conductor has no base preservation or prayer discount in either modifier m
       assert.equal(modifiers?.flatPrayerPointCost, undefined);
       assert(!Object.keys(modifiers ?? {}).some(key => key.includes("Preservation")));
     }
-    assert.equal(bonuses[0].modifiers, undefined);
+    assert.deepEqual(bonuses[0].modifiers, { flatMaxHitpoints: 20 });
     assert.equal(bonuses[4].modifiers[`${namespace}:thirdPrayer`], 1);
   }
 });

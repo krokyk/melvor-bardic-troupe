@@ -4,11 +4,11 @@ import { installSkillBonuses } from "./bonuses.mjs";
 
 const names = ["Guitar", "Drum", "Banjo", "Accordion", "Bouzouki", "Flute", "Maraca", "Xylophone", "Saxophone", "Violin", "Bongo", "French_Horn", "Harp", "Tambourine", "Trumpet", "Cello"];
 const expected = [
-  ["Guitar", 1, "D"], ["Drum", 1, "P"], ["Drum", 75, "D"], ["Banjo", 1, "D"], ["Banjo", 75, "P"],
-  ["Accordion", 1, "P"], ["Bouzouki", 40, "D"], ["Bouzouki", 99, "P"], ["Flute", 99, "P"],
-  ["Maraca", 40, "D"], ["Maraca", 999, "P"], ["Xylophone", 40, "P"], ["Saxophone", 99, "D"],
-  ["Violin", 40, "P"], ["Violin", 99, "D"], ["Bongo", 999, "D"], ["French_Horn", 75, "P"],
-  ["Harp", 75, "D"], ["Tambourine", 999, "D"], ["Trumpet", 999, "P"],
+  ["Guitar", 1, "D"], ["Drum", 1, "P"], ["Drum", 40, "D"], ["Banjo", 1, "D"], ["Banjo", 40, "P"],
+  ["Accordion", 1, "P"], ["Bouzouki", 20, "D"], ["Bouzouki", 65, "P"], ["Flute", 65, "P"],
+  ["Maraca", 20, "D"], ["Maraca", 999, "P"], ["Xylophone", 20, "P"], ["Saxophone", 65, "D"],
+  ["Violin", 20, "P"], ["Violin", 65, "D"], ["Bongo", 999, "D"], ["French_Horn", 40, "P"],
+  ["Harp", 40, "D"], ["Tambourine", 999, "D"], ["Trumpet", 999, "P"],
 ];
 
 async function fixture({ missing = [] } = {}) {
@@ -16,7 +16,7 @@ async function fixture({ missing = [] } = {}) {
   let scopeRegistered = false;
   let refreshes = 0;
   const instruments = new Map(names.filter(name => !missing.includes(name)).map(name => {
-    const modes = Object.fromEntries(["standard", "hardcore"].map(mode => [mode, [1, 40, 75, 99, 999].map(level => ({
+    const modes = Object.fromEntries(["standard", "hardcore"].map(mode => [mode, [1, 20, 40, 65, 999].map(level => ({
       level,
       modifiers: name === "Trumpet" && level === 999 ? undefined : [{ modifier: { id: "native:bonus" }, value: mode === "standard" ? 10 : 2 }],
       describePlain() { return (this.modifiers ?? []).map(value => `${value.modifier.id}:${value.value}`).join(", "); },
@@ -82,7 +82,7 @@ test("both modes receive the exact agreed 20 separate five-point awards across 1
     assert.equal(new Set(actual.map(([instrument, tier]) => `${instrument}:${tier}`)).size, 20, "no tier receives both additions");
     assert.equal(actual.filter(value => value[2] === "D").reduce((sum, value) => sum + value[3], 0), 50);
     assert.equal(actual.filter(value => value[2] === "P").reduce((sum, value) => sum + value[3], 0), 50);
-    for (const tier of [1, 40, 75, 99, 999]) assert.equal(actual.filter(value => value[1] === tier).length, 4);
+    for (const tier of [1, 20, 40, 65, 999]) assert.equal(actual.filter(value => value[1] === tier).length, 4);
     assert(!actual.some(([instrument]) => instrument === "Cello"));
   }
 });

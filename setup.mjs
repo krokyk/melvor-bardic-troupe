@@ -1,5 +1,5 @@
 export async function setup(ctx) {
-  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installConductor }, { installSkillBonuses }, { installMastery118 }] = await Promise.all([
+  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installConductor }, { installSkillBonuses }, { installMasteryTiers }] = await Promise.all([
     ctx.loadModule("troupe.mjs"),
     ctx.loadModule("ui.mjs"),
     ctx.loadModule("config.mjs"),
@@ -20,7 +20,7 @@ export async function setup(ctx) {
     const purchases = data.data.shopPurchases.map(purchase => game.shop.purchases.getObjectByID(`${namespace}:${purchase.id}`));
     const settings = configureUpgrades(ctx, game, purchases);
     const troupe = new Troupe(music, purchases);
-    const mastery = installMastery118(ctx, music, troupe, namespace);
+    const mastery = installMasteryTiers(ctx, music, troupe, namespace);
     const bonuses = await installSkillBonuses(ctx, music, troupe);
     const bandPractice = game.shop.purchases.getObjectByID("mythMusic:Band_Practice");
     const bandIndex = game.shop.purchaseDisplayOrder.indexOf(bandPractice);
@@ -44,7 +44,7 @@ export async function setup(ctx) {
       settings.applySaved();
       bonuses.applySaved();
       const saved = ctx.characterStorage.getItem("troupe");
-      mastery?.restore(saved?.version === 1 ? saved.mastery118 : undefined);
+      mastery.restore(saved?.version === 1 ? saved.mastery99 ?? saved.mastery118 : undefined);
       troupe.restore(saved);
       conductor?.restorePrayers(saved?.version === 1 ? saved.celloPrayers : undefined);
     };
@@ -56,7 +56,7 @@ export async function setup(ctx) {
       if (storageReady) {
         const saved = troupe.save();
         if (conductor) saved.celloPrayers = conductor.savePrayers();
-        if (mastery) saved.mastery118 = mastery.save();
+        saved.mastery99 = mastery.save();
         ctx.characterStorage.setItem("troupe", saved);
       }
     });

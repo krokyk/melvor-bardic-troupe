@@ -34,7 +34,10 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
   const sections = new Map();
   let unlocked = false;
   let troupe;
-  const instruments = Array.from({ length: instrumentCount }, (_, index) => ({ id: `mythMusic:Instrument_${index}`, level: 1 }));
+  const instruments = Array.from({ length: instrumentCount }, (_, index) => {
+    const modes = Object.fromEntries(["standard", "hardcore"].map(mode => [mode, [1, 40, 75, 99, 999].map(level => ({ level }))]));
+    return { id: `mythMusic:Instrument_${index}`, level: 1, modifiers: mode => modes[mode] };
+  });
   const counts = new Map();
   const band = { id: "mythMusic:Band_Practice" };
   const unrelated = { id: "melvorD:Other" };
@@ -171,7 +174,7 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
         instruments.push(...skill.data.instruments.map(instrument => ({
           ...instrument, id: `${core.namespace}:${instrument.id}`,
           modifiers: (() => {
-            const modes = { standard: [...instrument.standardModifiers], hardcore: [...instrument.hardcoreModifiers] };
+            const modes = { standard: structuredClone(instrument.standardModifiers), hardcore: structuredClone(instrument.hardcoreModifiers) };
             return mode => modes[mode];
           })(),
         })));
@@ -362,7 +365,7 @@ test("the character setting restores before offline processing and QuickLoad def
   const f = await fixture(t);
   const guitar = f.instruments[0];
   guitar.id = "mythMusic:Guitar";
-  const modes = Object.fromEntries(["standard", "hardcore"].map(mode => [mode, [{ level: 1, modifiers: [] }]]));
+  const modes = Object.fromEntries(["standard", "hardcore"].map(mode => [mode, [1, 40, 75, 99, 999].map(level => ({ level, modifiers: [] }))]));
   guitar.modifiers = mode => modes[mode];
   game.getModifierValuesFromData = data => Object.entries(data).map(([id, value]) => ({ modifier: { id }, value }));
   await f.hooks.mods();
@@ -387,7 +390,7 @@ test("the character setting restores before offline processing and QuickLoad def
   assert.equal(modes.standard[0].modifiers.length, 1, "reloading an enabled save adds exactly one value");
 });
 
-test("sixteenth Conductor hire, Mastery 118, third prayer, and enhancements survive reload and clear on replacement", async t => {
+test("sixteenth Conductor hire, migrated final mastery, third prayer, and enhancements survive reload", async t => {
   const f = await fixture(t, { instrumentCount: 15, celloEnabled: true });
   game.gp.amount = 16_000_000_000;
   await f.hooks.mods();
@@ -395,8 +398,10 @@ test("sixteenth Conductor hire, Mastery 118, third prayer, and enhancements surv
   assert.equal(f.instruments.length, 16);
   f.storage.set("troupe", { version: 1, mastery118: [cello.id] });
   f.hooks.character();
-  const mastery118 = cello.modifiers("standard").find(tier => tier.level === 118);
-  assert.equal(f.music.manager.isModifierActive(cello, mastery118), true);
+  const mastery99 = cello.modifiers("standard").find(tier => tier.level === 99);
+  assert.equal(f.music.masteryLevelCap, 99);
+  assert.deepEqual(cello.modifiers("standard").map(tier => tier.level), [1, 20, 40, 65, 99, 999]);
+  assert.equal(f.music.manager.isModifierActive(cello, mastery99), true);
   for (const purchase of f.troupe().purchases) game.shop.buyItemOnClick(purchase);
   assert.equal(f.troupe().slots().length, 16);
   const slot = f.troupe().slots().at(-1);
@@ -411,11 +416,12 @@ test("sixteenth Conductor hire, Mastery 118, third prayer, and enhancements surv
   const saved = game.encode();
   assert.deepEqual(saved.prayers, [["prayer:1", "prayer:2"]]);
   assert.deepEqual(saved.troupe.celloPrayers, ["prayer:3"]);
-  assert.deepEqual(saved.troupe.mastery118, [cello.id]);
+  assert.deepEqual(saved.troupe.mastery99, [cello.id]);
+  assert.equal(saved.troupe.mastery118, undefined);
   assert.equal(saved.troupe.bards[0].instrument, cello.id);
   game.decode(saved);
   assert.equal(f.music.bards.get(slot).isUpgraded, true);
-  assert.equal(f.music.manager.isModifierActive(cello, mastery118), true);
+  assert.equal(f.music.manager.isModifierActive(cello, mastery99), true);
   assert.equal(f.player.activePrayers.size, 3);
   f.player.togglePrayer(f.prayers[3], false);
   assert.equal(f.player.activePrayers.size, 3);
@@ -426,5 +432,5 @@ test("sixteenth Conductor hire, Mastery 118, third prayer, and enhancements surv
   game.decode({ counts: saved.counts, prayers: saved.prayers });
   assert.equal(f.player.activePrayers.size, 2);
   assert.equal(f.music.bards.get(slot), undefined);
-  assert.equal(f.music.manager.isModifierActive(cello, mastery118), false);
+  assert.equal(f.music.manager.isModifierActive(cello, mastery99), false);
 });

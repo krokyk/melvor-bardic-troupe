@@ -5,12 +5,16 @@ function element(tag, className, text) {
   return node;
 }
 
+function bardName(instrument, suffix = "Bard") {
+  return instrument.id === "KrokyBardicTroupe:Cello" ? instrument.name : `${instrument.name} ${suffix}`;
+}
+
 function canUnlockMastery(music, instrument, modifier) {
-  return !modifier.isActive && !modifier.isUpgrade && modifier.level > 1 && modifier.level <= 118 &&
+  return !modifier.isActive && !modifier.isUpgrade && modifier.level > 1 && modifier.level <= 99 &&
     music.getMasteryLevel(instrument) >= modifier.level;
 }
 
-function openMusicMenu(open, selector, onMenuClick) {
+function openMusicMenu(open, selector) {
   // Music keeps submenu state private, so enter it through the native modal's own button.
   const fire = SwalLocale.fire;
   SwalLocale.fire = function (options) {
@@ -18,7 +22,6 @@ function openMusicMenu(open, selector, onMenuClick) {
       ...options,
       didOpen(popup) {
         options.didOpen?.call(this, popup);
-        if (onMenuClick) popup.addEventListener("click", onMenuClick);
         const button = popup.querySelector(selector);
         if (button && !button.disabled) button.click();
       },
@@ -42,7 +45,7 @@ function upgradeIndicator(description = "Mastery bonus available to unlock (cost
 function appendModifiers(container, music, instrument, onMastery) {
   for (const modifier of music.manager.getModifiers(instrument)) {
     const row = element("div", modifier.isActive ? "text-success" : "myth-text-grey");
-    if (onMastery && !modifier.isUpgrade && modifier.level > 1 && modifier.level <= 118) {
+    if (onMastery && !modifier.isUpgrade && modifier.level > 1 && modifier.level <= 99) {
       const available = canUnlockMastery(music, instrument, modifier);
       const style = modifier.isActive ? "btn-success" : available ? "btn-outline-success" : "btn-outline-secondary";
       const button = element("button", `btn btn-sm ${style}`, `Mastery ${modifier.level}`);
@@ -86,24 +89,17 @@ export function installControls(ctx, music, troupe, mastery) {
   function openMastery(slot, level) {
     const bard = music.bards.get(slot);
     if (!bard) return;
-    if (level === 118) return mastery?.open(bard.instrument);
-    const modifiers = music.manager.getModifiers(bard.instrument).filter(modifier => modifier.level < 100);
-    const index = modifiers.findIndex(modifier => modifier.level === level);
-    const modifier = modifiers[index];
+    const modifier = music.manager.getModifiers(bard.instrument).find(modifier => modifier.level === level);
     if (!modifier) return;
     if (!canUnlockMastery(music, bard.instrument, modifier)) return;
-    return openMusicMenu(() => music.unlockMastery(bard.instrument), `.myth-music-mastery .manage > .manage-section:nth-child(${index + 1}) > button`, event => {
-      if (event.currentTarget !== SwalLocale.getPopup()) return;
-      // Music detaches confirmation controls before this bubbling listener runs.
-      const path = event.composedPath();
-      const button = path.find(node => node.tagName === "BUTTON");
-      if (!button || !path.some(node => node.matches?.(".unlock .myth-footer-buttons"))) return;
-      if (button.classList.contains("btn-danger") ||
-          music.manager.getModifiers(bard.instrument).some(current => current.level === level && current.isActive)) {
-        SwalLocale.close();
-      }
-    });
+    return mastery.open(bard.instrument, level);
   }
+
+  ctx.patch(music.constructor, "unlockMastery").replace(function (_original, instrument) {
+    const content = element("div", "text-left myth-music-mastery");
+    appendModifiers(content, music, instrument, level => mastery.open(instrument, level));
+    return SwalLocale.fire({ titleText: `${instrument.name}: Mastery`, html: content, confirmButtonText: "OK" });
+  });
 
   function render() {
     if (!slotGrid) return;
@@ -122,7 +118,7 @@ export function installControls(ctx, music, troupe, mastery) {
         const image = element("img", "instrument-icon mr-2");
         image.src = bard.instrument.media;
         image.alt = "";
-        heading.append(image, element("span", "font-size-lg mr-2", `${bard.instrument.name} Bard`));
+        heading.append(image, element("span", "font-size-lg mr-2", bardName(bard.instrument)));
         card.append(heading);
         const enhancements = element("div", "d-flex flex-wrap mb-2");
         for (const [state, label, applied, item] of [
@@ -134,7 +130,7 @@ export function installControls(ctx, music, troupe, mastery) {
           button.type = "button";
           button.disabled = state === "upgrade" && bard.isUpgraded;
           button.title = item ? `${label}: ${item.name}` : label;
-          button.setAttribute("aria-label", `${button.title} for ${bard.instrument.name} bard in slot ${number}`);
+          button.setAttribute("aria-label", `${button.title} for ${bardName(bard.instrument, "bard")} in slot ${number}`);
           if (item) {
             const icon = element("img", "skill-icon-xs ml-1");
             icon.src = item.media;
@@ -174,7 +170,7 @@ export function installControls(ctx, music, troupe, mastery) {
     }
 
     const content = element("div", "text-left");
-    content.append(element("h5", "mb-2", `Hire ${instrument.name} Bard?`));
+    content.append(element("h5", "mb-2", `Hire ${bardName(instrument)}?`));
     content.append(element("p", "font-w600", `${cost.toLocaleString()} GP`));
     appendModifiers(content, music, instrument);
     content.append(element("p", "text-danger font-size-sm mt-3", "Replacing a bard loses its instrument upgrade, socket, and utility."));

@@ -1,11 +1,12 @@
 export function createConductorData(namespace) {
   const bonuses = [
-    { level: 1 },
+    // Flat Hitpoints are scaled tenfold in normal mode.
+    { level: 1, modifiers: { flatMaxHitpoints: 20 } },
     { level: 40, modifiers: { critChance: 10, critMultiplier: 50, lifesteal: 5 } },
     { level: 75, modifiers: {
       flatResistance: [{ damageTypeID: "melvorD:Normal", value: 10 }], evasion: 50,
     } },
-    { level: 99, modifiers: { accuracyRating: 50, maxHit: 50, minHitBasedOnMaxHit: 10, attackInterval: -10 } },
+    { level: 99, modifiers: { accuracyRating: 50, maxHit: 50, minHitBasedOnMaxHit: 10 } },
     { level: 999, modifiers: { [`${namespace}:thirdPrayer`]: 1 } },
   ];
   return {
@@ -17,7 +18,7 @@ export function createConductorData(namespace) {
       }],
       skillData: [{ skillID: "mythMusic:Music", data: { instruments: [{
         // Keep the saved action ID so mastery, hires, and enhancements survive the rename.
-        id: "Cello", name: "Conductor", media: "assets/conductor.png", level: 118,
+        id: "Cello", name: "The Conductor", media: "assets/conductor.png", level: 118,
         baseInterval: 3000, baseExperience: 547, maxGP: 705,
         skills: ["Attack", "Strength", "Ranged", "Magic", "Defence", "Hitpoints", "Prayer", "Summoning"].map(id => `melvorD:${id}`),
         standardModifiers: bonuses, hardcoreModifiers: bonuses,
@@ -29,7 +30,7 @@ export function createConductorData(namespace) {
 export async function installConductor(ctx, music, isReady, namespace) {
   if (!cloudManager.hasTotHEntitlementAndIsEnabled) return;
   await ctx.gameData.addPackage(createConductorData(namespace));
-  loadedLangJson.Myth_Music_Instrument_Cello = "Conductor";
+  loadedLangJson.Myth_Music_Instrument_Cello = "The Conductor";
   const instrument = music.actions.getObjectByID(`${namespace}:Cello`);
   const game = music.game;
   const player = game.combat.player;
