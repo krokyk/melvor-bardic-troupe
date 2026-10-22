@@ -110,35 +110,45 @@ Prayers must belong to the same prayer book and still meet the game's normal equ
 Losing the upgrade removes prayers beyond the first two from every equipment set.
 The third prayer is stored with the addon and restored when eligible, while the native save contains at most two prayers per equipment set.
 
-## Mastery 99
+## Mastery bonuses
 
 The mastery tiers are **1, 20, 40, 65, and 99**.
 Bardic Troupe leaves Music's mastery level cap unchanged, including any cap supplied by another mod.
 Mastery **20, 40, 65, and 99** purchases cost **100K, 1M, 10M, and 100M GP**, respectively, plus **1 Essence of Music each**.
 Each purchase requires its listed instrument mastery level and the instrument's normal Music unlock.
-Mastery 99 purchases use addon character storage; earlier tier purchases use Music's native storage.
-Existing purchases retain their reward positions and hiring prices.
-Bonuses apply while the corresponding bard is hired, with the same strength under Standard and Hardcore settings.
+Music's native purchase records retain each bard's original rewards.
+Addon character storage retains each bard's added reward, regardless of its mastery tier.
+Existing native mastery purchases and hiring prices are retained.
+Bonuses apply while the corresponding bard is hired.
 These rewards are independent of the optional extra skill preservation and doubling toggle.
 
-| Bard | Mastery 99 reward |
-| --- | --- |
-| Guitar | +50% Ammo Preservation |
-| Banjo | +50% Food Preservation |
-| Snare Drum | +50% Rune Preservation |
-| Accordion | +50% Consumable Slot Charge Preservation |
-| Bouzouki | +50% Soul Point Preservation |
-| Flute | +50% Alt. Magic Rune Preservation |
-| Saxophone | +50% Unholy Prayer Point Preservation |
-| Violin | +50% Prayer Point Preservation |
-| French Horn | +50% Summoning Charge Preservation |
-| Harp | +50% Potion Charge Preservation |
-| Tambourine | +50% Compost Preservation |
-| The Conductor | −25% Summoning Familiar Attack Interval and −10% character Attack Interval |
+The added preservation rewards occupy their own lower mastery tiers.
+Every bard has rewards at Mastery 1, 20, 40, 65, and 99.
+Existing base bonuses and instrument upgrades are retained.
+The table lists Standard bonus values; native Hardcore values remain unchanged, and added rewards have equal strength in both modes.
 
-**Free Mastery 99 slots:** Maraca, Xylophone, Djembe, and Trumpet.
+| Bard | Mastery 20 | Mastery 40 | Mastery 65 | Mastery 99 |
+| --- | --- | --- | --- | --- |
+| Guitar | +50% Ammo Preservation | +15% Firemaking Mastery XP | -10% Firemaking Interval | +2 Bird Nest quantity |
+| Banjo | +50% Food Preservation | -10% Cooking Interval | -30% Passive Cook Interval | +10% chance for an extra Fishing special item |
+| Snare Drum | -0.2s Smithing Interval | +50% Rune Preservation | -3 Coal Ore cost | x4 Mining ore |
+| Accordion | +15% Auto Eat Efficiency | +50% Consumable Charge Preservation | Enemy -10% Damage Reduction | +5% Auto Eat Threshold |
+| Bouzouki | +10% Global GP | +10% rare-item chances | +50% Soul Point Preservation | +10% Global Item Doubling |
+| Flute | -10% map-refinement cost | -10% survey interval | +15% Archaeology Skill XP | +2 Archaeology resources |
+| Maraca | +5% Fletching Skill XP | x4 Fletching resources | -10% Crafting Interval | x4 Crafting resources |
+| Xylophone | +15% Agility GP | -10% Agility Pillar cost | +15% Agility Mastery XP | -15% Agility Interval |
+| Saxophone | +5% Maximum Hitpoints | +10% Lifesteal | +50% Unholy Prayer Point Preservation | +5% Damage Reduction |
+| Violin | +1 Prayer Point when hit | +6 Runecrafting runes | +50% Prayer Point Preservation | -3 Prayer Point cost |
+| Djembe | +40% Slayer Coins | +10% Slayer-task damage | +3% Damage Reduction during Slayer tasks | +25% Slayer-area effect negation |
+| French Horn | -0.5s Astrology Interval | +50% Summoning Charge Preservation | -1s Summoning Interval | +15 Summoning resources |
+| Harp | +50 Thieving Stealth | +50% Potion Charge Preservation | +15% Thieving area-unique chance | x4 Herblore resources |
+| Tambourine | +50% Compost Preservation | +10% Township GP | +50% Township Happiness | +15 Farming resources |
+| Trumpet | +5% of maximum hit added to minimum hit | +10% Maximum Hit | +5% Critical Hit Chance | -0.5s Attack Interval |
+
+The Conductor retains its separate combat layout, including +200 Maximum Hitpoints at Mastery 1 and both attack interval reductions at Mastery 99.
+No mastery slots are unassigned.
 Generic skill resource preservation is covered by the optional +50-point distribution.
-Alt. Magic uses ordinary runes for non-combat spells; its additional rune preservation stacks with general rune preservation up to the 80% cap.
+Snare Drum's rune preservation also applies to Alt. Magic, so Flute has no additional rune-preservation reward.
 Bypass modifiers and per-point Prayer modifiers affect existing preservation types rather than separate resources.
 Archaeology's Very Rare or Legendary map-preservation perk is a conditional effect rather than a general percentage chance.
 Soul Points require Into the Abyss content; the reward remains assigned to Bouzouki when that content is unavailable.
@@ -195,7 +205,7 @@ Run the local automated checks from this directory with `node --test`.
 These checks do not replace an in-game test of hiring, enhancements, save reloads, addon removal, and cloud saves.
 Browser layout checks pass with Music's markup, Melvor's styles, and 15 mock bards at viewport widths of 1280, 768, 390, and 320px.
 The [desktop](assets/bardic-troupe-layout-preview.png) and [phone](assets/bardic-troupe-layout-mobile.png) previews use test data.
-Save slot #7 verifies The Conductor's name and baton, retained hires and enhancements, rebalanced combat descriptions, Mastery 99 availability and costs, roster and native-menu purchases, and purchase persistence after reload.
+Save slot #7 verifies all sixteen mastery layouts, retained hires and enhancements, purchases of all five added bonuses and Guitar's lower-tier preservation, the critical-chance increase from 14% to 19%, and purchase persistence after reload.
 
 When publishing, configure Music as a hard dependency in mod.io using ID **3096259**.
 Melvor's current manifest loader does not support declaring that dependency in `manifest.json`.

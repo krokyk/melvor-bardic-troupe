@@ -78,6 +78,9 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
   }
   class Manager {
     isModifierActive(_instrument, modifier) { return modifier.level === 1; }
+    getModifiers(instrument) {
+      return instrument.modifiers("standard").map(tier => ({ level: tier.level, isActive: this.isModifierActive(instrument, tier) }));
+    }
     get isBandPracticeUnlocked() { return game.shop.getPurchaseCount(band) > 0; }
   }
   const bards = {

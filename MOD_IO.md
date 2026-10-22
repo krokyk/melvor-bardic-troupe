@@ -103,28 +103,38 @@ The addon saves the third prayer separately and restores it when eligible; nativ
 The mastery tiers are **1, 20, 40, 65, and 99**, with Music's mastery level cap unchanged.
 Mastery **20, 40, 65, and 99** purchases cost **100K, 1M, 10M, and 100M GP**, respectively, plus **1 Essence of Music each**.
 Each purchase requires its listed mastery level and the instrument's normal unlock.
-The rewards apply while hired, independently of the extra skill bonus toggle, and have the same strength in Standard and Hardcore settings.
+The added rewards apply while hired, independently of the extra skill bonus toggle, and have the same strength in Standard and Hardcore settings.
 
-| Bard | Mastery 99 preservation reward |
-| --- | --- |
-| Guitar | +50% Ammo |
-| Banjo | +50% Food |
-| Snare Drum | +50% Runes |
-| Accordion | +50% Consumable Slot Charges |
-| Bouzouki | +50% Soul Points |
-| Flute | +50% Alt. Magic Runes |
-| Saxophone | +50% Unholy Prayer Points |
-| Violin | +50% Prayer Points |
-| French Horn | +50% Summoning Charges |
-| Harp | +50% Potion Charges |
-| Tambourine | +50% Compost |
+The added preservation rewards occupy their own lower mastery tiers.
+Every bard has rewards at Mastery 1, 20, 40, 65, and 99.
+Existing base bonuses and instrument upgrades are retained.
+The table lists Standard bonus values; native Hardcore values remain unchanged, and added rewards have equal strength in both modes.
 
-Maraca, Xylophone, Djembe, and Trumpet have no assigned Mastery 99 reward.
+| Bard | Mastery 20 | Mastery 40 | Mastery 65 | Mastery 99 |
+| --- | --- | --- | --- | --- |
+| Guitar | +50% Ammo Preservation | +15% Firemaking Mastery XP | -10% Firemaking Interval | +2 Bird Nest quantity |
+| Banjo | +50% Food Preservation | -10% Cooking Interval | -30% Passive Cook Interval | +10% chance for an extra Fishing special item |
+| Snare Drum | -0.2s Smithing Interval | +50% Rune Preservation | -3 Coal Ore cost | x4 Mining ore |
+| Accordion | +15% Auto Eat Efficiency | +50% Consumable Charge Preservation | Enemy -10% Damage Reduction | +5% Auto Eat Threshold |
+| Bouzouki | +10% Global GP | +10% rare-item chances | +50% Soul Point Preservation | +10% Global Item Doubling |
+| Flute | -10% map-refinement cost | -10% survey interval | +15% Archaeology Skill XP | +2 Archaeology resources |
+| Maraca | +5% Fletching Skill XP | x4 Fletching resources | -10% Crafting Interval | x4 Crafting resources |
+| Xylophone | +15% Agility GP | -10% Agility Pillar cost | +15% Agility Mastery XP | -15% Agility Interval |
+| Saxophone | +5% Maximum Hitpoints | +10% Lifesteal | +50% Unholy Prayer Point Preservation | +5% Damage Reduction |
+| Violin | +1 Prayer Point when hit | +6 Runecrafting runes | +50% Prayer Point Preservation | -3 Prayer Point cost |
+| Djembe | +40% Slayer Coins | +10% Slayer-task damage | +3% Damage Reduction during Slayer tasks | +25% Slayer-area effect negation |
+| French Horn | -0.5s Astrology Interval | +50% Summoning Charge Preservation | -1s Summoning Interval | +15 Summoning resources |
+| Harp | +50 Thieving Stealth | +50% Potion Charge Preservation | +15% Thieving area-unique chance | x4 Herblore resources |
+| Tambourine | +50% Compost Preservation | +10% Township GP | +50% Township Happiness | +15 Farming resources |
+| Trumpet | +5% of maximum hit added to minimum hit | +10% Maximum Hit | +5% Critical Hit Chance | -0.5s Attack Interval |
+
+The Conductor retains its separate combat layout, including +200 Maximum Hitpoints at Mastery 1 and both attack interval reductions at Mastery 99.
+No mastery slots are unassigned.
 Generic skill resource preservation is covered by the optional skill bonuses.
-Alt. Magic rune preservation adds to general rune preservation for non-combat spells, subject to the 80% cap.
+Snare Drum's rune preservation also applies to Alt. Magic, so Flute has no additional rune-preservation reward.
 Soul Point preservation requires Into the Abyss content to be useful.
 The Conductor retains the saved Cello action identity, including mastery, hired status, and enhancements.
-Mastery 99 purchases are saved separately per character without increasing native hiring prices.
+Added reward purchases are saved separately per character without increasing native hiring prices.
 
 Train one Music instrument at a time.
 For training several instruments at once, use the optional **Kroky's Workforce** mod.
@@ -170,7 +180,10 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 - Grant +200 Maximum Hitpoints at Mastery 1 and place the −10% character Attack Interval bonus alongside the −25% Summoning Familiar Attack Interval bonus at Mastery 99.
 
 - Remap all earlier tiers to 1, 20, 40, and 65, with final rewards at 99 and no mastery-cap increase.
-- Retain existing purchases, including earlier Mastery 118 reward unlocks, and use 100K, 1M, 10M, and 100M GP for the four paid tiers.
+- Retain native mastery purchases and The Conductor's earlier final-tier unlock, and use 100K, 1M, 10M, and 100M GP for the four paid tiers.
+- Give preservation its own lower-tier rewards and place stronger native rewards at Mastery 99, filling every mastery slot.
+- Omit Flute's Alt. Magic rune-preservation reward because Snare Drum's rune preservation covers those spells.
+- Add Archaeology XP for Flute, Crafting interval for Maraca, Agility Mastery XP for Xylophone, conditional Slayer-task Damage Reduction for Djembe, and critical-hit chance for Trumpet.
 
 ### 2.3.0
 
@@ -266,6 +279,6 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
   Unlinked Toolkit imports can lose additional bard state after reloading.
 
 Browser layout checks pass with Music's markup, Melvor's styles, and 15 mock bards at viewport widths of 1280, 768, 390, and 320px.
-Save slot #7 verifies The Conductor's artwork, retained hires and enhancements, Mastery 99 costs and purchases through both menus, and purchase persistence after reload.
+Save slot #7 verifies all sixteen mastery layouts, retained hires and enhancements, purchases of all five added bonuses and Guitar's lower-tier preservation, the critical-chance increase from 14% to 19%, and purchase persistence after reload.
 
 Source references: [Music](https://github.com/mythridium/music), [Melvor mod API](https://melvoridle.com/assets/js/built/mod.js), and [Melvor shop save handling](https://melvoridle.com/assets/js/built/shop.js).
