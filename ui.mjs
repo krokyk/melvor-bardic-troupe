@@ -6,7 +6,7 @@ function element(tag, className, text) {
 }
 
 function canUnlockMastery(music, instrument, modifier) {
-  return !modifier.isActive && !modifier.isUpgrade && modifier.level > 1 && modifier.level < 100 &&
+  return !modifier.isActive && !modifier.isUpgrade && modifier.level > 1 && modifier.level <= 118 &&
     music.getMasteryLevel(instrument) >= modifier.level;
 }
 
@@ -42,7 +42,7 @@ function upgradeIndicator(description = "Mastery bonus available to unlock (cost
 function appendModifiers(container, music, instrument, onMastery) {
   for (const modifier of music.manager.getModifiers(instrument)) {
     const row = element("div", modifier.isActive ? "text-success" : "myth-text-grey");
-    if (onMastery && !modifier.isUpgrade && modifier.level > 1 && modifier.level < 100) {
+    if (onMastery && !modifier.isUpgrade && modifier.level > 1 && modifier.level <= 118) {
       const available = canUnlockMastery(music, instrument, modifier);
       const style = modifier.isActive ? "btn-success" : available ? "btn-outline-success" : "btn-outline-secondary";
       const button = element("button", `btn btn-sm ${style}`, `Mastery ${modifier.level}`);
@@ -68,7 +68,7 @@ function appendModifiers(container, music, instrument, onMastery) {
   }
 }
 
-export function installControls(ctx, music, troupe) {
+export function installControls(ctx, music, troupe, mastery) {
   let roster;
   let toggle;
   let rosterIndicator;
@@ -86,6 +86,7 @@ export function installControls(ctx, music, troupe) {
   function openMastery(slot, level) {
     const bard = music.bards.get(slot);
     if (!bard) return;
+    if (level === 118) return mastery?.open(bard.instrument);
     const modifiers = music.manager.getModifiers(bard.instrument).filter(modifier => modifier.level < 100);
     const index = modifiers.findIndex(modifier => modifier.level === level);
     const modifier = modifiers[index];

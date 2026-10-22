@@ -77,6 +77,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
   const masteryLevels = new Map();
   const instrumentButtons = new Map();
   const nativeMasteryCalls = [];
+  const mastery118Calls = [];
   const instruments = new Map([existing.instrument, instrument].map((target, index) => {
     const localId = `instrument-${index}`;
     const card = new Node("div");
@@ -130,7 +131,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
     patch: (_class, name) => ({ replace: callback => patches.set(name, callback) }),
     onInterfaceReady(callback) { this.ready = callback; }
   };
-  installControls(ctx, music, troupe);
+  installControls(ctx, music, troupe, { open: target => mastery118Calls.push(target) });
   const refresh = () => { music.renderQueue.bardModifiers = true; patches.get("renderBardModifiers")(); };
   function didOpen(expectedSelector, { missingButton = false } = {}) {
     const priorOpens = nativeOpens.length;
@@ -153,7 +154,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
     assert.equal(nativeOpens.at(-1).popup, popup);
     return { queries, clicks };
   }
-  return { native, swal, instrument, existing, bards, bridge, music, troupe, patches, ctx, modifiers, masteryLevels, instrumentButtons, nativeMasteryCalls, nativeModalCalls, nativeOpens, refresh, didOpen };
+  return { native, swal, instrument, existing, bards, bridge, music, troupe, patches, ctx, modifiers, masteryLevels, instrumentButtons, nativeMasteryCalls, mastery118Calls, nativeModalCalls, nativeOpens, refresh, didOpen };
 }
 
 test("roster retains native controls and opens each enhancement submenu for the correct extra bard", t => {
@@ -325,6 +326,29 @@ test("roster Mastery shortcuts respect exact tier thresholds and open the matchi
   assert.equal(rosterIndicators(f).length, 0, "roster buttons replace the old row notes");
   assert.equal(f.troupe.request, undefined, "rendering does not hire or purchase anything");
   assert.equal(f.nativeMasteryCalls.length, 0);
+});
+
+test("Mastery 118 uses its purchase controller and shares the roster and native availability cues", t => {
+  const f = fixture(t);
+  const instrument = f.existing.instrument;
+  const bonus = { level: 118, isActive: false, isUpgrade: false, description: "+50% Ammo Preservation" };
+  f.modifiers.set(instrument, [bonus]);
+  f.masteryLevels.set(instrument, 117);
+  f.ctx.ready();
+  const marker = indicators(f.instrumentButtons.get(instrument).mastery)[0];
+  assert.equal(rosterButton(f, "Mastery 118").disabled, true);
+  assert.equal(marker.hidden, true);
+  f.masteryLevels.set(instrument, 118);
+  f.refresh();
+  assert.equal(rosterButton(f, "Mastery 118").disabled, false);
+  assert.equal(marker.hidden, false);
+  rosterButton(f, "Mastery 118").onclick();
+  assert.deepEqual(f.mastery118Calls, [instrument]);
+  assert.equal(f.nativeModalCalls.length, 0);
+  bonus.isActive = true;
+  f.refresh();
+  assert.equal(rosterButton(f, "Mastery 118").disabled, true);
+  assert.equal(marker.hidden, true);
 });
 
 test("mastery indicators refresh after bonus purchases and mastery rollback while another tier remains eligible", t => {

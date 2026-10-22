@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { installCello } from "./cello.mjs";
+import { installConductor } from "./conductor.mjs";
 import { createShopData, namespace, Troupe } from "./troupe.mjs";
 
 async function fixture(t, { enabled = true } = {}) {
@@ -64,8 +64,8 @@ async function fixture(t, { enabled = true } = {}) {
       // Native package loading resolves instrument data before applying package modifications.
       for (const instrument of data.data?.skillData?.[0].data.instruments ?? []) {
         for (const tier of [...instrument.standardModifiers, ...instrument.hardcoreModifiers]) {
-          assert.equal(tier.modifiers.skillItemDoublingChance, undefined);
-          assert.equal(tier.modifiers.skillPreservationChance, undefined);
+          assert.equal(tier.modifiers?.skillItemDoublingChance, undefined);
+          assert.equal(tier.modifiers?.skillPreservationChance, undefined);
         }
         instruments.push({ ...instrument, id: `${namespace}:${instrument.id}` });
       }
@@ -79,14 +79,14 @@ async function fixture(t, { enabled = true } = {}) {
     },
   };
   let ready = true;
-  const cello = await installCello(ctx, music, () => ready, namespace);
+  const cello = await installConductor(ctx, music, () => ready, namespace);
   const instrument = music.actions.getObjectByID(`${namespace}:Cello`);
   const bard = { instrument, isUpgraded: true };
   if (instrument) bards.set(instrument, bard);
   return { cello, music, player, prayers, packages, bards, bard, instrument, notices, ready(value) { ready = value; } };
 }
 
-test("Cello registers before capacity calculation with all combat tiers and both modifier settings", async t => {
+test("Conductor preserves the saved Cello identity and registers the rebalanced combat tiers", async t => {
   const f = await fixture(t);
   assert.equal(f.packages.length, 1);
   assert.equal(f.packages[0].modifications, undefined);
@@ -95,8 +95,13 @@ test("Cello registers before capacity calculation with all combat tiers and both
   assert.equal(f.instrument.baseExperience, 547);
   assert.deepEqual(f.instrument.standardModifiers.map(bonus => bonus.level), [1, 40, 75, 99, 999]);
   assert.deepEqual(f.instrument.hardcoreModifiers, f.instrument.standardModifiers);
-  assert.deepEqual(f.instrument.standardModifiers[1].modifiers, { critChance: 20, critMultiplier: 100, lifesteal: 10 });
-  assert.equal(f.instrument.standardModifiers[0].modifiers.flatPrayerPointCost, -3);
+  assert.equal(f.instrument.id, `${namespace}:Cello`);
+  assert.equal(f.instrument.name, "Conductor");
+  assert.equal(f.instrument.media, "assets/conductor.png");
+  assert.deepEqual(f.instrument.standardModifiers[0], { level: 1 });
+  assert.deepEqual(f.instrument.standardModifiers[1].modifiers, { critChance: 10, critMultiplier: 50, lifesteal: 5 });
+  assert.deepEqual(f.instrument.standardModifiers[2].modifiers, { flatResistance: [{ damageTypeID: "melvorD:Normal", value: 10 }], evasion: 50 });
+  assert.deepEqual(f.instrument.standardModifiers[3].modifiers, { accuracyRating: 50, maxHit: 50, minHitBasedOnMaxHit: 10, attackInterval: -10 });
   assert.equal(f.music.getMaxTotalMasteryLevels(), 16 * 99);
   assert.equal(f.music.getTotalCurrentMasteryLevels(), 55);
   const purchases = createShopData(f.music).data.shopPurchases;
@@ -107,22 +112,24 @@ test("Cello registers before capacity calculation with all combat tiers and both
   const troupe = new Troupe(f.music, purchases);
   assert.equal(troupe.slots().length, 16);
   assert.equal(troupe.canBuySlot(), false);
-  assert.equal(loadedLangJson.Myth_Music_Instrument_Cello, "Cello");
+  assert.equal(loadedLangJson.Myth_Music_Instrument_Cello, "Conductor");
 });
 
-test("Cello retains its combat effects without added skill preservation or doubling in either mode", async t => {
+test("Conductor has no base preservation or prayer discount in either modifier mode", async t => {
   const f = await fixture(t);
   for (const bonuses of [f.instrument.standardModifiers, f.instrument.hardcoreModifiers]) {
     for (const { modifiers } of bonuses) {
-      assert.equal(modifiers.skillPreservationChance, undefined);
-      assert.equal(modifiers.skillItemDoublingChance, undefined);
+      assert.equal(modifiers?.skillPreservationChance, undefined);
+      assert.equal(modifiers?.skillItemDoublingChance, undefined);
+      assert.equal(modifiers?.flatPrayerPointCost, undefined);
+      assert(!Object.keys(modifiers ?? {}).some(key => key.includes("Preservation")));
     }
-    assert.equal(bonuses[0].modifiers.ammoPreservationChance, 50);
+    assert.equal(bonuses[0].modifiers, undefined);
     assert.equal(bonuses[4].modifiers[`${namespace}:thirdPrayer`], 1);
   }
 });
 
-test("without Throne of the Herald no Cello, additional slot, or prayer patch is registered", async t => {
+test("without Throne of the Herald no Conductor, additional slot, or prayer patch is registered", async t => {
   const f = await fixture(t, { enabled: false });
   assert.equal(f.cello, undefined);
   assert.equal(f.packages.length, 0);
@@ -132,7 +139,7 @@ test("without Throne of the Herald no Cello, additional slot, or prayer patch is
   assert.equal(f.player.nativeCalls, 1);
 });
 
-test("third prayer requires an upgraded hired Cello at level 118 and never enables a fourth", async t => {
+test("third prayer requires an upgraded hired Conductor at level 118 and never enables a fourth", async t => {
   const f = await fixture(t);
   f.bard.isUpgraded = false;
   f.player.togglePrayer(f.prayers[2]);

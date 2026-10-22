@@ -1,0 +1,11 @@
+Tool: built-in image_gen.
+Output: assets/conductor.png.
+
+Use case: stylized-concept.
+Asset type: one transparent PNG game item icon for Melvor Idle Music.
+Primary request: a conductor's baton ONLY, isolated on a truly transparent background.
+One thin straight ivory white tapered conducting stick with a small warm brown cork/wood rounded handle at the lower left, slender ivory shaft pointing diagonally to the upper right.
+Simple clean flat illustrated fantasy inventory-item style with crisp fine tan/dark outlines and two or three flat shaded regions, like Melvor Idle instrument icons.
+Center the entire single baton in a square canvas, fit diagonally with clear margins, strong small-icon readability.
+The shaft should be slightly stylized thick enough to remain visible as a 48px item icon, long and clearly tapered.
+No person, hands, conductor, cello, instrument, musical notes, magic, sparkles, glow, cast shadow, background, border, letters, text, watermark, or extra objects.

@@ -23,9 +23,9 @@ Buy additional slots in order, with a configurable Music level requirement and G
   Choose a positive whole level and a nonnegative whole GP price; **0 GP makes slots free**.
   The level uses your actual skill level, not your virtual level, so choose **99 or lower** if your character is capped at 99.
 - Expand your capacity to cover every instrument in Music, with **one hired bard per different instrument**.
-- Train and hire **Cello**, a powerful combat bard unlocked at **Music level 118** with **Throne of the Herald enabled**.
+- Train and hire **Conductor**, a combat bard unlocked at **Music level 118** with **Throne of the Herald enabled**, represented by a conductor's baton.
   With all Music content enabled, the troupe supports sixteen different instruments.
-- Enable the optional **Extra preservation and doubling** bonuses in Mod Settings, with separate +5-point awards across the fifteen instruments before Cello.
+- Enable the optional **Extra preservation and doubling** bonuses in Mod Settings, with separate +5-point awards across the fifteen instruments before Conductor.
   The toggle defaults to **OFF for new and existing characters**.
 - Keep Music's normal instrument unlocks, mastery bonuses, hiring costs, upgrades, sockets, and utilities.
 - Retain an already purchased **Band Practice** slot and the master ancient relic's additional slot.
@@ -47,7 +47,7 @@ Missing enhancements have green outlined buttons; applied enhancements have soli
 The completed **Upgraded** button is disabled, while **Socket** and **Utility** remain clickable and show the equipped item's icon, with its name in the tooltip.
 Each shortcut opens the matching Music menu and retains normal material requirements.
 
-Mastery bonuses have **Mastery 40**, **Mastery 75**, and **Mastery 99** shortcut buttons beside their descriptions.
+Mastery bonuses have **Mastery 40**, **Mastery 75**, **Mastery 99**, and **Mastery 118** shortcut buttons beside their descriptions.
 They are grey and disabled before the required mastery level, outlined green when available to unlock, and solid green and disabled once purchased.
 Available buttons open only Music's unlock confirmation for the selected tier, then close the popup after purchase or cancellation.
 Normal GP and Essence of Music costs still apply.
@@ -84,20 +84,45 @@ Normal levels, mastery purchases, instrument upgrades, expansion requirements, a
 The additions are identical under Music's Standard and Hardcore modifier settings.
 The toggle is saved per character, defaults to OFF, and immediately updates active bonuses and descriptions when changed.
 When OFF, only the additions disappear completely; Music's original bonuses, purchased masteries, and instrument enhancements are retained.
-Cello no longer grants these two skill bonuses, regardless of the toggle.
+Conductor grants neither of these two skill bonuses, regardless of the toggle.
 
-Cello provides these bonuses while hired, at the same strength under Music's Standard and Hardcore modifier settings:
+Conductor provides these bonuses while hired, at the same strength under Music's Standard and Hardcore modifier settings:
 
-- **Mastery 1:** +50 percentage points each to ammunition, rune, food, Prayer-point, and Summoning-tablet preservation; −3 flat Prayer-point cost, with a minimum modified cost of 1 before preservation.
-- **Mastery 40:** +20 percentage points critical-hit chance, +100 percentage points critical damage multiplier, and +10% lifesteal.
-- **Mastery 75:** +20 percentage points Normal Damage Reduction and +100% evasion against all three attack styles.
-- **Mastery 99:** +100% accuracy and maximum hit for melee, ranged, and magic; +20% of maximum hit added to minimum hit; −20% attack interval.
-- **Instrument upgrade:** Allows a third active prayer, for a maximum of three while the upgraded Cello bard is hired at Music level 118 or higher.
+- **Mastery 1:** No bonus.
+- **Mastery 40:** +10 percentage points critical-hit chance, +50 percentage points critical damage multiplier, and +5% lifesteal.
+- **Mastery 75:** +10 percentage points Normal Damage Reduction and +50% evasion against all three attack styles.
+- **Mastery 99:** +50% accuracy and maximum hit for melee, ranged, and magic; +10% of maximum hit added to minimum hit; −10% attack interval.
+- **Mastery 118:** +100 Maximum Hitpoints and −25% Summoning Familiar Attack Interval.
+- **Instrument upgrade:** Allows a third active prayer, for a maximum of three while the upgraded Conductor bard is hired at Music level 118 or higher.
 
 Normal game caps and combat rules apply, including the 80% combat preservation cap and prayer-book restrictions.
-Cello uses Music's normal mastery purchases, upgrade costs, sockets, and utilities.
-Losing the Cello upgrade removes prayers beyond the first two from every equipment set.
+Conductor uses Music's normal earlier mastery purchases, upgrade costs, sockets, and utilities.
+Losing the Conductor upgrade removes prayers beyond the first two from every equipment set.
 The addon saves the third prayer separately and restores it when eligible; native saves contain at most two prayers per equipment set.
+
+With Throne of the Herald enabled, Music supports mastery level 118 and retains higher mastery caps supplied by other mods.
+Each Mastery 118 purchase costs **100,000,000 GP and 1 Essence of Music** and requires the instrument's normal unlock and mastery level 118.
+The rewards apply while hired, independently of the extra skill bonus toggle, and have the same strength in Standard and Hardcore settings.
+
+| Bard | Mastery 118 preservation reward |
+| --- | --- |
+| Guitar | +50% Ammo |
+| Banjo | +50% Food |
+| Snare Drum | +50% Runes |
+| Accordion | +50% Consumable Slot Charges |
+| Bouzouki | +50% Soul Points |
+| Flute | +50% Alt. Magic Runes |
+| Saxophone | +50% Unholy Prayer Points |
+| Violin | +50% Prayer Points |
+| French Horn | +50% Summoning Charges |
+| Harp | +50% Potion Charges |
+| Tambourine | +50% Compost |
+
+Maraca, Xylophone, Djembe, and Trumpet have no assigned Mastery 118 reward.
+Generic skill resource preservation is covered by the optional skill bonuses.
+Soul Point preservation requires Into the Abyss content to be useful.
+Conductor retains the saved Cello action identity, including mastery, hired status, and enhancements.
+Mastery 118 purchases are saved separately per character without increasing native hiring prices.
 
 Train one Music instrument at a time.
 For training several instruments at once, use the optional **Kroky's Workforce** mod.
@@ -136,6 +161,14 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 2.2.2
 
 ## Changelog
+
+### 2.3.0
+
+- Rename Cello to Conductor, with a transparent baton icon and retained save identity.
+- Halve Conductor's Mastery 40, 75, and 99 combat bonuses and retain the third-prayer upgrade.
+- Add Mastery 118 purchases for 100M GP and one Essence of Music, with roster shortcuts, native mastery menu entries, and per-character persistence.
+- Give Conductor +100 Maximum Hitpoints and −25% Summoning Familiar Attack Interval at Mastery 118.
+- Distribute eleven +50% preservation rewards across other bards and remove Conductor's base preservation and Prayer-point discount.
 
 ### 2.2.2
 
@@ -215,7 +248,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Upload configuration
 
-- Upload **bardic-troupe-2.2.2.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `cello.mjs`, `bonuses.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/cello.png`.
+- Upload **bardic-troupe-2.3.0.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `conductor.mjs`, `mastery.mjs`, `bonuses.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/conductor.png`.
 - Exclude tests and documentation from the archive.
 - Set **[Myth] Music**, mod.io ID **3096259**, as a hard dependency in mod.io.
   The current Melvor manifest loader does not read dependency declarations from `manifest.json`.
@@ -223,6 +256,6 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
   Unlinked Toolkit imports can lose additional bard state after reloading.
 
 Browser layout checks pass with Music's markup, Melvor's styles, and 15 mock bards at viewport widths of 1280, 768, 390, and 320px.
-No live character or save was used for this UI verification.
+Save slot #7 verifies Conductor's artwork, retained hires and enhancements, Mastery 118 costs and purchases through both menus, and purchase persistence after reload.
 
 Source references: [Music](https://github.com/mythridium/music), [Melvor mod API](https://melvoridle.com/assets/js/built/mod.js), and [Melvor shop save handling](https://melvoridle.com/assets/js/built/shop.js).

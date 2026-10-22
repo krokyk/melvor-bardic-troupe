@@ -1,10 +1,11 @@
 export async function setup(ctx) {
-  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installCello }, { installSkillBonuses }] = await Promise.all([
+  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installConductor }, { installSkillBonuses }, { installMastery118 }] = await Promise.all([
     ctx.loadModule("troupe.mjs"),
     ctx.loadModule("ui.mjs"),
     ctx.loadModule("config.mjs"),
-    ctx.loadModule("cello.mjs"),
+    ctx.loadModule("conductor.mjs"),
     ctx.loadModule("bonuses.mjs"),
+    ctx.loadModule("mastery.mjs"),
   ]);
   ctx.onModsLoaded(async () => {
     const music = game.music;
@@ -13,12 +14,13 @@ export async function setup(ctx) {
       throw new Error("Bardic Troupe requires [Myth] Music (mod.io ID 3096259), with Music save format 4. Enable Music and reload Melvor.");
     }
     let storageReady = false;
-    const cello = await installCello(ctx, music, () => storageReady, namespace);
+    const conductor = await installConductor(ctx, music, () => storageReady, namespace);
     const data = createShopData(music);
     await ctx.gameData.addPackage(data);
     const purchases = data.data.shopPurchases.map(purchase => game.shop.purchases.getObjectByID(`${namespace}:${purchase.id}`));
     const settings = configureUpgrades(ctx, game, purchases);
     const troupe = new Troupe(music, purchases);
+    const mastery = installMastery118(ctx, music, troupe, namespace);
     const bonuses = await installSkillBonuses(ctx, music, troupe);
     const bandPractice = game.shop.purchases.getObjectByID("mythMusic:Band_Practice");
     const bandIndex = game.shop.purchaseDisplayOrder.indexOf(bandPractice);
@@ -42,8 +44,9 @@ export async function setup(ctx) {
       settings.applySaved();
       bonuses.applySaved();
       const saved = ctx.characterStorage.getItem("troupe");
+      mastery?.restore(saved?.version === 1 ? saved.mastery118 : undefined);
       troupe.restore(saved);
-      cello?.restorePrayers(saved?.version === 1 ? saved.celloPrayers : undefined);
+      conductor?.restorePrayers(saved?.version === 1 ? saved.celloPrayers : undefined);
     };
     ctx.onCharacterLoaded(() => {
       storageReady = true;
@@ -52,7 +55,8 @@ export async function setup(ctx) {
     ctx.patch(game.constructor, "encode").before(function () {
       if (storageReady) {
         const saved = troupe.save();
-        if (cello) saved.celloPrayers = cello.savePrayers();
+        if (conductor) saved.celloPrayers = conductor.savePrayers();
+        if (mastery) saved.mastery118 = mastery.save();
         ctx.characterStorage.setItem("troupe", saved);
       }
     });
@@ -69,6 +73,6 @@ export async function setup(ctx) {
     ctx.patch(game.constructor, "decode").after(function () {
       if (storageReady) restore();
     });
-    installControls(ctx, music, troupe);
+    installControls(ctx, music, troupe, mastery);
   });
 }

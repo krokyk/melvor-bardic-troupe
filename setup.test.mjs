@@ -4,7 +4,8 @@ import { readFile } from "node:fs/promises";
 import { setup } from "./setup.mjs";
 import * as core from "./troupe.mjs";
 import * as config from "./config.mjs";
-import * as cello from "./cello.mjs";
+import * as conductor from "./conductor.mjs";
+import * as mastery from "./mastery.mjs";
 import * as bonuses from "./bonuses.mjs";
 
 test("setup loads through Melvor's standalone module URLs", async () => {
@@ -20,7 +21,7 @@ test("setup loads through Melvor's standalone module URLs", async () => {
 });
 
 async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnabled = false } = {}) {
-  const globals = ["game", "Shop", "ShopTabMenu", "ShopCostsAndUnlock", "shopMenu", "cloudManager", "loadedLangJson", "notifyPlayer", "getLangString"];
+  const globals = ["game", "Shop", "ShopTabMenu", "ShopCostsAndUnlock", "shopMenu", "cloudManager", "loadedLangJson", "notifyPlayer", "getLangString", "StatObject"];
   const previous = new Map(globals.map(key => [key, globalThis[key]]));
   t.after(() => {
     for (const [key, value] of previous) {
@@ -63,12 +64,18 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
   class ShopTabMenu { shouldShowItem() { return 1; } }
   class ShopCostsAndUnlock { updatePurchaseRequirements() {} }
   class Music {
+    get masteryLevelCap() { return 99; }
+    unlockMastery() {}
     computeProvidedStats() { this.computations = (this.computations ?? 0) + 1; }
     encode(writer) { writer.bards = this.bards.all().map(bard => ({ ...bard })); return writer; }
     decode(writer) {
       this.bards.clear();
       for (const bard of writer.bards ?? []) this.bards.set(bard.instrument, { ...bard });
     }
+  }
+  class Manager {
+    isModifierActive(_instrument, modifier) { return modifier.level === 1; }
+    get isBandPracticeUnlocked() { return game.shop.getPurchaseCount(band) > 0; }
   }
   const bards = {
     bards: new Map(),
@@ -122,24 +129,27 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
   globalThis.loadedLangJson = {};
   globalThis.notifyPlayer = () => {};
   globalThis.getLangString = key => key;
+  globalThis.StatObject = class {
+    constructor(data) { this.modifiers = data.modifiers; }
+  };
   globalThis.ShopTabMenu = ShopTabMenu;
   globalThis.ShopCostsAndUnlock = ShopCostsAndUnlock;
   globalThis.game = Object.assign(new Game(), {
     shop: new Shop(),
     gp: { amount: 10_000_000_000, canAfford(cost) { return this.amount >= cost; }, remove(cost) { this.amount -= cost; } },
     items: { getObjectByID: () => undefined },
+    getModifierValuesFromData: data => Object.entries(data).map(([id, value]) => ({ modifier: { id }, value })),
     combat: { player }, renderQueue: {},
     prayers: { getObjectByID: id => prayers.find(prayer => prayer.id === id) },
   });
   const music = Object.assign(new Music(), {
     id: "mythMusic:Music", version: 4, level: 120, isUnlocked: true, game,
     actions: { allObjects: instruments, getObjectByID: id => instruments.find(instrument => instrument.id === id) },
-    manager: {
-      get isBandPracticeUnlocked() { return game.shop.getPurchaseCount(band) > 0; },
+    manager: Object.assign(new Manager(), {
       isMasterAncientRelicUnlocked: false,
       calculateHireCost: () => ({ costs: [10_000], unlocked: 1 }),
       getHireCostModifier: () => 0,
-    },
+    }),
     bards, userInterface: { instruments: new Map() }, renderQueue: {},
     isMasteryActionUnlocked: instrument => instrument.level <= music.level,
   });
@@ -148,7 +158,8 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
     async loadModule(path) {
       if (path === "troupe.mjs") return core;
       if (path === "config.mjs") return config;
-      if (path === "cello.mjs") return cello;
+      if (path === "conductor.mjs") return conductor;
+      if (path === "mastery.mjs") return mastery;
       if (path === "bonuses.mjs") return bonuses;
       assert.equal(path, "ui.mjs");
       return { installControls(_ctx, _music, controller) { troupe = controller; } };
@@ -157,7 +168,13 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
     onCharacterLoaded(fn) { hooks.character = () => { unlocked = true; fn(); }; },
     gameData: { async addPackage(data) {
       for (const skill of data.data?.skillData ?? []) {
-        instruments.push(...skill.data.instruments.map(instrument => ({ ...instrument, id: `${core.namespace}:${instrument.id}` })));
+        instruments.push(...skill.data.instruments.map(instrument => ({
+          ...instrument, id: `${core.namespace}:${instrument.id}`,
+          modifiers: (() => {
+            const modes = { standard: [...instrument.standardModifiers], hardcore: [...instrument.hardcoreModifiers] };
+            return mode => modes[mode];
+          })(),
+        })));
       }
       for (const purchase of data.data?.shopPurchases ?? []) registry.set(`${core.namespace}:${purchase.id}`, {
         ...purchase, id: `${core.namespace}:${purchase.id}`,
@@ -189,6 +206,10 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
     patch(Class, name) {
       const original = Class.prototype[name];
       return {
+        get(fn) {
+          const getter = Object.getOwnPropertyDescriptor(Class.prototype, name).get;
+          Object.defineProperty(Class.prototype, name, { configurable: true, get() { return fn.call(this, getter.bind(this)); } });
+        },
         before(fn) { Class.prototype[name] = function (...args) { fn.call(this, ...args); return original.apply(this, args); }; },
         after(fn) { Class.prototype[name] = function (...args) { const result = original.apply(this, args); return fn.call(this, result, ...args) ?? result; }; },
         replace(fn) { Class.prototype[name] = function (...args) { return fn.call(this, original.bind(this), ...args); }; },
@@ -366,13 +387,16 @@ test("the character setting restores before offline processing and QuickLoad def
   assert.equal(modes.standard[0].modifiers.length, 1, "reloading an enabled save adds exactly one value");
 });
 
-test("sixteenth Cello hire, third prayer, and enhancements survive reload and clear on replacement", async t => {
+test("sixteenth Conductor hire, Mastery 118, third prayer, and enhancements survive reload and clear on replacement", async t => {
   const f = await fixture(t, { instrumentCount: 15, celloEnabled: true });
   game.gp.amount = 16_000_000_000;
   await f.hooks.mods();
   const cello = f.music.actions.getObjectByID(`${core.namespace}:Cello`);
   assert.equal(f.instruments.length, 16);
+  f.storage.set("troupe", { version: 1, mastery118: [cello.id] });
   f.hooks.character();
+  const mastery118 = cello.modifiers("standard").find(tier => tier.level === 118);
+  assert.equal(f.music.manager.isModifierActive(cello, mastery118), true);
   for (const purchase of f.troupe().purchases) game.shop.buyItemOnClick(purchase);
   assert.equal(f.troupe().slots().length, 16);
   const slot = f.troupe().slots().at(-1);
@@ -387,9 +411,11 @@ test("sixteenth Cello hire, third prayer, and enhancements survive reload and cl
   const saved = game.encode();
   assert.deepEqual(saved.prayers, [["prayer:1", "prayer:2"]]);
   assert.deepEqual(saved.troupe.celloPrayers, ["prayer:3"]);
+  assert.deepEqual(saved.troupe.mastery118, [cello.id]);
   assert.equal(saved.troupe.bards[0].instrument, cello.id);
   game.decode(saved);
   assert.equal(f.music.bards.get(slot).isUpgraded, true);
+  assert.equal(f.music.manager.isModifierActive(cello, mastery118), true);
   assert.equal(f.player.activePrayers.size, 3);
   f.player.togglePrayer(f.prayers[3], false);
   assert.equal(f.player.activePrayers.size, 3);
@@ -400,4 +426,5 @@ test("sixteenth Cello hire, third prayer, and enhancements survive reload and cl
   game.decode({ counts: saved.counts, prayers: saved.prayers });
   assert.equal(f.player.activePrayers.size, 2);
   assert.equal(f.music.bards.get(slot), undefined);
+  assert.equal(f.music.manager.isModifierActive(cello, mastery118), false);
 });

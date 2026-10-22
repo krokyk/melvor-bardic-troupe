@@ -1,14 +1,11 @@
-export function createCelloData(namespace) {
+export function createConductorData(namespace) {
   const bonuses = [
-    { level: 1, modifiers: {
-      ammoPreservationChance: 50, runePreservationChance: 50, foodPreservationChance: 50,
-      prayerPointPreservationChance: 50, summoningChargePreservationChance: 50, flatPrayerPointCost: -3,
-    } },
-    { level: 40, modifiers: { critChance: 20, critMultiplier: 100, lifesteal: 10 } },
+    { level: 1 },
+    { level: 40, modifiers: { critChance: 10, critMultiplier: 50, lifesteal: 5 } },
     { level: 75, modifiers: {
-      flatResistance: [{ damageTypeID: "melvorD:Normal", value: 20 }], evasion: 100,
+      flatResistance: [{ damageTypeID: "melvorD:Normal", value: 10 }], evasion: 50,
     } },
-    { level: 99, modifiers: { accuracyRating: 100, maxHit: 100, minHitBasedOnMaxHit: 20, attackInterval: -20 } },
+    { level: 99, modifiers: { accuracyRating: 50, maxHit: 50, minHitBasedOnMaxHit: 10, attackInterval: -10 } },
     { level: 999, modifiers: { [`${namespace}:thirdPrayer`]: 1 } },
   ];
   return {
@@ -19,7 +16,8 @@ export function createCelloData(namespace) {
         allowedScopes: [{ scopes: {}, descriptions: [{ text: "Allows a third active Prayer (maximum 3).", above: 0 }] }],
       }],
       skillData: [{ skillID: "mythMusic:Music", data: { instruments: [{
-        id: "Cello", name: "Cello", media: "assets/cello.png", level: 118,
+        // Keep the saved action ID so mastery, hires, and enhancements survive the rename.
+        id: "Cello", name: "Conductor", media: "assets/conductor.png", level: 118,
         baseInterval: 3000, baseExperience: 547, maxGP: 705,
         skills: ["Attack", "Strength", "Ranged", "Magic", "Defence", "Hitpoints", "Prayer", "Summoning"].map(id => `melvorD:${id}`),
         standardModifiers: bonuses, hardcoreModifiers: bonuses,
@@ -28,10 +26,10 @@ export function createCelloData(namespace) {
   };
 }
 
-export async function installCello(ctx, music, isReady, namespace) {
+export async function installConductor(ctx, music, isReady, namespace) {
   if (!cloudManager.hasTotHEntitlementAndIsEnabled) return;
-  await ctx.gameData.addPackage(createCelloData(namespace));
-  loadedLangJson.Myth_Music_Instrument_Cello = "Cello";
+  await ctx.gameData.addPackage(createConductorData(namespace));
+  loadedLangJson.Myth_Music_Instrument_Cello = "Conductor";
   const instrument = music.actions.getObjectByID(`${namespace}:Cello`);
   const game = music.game;
   const player = game.combat.player;
