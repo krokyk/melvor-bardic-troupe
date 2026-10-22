@@ -14,8 +14,8 @@ function fixture(t, { enabled = true, cap = 99, missing = [], native = [true, tr
   });
   globalThis.cloudManager = { hasTotHEntitlementAndIsEnabled: enabled };
   globalThis.StatObject = class {
-    constructor(data) { this.data = structuredClone(data); this.conditionalModifiers = structuredClone(data.conditionalModifiers); }
-    describePlain() { return JSON.stringify(this.modifiers ?? this.conditionalModifiers); }
+    constructor(data) { this.data = structuredClone(data); }
+    describePlain() { return JSON.stringify(this.modifiers); }
   };
   const swal = globalThis.SwalLocale = {
     fire(options) { this.options = options; return options; },
@@ -111,6 +111,7 @@ test("the ten preservation rewards, five additions, and Conductor intervals matc
     Maraca: { skillInterval: [{ skillID: "melvorD:Crafting", value: -10 }] },
     Xylophone: { masteryXP: [{ skillID: "melvorD:Agility", value: 15 }] },
     Saxophone: { unholyPrayerPointPreservationChance: 50 }, Violin: { prayerPointPreservationChance: 50 },
+    Bongo: { flatResistanceAgainstSlayerTasks: [{ damageTypeID: "melvorD:Normal", value: 3 }] },
     French_Horn: { summoningChargePreservationChance: 50 }, Harp: { potionChargePreservationChance: 50 },
     Tambourine: { compostPreservationChance: 50 }, Trumpet: { critChance: 5 },
     "The Conductor": { summoningAttackInterval: -25, attackInterval: -10 },
@@ -118,13 +119,8 @@ test("the ten preservation rewards, five additions, and Conductor intervals matc
   for (const instrument of f.instruments) {
     for (const mode of ["standard", "hardcore"]) {
       const extra = instrument.modifiers(mode)[4];
-      if (instrument.name === "Bongo") {
-        assert.deepEqual(extra.data.conditionalModifiers, [{
-          condition: { type: "FightingSlayerTask" },
-          modifiers: { flatResistance: [{ damageTypeID: "melvorD:Normal", value: 3 }] },
-          description: "+3% Damage Reduction while fighting your Slayer Task.",
-        }]);
-      } else assert.deepEqual(extra.data.modifiers, expected[instrument.name]);
+      assert.deepEqual(extra.data.modifiers, expected[instrument.name]);
+      assert.deepEqual(extra.modifiers, f.game.getModifierValuesFromData(expected[instrument.name]), "added rewards are parsed without a deferred registration pass");
       assert.equal(extra.data.modifiers?.altMagicRunePreservationChance, undefined);
     }
   }

@@ -206,6 +206,7 @@ These checks do not replace an in-game test of hiring, enhancements, save reload
 Browser layout checks pass with Music's markup, Melvor's styles, and 15 mock bards at viewport widths of 1280, 768, 390, and 320px.
 The [desktop](assets/bardic-troupe-layout-preview.png) and [phone](assets/bardic-troupe-layout-mobile.png) previews use test data.
 Save slot #7 verifies all sixteen mastery layouts, retained hires and enhancements, purchases of all five added bonuses and Guitar's lower-tier preservation, the critical-chance increase from 14% to 19%, and purchase persistence after reload.
+Live slot #7 combat verifies Djembe's +3% Normal Damage Reduction applies to Slayer-task monsters and is absent against other enemies.
 
 When publishing, configure Music as a hard dependency in mod.io using ID **3096259**.
 Melvor's current manifest loader does not support declaring that dependency in `manifest.json`.

@@ -13,11 +13,7 @@ const layout = [
   ["Xylophone", [20, 99, 40], { level: 65, modifiers: { masteryXP: [{ skillID: "melvorD:Agility", value: 15 }] } }],
   ["Saxophone", [40, 99, 20], { level: 65, modifiers: { unholyPrayerPointPreservationChance: 50 } }],
   ["Violin", [20, 40, 99], { level: 65, modifiers: { prayerPointPreservationChance: 50 } }],
-  ["Bongo", [40, 20, 99], { level: 65, conditionalModifiers: [{
-    condition: { type: "FightingSlayerTask" },
-    modifiers: { flatResistance: [{ damageTypeID: "melvorD:Normal", value: 3 }] },
-    description: "+3% Damage Reduction while fighting your Slayer Task.",
-  }] }],
+  ["Bongo", [40, 20, 99], { level: 65, modifiers: { flatResistanceAgainstSlayerTasks: [{ damageTypeID: "melvorD:Normal", value: 3 }] } }],
   ["French_Horn", [20, 65, 99], { level: 40, modifiers: { summoningChargePreservationChance: 50 } }],
   ["Harp", [20, 99, 65], { level: 40, modifiers: { potionChargePreservationChance: 50 } }],
   ["Tambourine", [99, 40, 65], { level: 20, modifiers: { compostPreservationChance: 50 } }],
