@@ -36,11 +36,18 @@ function rosterIndicators(f) {
 }
 
 function rosterCard(f, number = 2) {
+  openRoster(f);
   return descendants(f.native.sibling).find(node => node.id === "bardic-troupe-slots").children[number - 1];
 }
 
 function rosterButton(f, label, number = 2) {
   return descendants(rosterCard(f, number)).find(node => node.tag === "button" && node.textContent.trim() === label);
+}
+
+function openRoster(f) {
+  const nodes = descendants(f.native.sibling);
+  const toggle = nodes.find(node => node.attributes["aria-controls"] === "bardic-troupe-slots");
+  if (toggle.attributes["aria-expanded"] === "false") toggle.onclick();
 }
 
 function fixture(t, { masteryLabel = "Mastery" } = {}) {
@@ -54,7 +61,8 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
   const native = new Node("div");
   native.append(new Node("native-bard-component"));
   const elements = new Map([["bard-container", native]]);
-  globalThis.document = { createElement: tag => new Node(tag), getElementById: id => elements.get(id) };
+  const counts = { elements: 0, modifierReads: 0 };
+  globalThis.document = { createElement: tag => { counts.elements++; return new Node(tag); }, getElementById: id => elements.get(id) };
   globalThis.getLangString = key => key === "Myth_Music_Mastery" ? masteryLabel : key;
   const swal = globalThis.SwalLocale = {
     closed: false,
@@ -115,11 +123,13 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
   const music = Object.assign(new Music(), {
     bards: { get: slot => bards.get(slot), isHired: () => false },
     userInterface: { bard1: bridge, instruments },
-    manager: { getModifiers: target => modifiers.get(target) ?? [] },
+    game: {},
+    manager: { getModifiers: target => { counts.modifierReads++; return modifiers.get(target) ?? []; } },
     getMasteryLevel: target => masteryLevels.get(target) ?? 1,
     unlockMastery(target) { return openNativeModal("mastery", target, this); },
     renderQueue: { bardModifiers: true }
   });
+  music.game.openPage = { action: music };
   const troupe = {
     slots: () => [1, 4],
     hireCost: () => 10000,
@@ -155,7 +165,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
     assert.equal(nativeOpens.at(-1).popup, popup);
     return { queries, clicks };
   }
-  return { native, swal, instrument, existing, bards, bridge, music, troupe, mastery, patches, ctx, modifiers, masteryLevels, instrumentButtons, nativeMasteryCalls, masteryCalls, nativeModalCalls, nativeOpens, refresh, didOpen };
+  return { counts, native, swal, instrument, existing, bards, bridge, music, troupe, mastery, patches, ctx, modifiers, masteryLevels, instrumentButtons, nativeMasteryCalls, masteryCalls, nativeModalCalls, nativeOpens, refresh, didOpen };
 }
 
 test("roster retains native controls and opens each enhancement submenu for the correct extra bard", t => {
@@ -166,6 +176,7 @@ test("roster retains native controls and opens each enhancement submenu for the 
   f.ctx.ready();
   assert.equal(f.native.hidden, true);
   assert.equal(f.native.children.length, 1, "retain controls needed by Music's decoder");
+  openRoster(f);
   const cards = descendants(f.native.sibling).find(node => node.id === "bardic-troupe-slots").children;
   assert.equal(cards.length, 2);
   assert.deepEqual(cards.map(card => card.children[0].children[0].textContent), ["Slot 1", "Slot 2"]);
@@ -608,4 +619,47 @@ test("unhired eligibility and an empty roster do not trigger the hired-bard head
   assert.equal(marker.hidden, true, "the former bard's incomplete equipment must not count after removal");
   assert.equal(toggle.attributes["aria-describedby"], "");
   assert.equal(toggle.children[0].children.at(-2).textContent, "0/2 hired");
+});
+
+test("hidden Music defers queued roster rendering without reading modifiers or replacing nodes", t => {
+  const f = fixture(t);
+  f.ctx.ready();
+  openRoster(f);
+  const grid = descendants(f.native.sibling).find(node => node.id === "bardic-troupe-slots");
+  const cards = [...grid.children];
+  const before = { ...f.counts };
+  f.music.game.openPage = { action: {} };
+  f.bards.clear();
+  for (let index = 0; index < 100; index++) f.refresh();
+  assert.deepEqual(f.counts, before, "hidden pages must do no modifier reads or element creation");
+  assert.deepEqual(grid.children, cards, "retain the hidden DOM until Music is visible");
+  assert.equal(f.music.renderQueue.bardModifiers, true, "retain native dirty state for the next visible render");
+  f.music.game.openPage = { action: f.music };
+  f.patches.get("renderBardModifiers")();
+  assert.equal(f.music.renderQueue.bardModifiers, false);
+  assert(grid.textContent.includes("No bard hired"), "show the newest roster on return");
+  assert.equal(f.counts.modifierReads > before.modifierReads, true);
+});
+
+test("collapsed rosters defer all slot card construction while keeping visible cues current", t => {
+  const f = fixture(t);
+  f.ctx.ready();
+  const nodes = descendants(f.native.sibling);
+  const grid = nodes.find(node => node.id === "bardic-troupe-slots");
+  const toggle = nodes.find(node => node.attributes["aria-controls"] === "bardic-troupe-slots");
+  const cue = indicators(toggle)[0];
+  assert.equal(grid.children.length, 0, "start with no hidden slot cards");
+  const before = f.counts.elements;
+  f.existing.isUpgraded = false;
+  for (let index = 0; index < 100; index++) f.refresh();
+  assert.equal(f.counts.elements, before, "collapsed refreshes must create no slot DOM");
+  assert.equal(cue.hidden, false, "the visible header cue still updates while collapsed");
+  assert.equal(f.music.renderQueue.bardModifiers, false);
+  openRoster(f);
+  assert.equal(grid.children.length, 2, "build the latest cards when the user expands the roster");
+  assert.equal(rosterButton(f, "Upgrade").disabled, false);
+  assert.equal(f.music.renderQueue.bardModifiers, false, "do not rebuild again on the next frame");
+  const expanded = f.counts.elements;
+  f.patches.get("renderBardModifiers")();
+  assert.equal(f.counts.elements, expanded);
 });

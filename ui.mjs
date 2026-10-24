@@ -77,6 +77,7 @@ export function installControls(ctx, music, troupe, mastery) {
   let rosterIndicator;
   let slotGrid;
   let slotCount;
+  let body;
   const masteryIndicators = new Map();
 
   function openEquipment(slot, state) {
@@ -102,19 +103,24 @@ export function installControls(ctx, music, troupe, mastery) {
   });
 
   function render() {
-    if (!slotGrid) return;
+    if (!slotGrid || music.game.openPage?.action !== music) return;
     const slots = troupe.slots();
     let hired = 0;
     let needsAttention = false;
-    slotGrid.replaceChildren();
+    if (!body.hidden) slotGrid.replaceChildren();
     for (const [index, slot] of slots.entries()) {
       const number = index + 1;
       const bard = music.bards.get(slot);
+      if (bard) {
+        hired++;
+        needsAttention ||= !bard.isUpgraded || !bard.socket || !bard.utility ||
+          music.manager.getModifiers(bard.instrument).some(modifier => canUnlockMastery(music, bard.instrument, modifier));
+      }
+      if (body.hidden) continue;
       const card = element("div", "block block-rounded border-top border-music border-4x p-3");
       const heading = element("div", "d-flex flex-wrap align-items-center mb-2");
       heading.append(element("span", "font-size-lg mr-2", `Slot ${number}`));
       if (bard) {
-        hired++;
         const image = element("img", "instrument-icon mr-2");
         image.src = bard.instrument.media;
         image.alt = "";
@@ -142,8 +148,6 @@ export function installControls(ctx, music, troupe, mastery) {
         }
         card.append(enhancements);
         appendModifiers(card, music, bard.instrument, level => openMastery(slot, level));
-        needsAttention ||= !bard.isUpgraded || !bard.socket || !bard.utility ||
-          music.manager.getModifiers(bard.instrument).some(modifier => canUnlockMastery(music, bard.instrument, modifier));
       } else {
         heading.append(element("span", "text-muted", "No bard hired. Choose Hire on an unlocked instrument."));
         card.append(heading);
@@ -156,6 +160,7 @@ export function installControls(ctx, music, troupe, mastery) {
     for (const [instrument, indicator] of masteryIndicators) {
       indicator.hidden = !music.manager.getModifiers(instrument).some(modifier => canUnlockMastery(music, instrument, modifier));
     }
+    music.renderQueue.bardModifiers = false;
   }
 
   ctx.patch(music.constructor, "hire").replace(function (_original, instrument) {
@@ -206,9 +211,7 @@ export function installControls(ctx, music, troupe, mastery) {
   });
 
   ctx.patch(music.constructor, "renderBardModifiers").replace(function () {
-    if (!roster || !music.renderQueue.bardModifiers) return;
-    render();
-    music.renderQueue.bardModifiers = false;
+    if (music.renderQueue.bardModifiers) render();
   });
 
   ctx.onInterfaceReady(() => {
@@ -229,7 +232,7 @@ export function installControls(ctx, music, troupe, mastery) {
     rosterIndicator.className += " ml-2";
     title.append(eye, element("span", "", "Toggle Bardic Troupe"), slotCount, rosterIndicator);
     toggle.append(title);
-    const body = element("div", "block-content block-content-full");
+    body = element("div", "block-content block-content-full");
     slotGrid = element("div", "");
     slotGrid.id = "bardic-troupe-slots";
     body.append(slotGrid);
@@ -239,6 +242,7 @@ export function installControls(ctx, music, troupe, mastery) {
       toggle.setAttribute("aria-label", `${expanded ? "Hide" : "Show"} bard slots`);
       toggle.title = `${expanded ? "Hide" : "Show"} bard slots`;
       eye.className = expanded ? "far fa-eye mr-2" : "far fa-eye-slash mr-2";
+      if (expanded) render();
     }
     toggle.onclick = () => setExpanded(body.hidden);
     setExpanded(false);
