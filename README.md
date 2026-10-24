@@ -1,7 +1,7 @@
 # Bardic Troupe
 
 Bardic Troupe is a Melvor Idle addon for [Myth] Music that lets you hire a different bard for every available instrument and keep their bonuses active together.
-Version: **2.3.1**.
+Version: **2.3.2**.
 
 ## Requirements
 
@@ -184,7 +184,7 @@ There is intentionally no browser-local storage fallback.
 
 ## Package and development
 
-The release archive is **bardic-troupe-2.3.1.zip** and contains these runtime files, with `manifest.json` at its root:
+The release archive is **bardic-troupe-2.3.2.zip** and contains these runtime files, with `manifest.json` at its root:
 
 ```text
 manifest.json

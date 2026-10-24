@@ -17,6 +17,8 @@ Buy additional slots in order, with a configurable Music level requirement and G
 
 **Kroky's Bardic Troupe** expands [[Myth] Music](https://mod.io/g/melvoridle/m/myth-music) so you can hire a full ensemble and keep their passive bonuses active together while you train other skills.
 
+### Build your troupe
+
 - Buy **Bardic Troupe I**, **Bardic Troupe II**, and later upgrades in order from the **Bardic Troupe** shop category.
   The defaults are **actual Music level 100** and **1,000,000,000 GP per additional slot**.
 - Set a shared Music level requirement and GP price for every troupe slot upgrade in native **Mod Settings**.
@@ -34,6 +36,8 @@ Buy additional slots in order, with a configurable Music level requirement and G
 Choose an empty slot or a bard to replace when hiring, then use the roster's **Upgrade**, **Socket**, and **Utility** shortcuts to manage its enhancements.
 Replacing a bard loses its upgrade, socket, and utility, as in Music.
 
+### Compact roster and shortcuts
+
 The compact **Toggle Bardic Troupe** bar shows an eye icon and your hired-bard count out of the total slots.
 It also shows a gold **♫**, including while collapsed, if any hired bard has an eligible unpurchased mastery bonus or a missing instrument enhancement.
 Unhired instruments do not affect this bar's cue.
@@ -41,6 +45,8 @@ Click anywhere on the bar to show or hide the roster, just like combat's skill-p
 The roster starts collapsed whenever the interface loads, and the bar also supports Enter and Space when focused.
 Cards appear in two columns when there is room and stack in one column in narrow panels.
 Hiring and bonus updates keep the roster open or closed as you left it.
+The roster refreshes when you open Music or expand it, reducing unnecessary interface work while you train elsewhere or keep it collapsed.
+Pending changes appear when you return, while the collapsed bar keeps its hired count and attention cue current whenever Music is open.
 
 All roster shortcuts match the compact height of Melvor's labels, with item icons scaled to fit.
 Missing enhancements have green outlined buttons; applied enhancements have solid green buttons.
@@ -54,9 +60,13 @@ Each mastery purchase costs GP and one Essence of Music.
 Music's instrument-card **Mastery** buttons open the remapped overview and retain the gold **♫** cue while an eligible bonus remains unpurchased, including on unhired instruments.
 Roster states and cues update as mastery levels, purchased bonuses, enhancements, or loaded saves change.
 
+### Character settings
+
 Settings are saved separately for each character and immediately update the shop's prices, requirements, and labels.
 Previous troupe upgrades are still required in order.
 Changing settings keeps purchased slots and existing bards, and does not refund earlier purchases.
+
+### Optional extra preservation and doubling
 
 **Extra preservation and doubling** adds **Chance to Double Items in Skills** and **Chance to Preserve Resources in Skills** at these tiers when enabled.
 Each award adds **5 percentage points** to one bonus; no tier receives both additions.
@@ -86,6 +96,8 @@ The toggle is saved per character, defaults to OFF, and immediately updates acti
 When OFF, only the additions disappear completely; Music's original bonuses, purchased masteries, and instrument enhancements are retained.
 The Conductor grants neither of these two skill bonuses, regardless of the toggle.
 
+### The Conductor
+
 The Conductor provides these bonuses while hired, at the same strength under Music's Standard and Hardcore modifier settings:
 
 - **Mastery 1:** +200 Maximum Hitpoints.
@@ -100,6 +112,8 @@ The Conductor supports the remapped mastery purchases and Music's normal upgrade
 Losing The Conductor's upgrade removes prayers beyond the first two from every equipment set.
 The addon saves the third prayer separately and restores it when eligible; native saves contain at most two prayers per equipment set.
 
+### Mastery bonuses
+
 The mastery tiers are **1, 20, 40, 65, and 99**, with Music's mastery level cap unchanged.
 Mastery **20, 40, 65, and 99** purchases cost **100K, 1M, 10M, and 100M GP**, respectively, plus **1 Essence of Music each**.
 Each purchase requires its listed mastery level and the instrument's normal unlock.
@@ -113,19 +127,19 @@ The table lists Standard bonus values; native Hardcore values remain unchanged, 
 | Bard | Mastery 20 | Mastery 40 | Mastery 65 | Mastery 99 |
 | --- | --- | --- | --- | --- |
 | Guitar | +50% Ammo Preservation | +15% Firemaking Mastery XP | -10% Firemaking Interval | +2 Bird Nest quantity |
-| Banjo | +50% Food Preservation | -10% Cooking Interval | -30% Passive Cook Interval | +10% chance for an extra Fishing special item |
-| Snare Drum | -0.2s Smithing Interval | +50% Rune Preservation | -3 Coal Ore cost | x4 Mining ore |
-| Accordion | +15% Auto Eat Efficiency | +50% Consumable Charge Preservation | Enemy -10% Damage Reduction | +5% Auto Eat Threshold |
-| Bouzouki | +10% Global GP | +10% rare-item chances | +50% Soul Point Preservation | +10% Global Item Doubling |
+| Banjo | +50% Food Preservation | -10% Cooking Interval | -30% Passive Cook Interval | +10% chance for an extra random special item when catching a Fishing special item |
+| Snare Drum | -0.2s Smithing Interval | +50% Rune Preservation | -3 Coal cost in Smithing | x4 Mining ore |
+| Accordion | +15% Auto Eat Efficiency | +50% Consumable Charge Preservation | Enemy -10% Normal Damage Reduction | +5% Auto Eat Threshold |
+| Bouzouki | +10% Global GP, excluding item sales | +10% chance for global rares, Mastery Tokens, Bird Nests, Mining gems, and Firemaking coal | +50% Soul Point Preservation | +10% Global Item Doubling |
 | Flute | -10% map-refinement cost | -10% survey interval | +15% Archaeology Skill XP | +2 Archaeology resources |
 | Maraca | +5% Fletching Skill XP | x4 Fletching resources | -10% Crafting Interval | x4 Crafting resources |
 | Xylophone | +15% Agility GP | -10% Agility Pillar cost | +15% Agility Mastery XP | -15% Agility Interval |
-| Saxophone | +5% Maximum Hitpoints | +10% Lifesteal | +50% Unholy Prayer Point Preservation | +5% Damage Reduction |
-| Violin | +1 Prayer Point when hit | +6 Runecrafting runes | +50% Prayer Point Preservation | -3 Prayer Point cost |
-| Djembe | +40% Slayer Coins | +10% Slayer-task damage | +3% Damage Reduction during Slayer tasks | +25% Slayer-area effect negation |
+| Saxophone | +5% Maximum Hitpoints | +10% Lifesteal | +50% Unholy Prayer Point Preservation | +5% Normal Damage Reduction |
+| Violin | +1 Prayer Point when successfully hit | +6 Runecrafting runes; cannot be doubled | +50% Prayer Point Preservation | -3 Prayer Point cost; minimum remains 1 |
+| Djembe | +40% Slayer Coins | +10% Slayer-task damage | +3% Normal Damage Reduction against Slayer-task monsters | +25% Slayer-area effect negation |
 | French Horn | -0.5s Astrology Interval | +50% Summoning Charge Preservation | -1s Summoning Interval | +15 Summoning resources |
 | Harp | +50 Thieving Stealth | +50% Potion Charge Preservation | +15% Thieving area-unique chance | x4 Herblore resources |
-| Tambourine | +50% Compost Preservation | +10% Township GP | +50% Township Happiness | +15 Farming resources |
+| Tambourine | +50% Compost Preservation | +10% Township GP | +50% Township Happiness | +15 Farming resources; cannot be doubled |
 | Trumpet | +5% of maximum hit added to minimum hit | +10% Maximum Hit | +5% Critical Hit Chance | -0.5s Attack Interval |
 
 The Conductor retains its separate combat layout, including +200 Maximum Hitpoints at Mastery 1 and both attack interval reductions at Mastery 99.
@@ -136,10 +150,15 @@ Soul Point preservation requires Into the Abyss content to be useful.
 The Conductor retains the saved Cello action identity, including mastery, hired status, and enhancements.
 Added reward purchases are saved separately per character without increasing native hiring prices.
 
-Train one Music instrument at a time.
-For training several instruments at once, use the optional **Kroky's Workforce** mod.
+### Requirements and compatibility
 
-**Requires [Myth] Music (mod.io ID 3096259).**
+**Requires [[Myth] Music](https://mod.io/g/melvoridle/m/myth-music), mod.io ID 3096259.**
+Throne of the Herald is required for The Conductor and Music's other Throne of the Herald instruments; Atlas of Discovery is required for Flute.
+These expansions are not required for the addon's other supported instruments.
+
+Train one Music instrument at a time.
+For training several instruments at once, use the optional **[Kroky's Workforce](https://mod.io/g/melvoridle/m/krokys-workforce)** mod.
+
 Kroky's Workforce is not required.
 
 **Save warning:** Export your save before disabling or removing the addon.
@@ -170,9 +189,14 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Version
 
-2.3.1
+2.3.2
 
 ## Changelog
+
+### 2.3.2
+
+- Reduce unnecessary roster updates while Music is hidden or the roster is collapsed.
+- Show pending changes when Music opens or the roster expands, retaining hired counts, enhancement cues, and the roster's open or closed state.
 
 ### 2.3.1
 
@@ -271,7 +295,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Upload configuration
 
-- Upload **bardic-troupe-2.3.1.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `conductor.mjs`, `mastery.mjs`, `bonuses.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/conductor.png`.
+- Upload **bardic-troupe-2.3.2.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `conductor.mjs`, `mastery.mjs`, `bonuses.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/conductor.png`.
 - Exclude tests and documentation from the archive.
 - Set **[Myth] Music**, mod.io ID **3096259**, as a hard dependency in mod.io.
   The current Melvor manifest loader does not read dependency declarations from `manifest.json`.
