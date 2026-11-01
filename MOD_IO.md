@@ -60,9 +60,14 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Version
 
-2.3.2
+2.4.0
 
 ## Changelog
+
+### 2.4.0
+
+- Pay the native Music training amount in Abyssal Pieces in the unlocked Abyssal realm, with matching currency labels and icons.
+- Keep Music available in the Abyssal sidebar and defer hidden currency-range rendering while retaining normal GP costs, XP, mastery, and bard bonuses.
 
 ### 2.3.2
 
@@ -166,7 +171,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Upload configuration
 
-- Upload **bardic-troupe-2.3.2.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `conductor.mjs`, `mastery.mjs`, `music-realms.mjs`, `bonuses.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/conductor.png`.
+- Upload **krokys-bardic-troupe-2.4.0.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `conductor.mjs`, `mastery.mjs`, `music-realms.mjs`, `bonuses.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/conductor.png`.
 - Exclude tests and documentation from the archive.
 - Set **[Myth] Music**, mod.io ID **3096259**, as a hard dependency in mod.io.
   The current Melvor manifest loader does not read dependency declarations from `manifest.json`.
