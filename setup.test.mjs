@@ -167,6 +167,9 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
       if (path === "conductor.mjs") return conductor;
       if (path === "mastery.mjs") return mastery;
       if (path === "bonuses.mjs") return bonuses;
+      if (path === "music-realms.mjs") return { installMusicRealms(_ctx, skill) {
+        assert.equal(skill, game.music); hooks.musicRealmsInstalled = true;
+      } };
       assert.equal(path, "ui.mjs");
       return { installControls(_ctx, _music, controller) { troupe = controller; } };
     },
@@ -229,9 +232,11 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
 test("dependency is checked after all mods load, before touching shop data", async t => {
   const f = await fixture(t, { missingMusic: true });
   await assert.rejects(f.hooks.mods(), /requires \[Myth\] Music/);
+  assert.equal(f.hooks.musicRealmsInstalled, undefined);
   assert.equal(f.registry.size, 2);
   game.music = f.music;
   await f.hooks.mods();
+  assert.equal(f.hooks.musicRealmsInstalled, true);
   assert.ok(f.troupe());
 });
 

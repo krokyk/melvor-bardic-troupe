@@ -20,8 +20,17 @@ Version: **2.3.2**.
 Slot purchases require **actual Music level 100 by default**, with a shared level requirement and GP price configurable in Mod Settings.
 Further purchases stop being offered once your total slot capacity covers every instrument registered by Music, including instruments you have not unlocked yet.
 Each instrument can have only one hired bard.
-Music's existing instruments retain their training, unlocks, bonus values, hiring costs, and enhancements, with mastery tiers at 1, 20, 40, 65, and 99.
+Music's existing instruments retain their unlocks, normal XP, bonus values, hiring costs, and enhancements, with mastery tiers at 1, 20, 40, 65, and 99.
 Replacing a bard loses that bard's upgrade, socket, and utility, as in Music.
+
+## Music realms and training currency
+
+Melvor training awards GP, while training in the unlocked Abyssal realm with Into the Abyss awards the same native computed tip amount as Abyssal Pieces (AP).
+Both realms use the same instruments, normal Music XP and mastery progress.
+Native realm selection and sidebar visibility recognize the unlocked Abyssal realm, and training ranges show the selected currency's icon and GP/AP label.
+Hiring, instrument enhancements, troupe slots and mastery purchases retain their normal GP and Essence of Music costs and bonus values.
+Passive hired-bard payouts keep their native GP behavior.
+The selected Music realm is saved by the native skill data.
 
 The compact **Toggle Bardic Troupe** bar shows an eye icon and the number of hired bards out of your total slots.
 It also shows a gold **♫**, including while collapsed, when any hired bard has an eligible unpurchased mastery bonus or a missing instrument enhancement.
@@ -87,7 +96,7 @@ The Conductor grants neither of these two skill bonuses, regardless of the toggl
 The Conductor unlocks at **Music level 118** with **Throne of the Herald enabled**.
 With all Music content enabled, it is the sixteenth instrument and the troupe can hold all sixteen different bards.
 The extra slot uses the same sequential purchases, configurable level requirement, and GP price as the other troupe slots.
-The Conductor trains every 3 seconds before interval modifiers, grants 547 base Music XP, and has a base maximum tip of 705 GP before mastery and GP modifiers.
+In Melvor, The Conductor trains every 3 seconds before interval modifiers, grants 547 base Music XP, and has a base maximum tip of 705 GP before mastery and GP modifiers.
 Its associated skills are Attack, Strength, Ranged, Magic, Defence, Hitpoints, Prayer, and Summoning, including Concert Pass XP.
 
 | Bonus tier | Bonuses while hired |
@@ -193,6 +202,7 @@ config.mjs
 troupe.mjs
 conductor.mjs
 mastery.mjs
+music-realms.mjs
 bonuses.mjs
 ui.mjs
 ui.css

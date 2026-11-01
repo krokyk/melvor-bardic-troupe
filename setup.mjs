@@ -1,11 +1,12 @@
 export async function setup(ctx) {
-  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installConductor }, { installSkillBonuses }, { installMasteryTiers }] = await Promise.all([
+  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installConductor }, { installSkillBonuses }, { installMasteryTiers }, { installMusicRealms }] = await Promise.all([
     ctx.loadModule("troupe.mjs"),
     ctx.loadModule("ui.mjs"),
     ctx.loadModule("config.mjs"),
     ctx.loadModule("conductor.mjs"),
     ctx.loadModule("bonuses.mjs"),
     ctx.loadModule("mastery.mjs"),
+    ctx.loadModule("music-realms.mjs"),
   ]);
   ctx.onModsLoaded(async () => {
     const music = game.music;
@@ -13,6 +14,7 @@ export async function setup(ctx) {
         !music.bards?.bards || !music.userInterface) {
       throw new Error("Bardic Troupe requires [Myth] Music (mod.io ID 3096259), with Music save format 4. Enable Music and reload Melvor.");
     }
+    installMusicRealms(ctx, music);
     let storageReady = false;
     const conductor = await installConductor(ctx, music, () => storageReady, namespace);
     const data = createShopData(music);
