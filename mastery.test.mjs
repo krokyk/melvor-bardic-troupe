@@ -116,11 +116,11 @@ test("every bard has the agreed five tiers in both modes while native reward pos
   assert.equal(f.instruments.filter(instrument => instrument.modifiers("standard").some(tier => tier.level === 99)).length, 16);
 });
 
-test("the ten preservation rewards, five additions, and Conductor intervals match the approved data", t => {
+test("added mastery rewards and Conductor intervals match the approved data", t => {
   const f = fixture(t);
   const expected = {
     Guitar: { ammoPreservationChance: 50 }, Drum: { foodPreservationChance: 50 }, Banjo: { runePreservationChance: 50 },
-    Accordion: { consumablePreservationChance: 50 }, Bouzouki: { soulPointPreservationChance: 50 },
+    Accordion: { consumablePreservationChance: 50 }, Bouzouki: { masteryXP: [{ realmID: "melvorD:Melvor", value: 10 }] },
     Flute: { skillXP: [{ skillID: "melvorAoD:Archaeology", value: 15 }] },
     Maraca: { skillInterval: [{ skillID: "melvorD:Crafting", value: -10 }] },
     Xylophone: { masteryXP: [{ skillID: "melvorD:Agility", value: 15 }] },
@@ -140,7 +140,7 @@ test("the ten preservation rewards, five additions, and Conductor intervals matc
   }
 });
 
-test("Bouzouki retains the 2.3.2 four-tier layout and restores its purchased Mastery 65 reward", t => {
+test("Bouzouki retains all four tiers and its purchased Mastery 65 reward grants only Melvor Mastery XP", t => {
   const f = fixture(t, { native: [true, false, true, false] });
   const bouzouki = f.instruments.find(instrument => instrument.id === "mythMusic:Bouzouki");
   const funds = f.game.gp.amount, essence = f.game.bank.quantity;
@@ -152,7 +152,10 @@ test("Bouzouki retains the 2.3.2 four-tier layout and restores its purchased Mas
     assert.deepEqual(f.music.manager.getModifiers(bouzouki).filter(tier => tier.level < 999).map(tier => [tier.level, tier.isActive]), [
       [1, true], [20, false], [40, false], [65, true], [99, true],
     ]);
-    assert.deepEqual(tiers.find(tier => tier.level === 65).modifiers, [{ modifier: { id: "soulPointPreservationChance" }, value: 50 }]);
+    const reward = tiers.find(tier => tier.level === 65);
+    assert.deepEqual(reward.data.modifiers, { masteryXP: [{ realmID: "melvorD:Melvor", value: 10 }] });
+    assert.deepEqual(reward.modifiers, f.game.getModifierValuesFromData(reward.data.modifiers));
+    assert(tiers.every(tier => !tier.modifiers.some(value => value.modifier.id === "soulPointPreservationChance")));
     for (const [level, original] of [[20, 40], [40, 99], [99, 75]]) {
       assert.deepEqual(tiers.find(tier => tier.level === level).modifiers, [{ modifier: { id: `native:${original}` }, value: mode === "standard" ? 7 : 3 }]);
     }

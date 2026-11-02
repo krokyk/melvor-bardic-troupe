@@ -5,18 +5,21 @@ import { abyssalEquipment, createAbyssalEquipmentData } from "./abyssal-equipmen
 
 const namespace = "KrokyBardicTroupe";
 class Node {
-  constructor(tag) { this.tag = tag; this.children = []; this.attributes = {}; this.textContent = ""; }
-  append(...nodes) { this.children.push(...nodes); }
-  setAttribute(key, value) { this.attributes[key] = value; }
+  constructor(tag) { this.tag = tag; }
 }
-const descendants = node => [node, ...node.children.flatMap(descendants)];
 
 async function fixture(t, { enabled = true } = {}) {
-  const previous = new Map(["document", "SwalLocale", "StatObject", "rollPercentage"].map(key => [key, globalThis[key]]));
+  const previous = new Map(["document", "SwalLocale", "StatObject", "rollPercentage", "ui"].map(key => [key, globalThis[key]]));
   t.after(() => { for (const [key, value] of previous) { if (value === undefined) delete globalThis[key]; else globalThis[key] = value; } });
   globalThis.document = { createElement: tag => new Node(tag) };
   globalThis.StatObject = class { constructor(data) { this.data = data; } };
-  const swal = globalThis.SwalLocale = { fire(options) { this.options = options; return options; }, close() { this.closed = true; } };
+  const swal = globalThis.SwalLocale = {
+    fire(options) { this.options = options; options.didOpen?.(); return options; },
+    clickConfirm() { this.closed = true; }, showValidationMessage(message) { this.error = message; },
+    resetValidationMessage() { this.error = undefined; },
+  };
+  let component, mountedHost;
+  globalThis.ui = { create(props, host) { component = props; mountedHost = host; } };
   const percentages = [];
   globalThis.rollPercentage = chance => { percentages.push(chance); return true; };
   const normal = { id: "melvorD:Melvor", isUnlocked: true }, abyssal = { id: "melvorItA:Abyssal", isUnlocked: true };
@@ -78,8 +81,8 @@ async function fixture(t, { enabled = true } = {}) {
   };
   const controller = await installAbyssalEquipment(ctx, music, namespace);
   const item = localID => items.get(`${namespace}:${localID}`);
-  const buttons = () => descendants(swal.options.html).filter(node => node.tag === "button");
-  return { controller, music, game, instruments, bards, items, quantities, item, consumed, swal, calls, percentages, nativeStats, packages, patched, buttons, normal, abyssal };
+  return { controller, music, game, instruments, bards, items, quantities, item, consumed, swal, calls, percentages, nativeStats, packages, patched,
+    component: () => component, host: () => mountedHost, normal, abyssal };
 }
 
 test("enhancements are registered only with Into the Abyss and preserve normal attachments when restoring", async t => {
@@ -117,29 +120,74 @@ test("only eligible Abyssal bard equipment applies scoped stats, with each stat 
   f.music.computeProvidedStats(); assert.equal(applied.length, 0);
 });
 
-test("the Abyssal menu consumes one correct material, supports replacement, and refreshes the bard", async t => {
+test("Abyssal Upgrade, Socket and Utility reuse Music's native template and return to its Manage view", async t => {
   const f = await fixture(t), bard = f.bards.get(1001);
   f.controller.open(1, "upgrade"); assert.equal(f.swal.options, undefined, "normal bards retain the native menu");
   f.controller.open(1001, "socket");
-  assert.equal(f.buttons().length, 3);
-  assert.equal(f.swal.options.titleText, "Abyssal Guitar: Socket");
-  f.buttons()[0].onclick();
+  const socket = f.component();
+  assert.equal(socket.$template, "#myth-music-equipment");
+  assert.equal(socket.state, "socket");
+  assert.equal(f.host(), f.swal.options.html);
+  assert.equal(f.host().id, "myth-music-equipment-container");
+  assert.equal(f.swal.options.titleText, undefined, "the native header belongs inside the shared template");
+  assert.equal(f.swal.options.showConfirmButton, false);
+  assert.equal(f.swal.options.showCancelButton, false, "Back belongs inside the native content, not the Swal footer");
+  assert.equal(f.swal.options.showDenyButton, false);
+  for (const definition of abyssalEquipment) assert.equal(socket.items[definition.type].item, f.item(definition.id));
+  socket.socket("Polished_Topaz_Gem");
   assert.equal(bard.socket, f.item("Polished_Nightopal_Gem"));
   assert.deepEqual(f.consumed, [{ id: bard.socket.id, amount: 1, update: true }]);
   assert.equal(f.music.computations, 1);
   assert.equal(f.music.renderQueue.bardModifiers, true);
-  assert.equal(f.swal.closed, true);
-  f.controller.open(1001, "socket"); assert.equal(f.buttons()[0].disabled, true);
-  f.buttons()[0].onclick(); assert.equal(f.consumed.length, 1, "duplicate handlers cannot charge again");
+  assert.equal(socket.state, "manage");
+  assert.equal(f.swal.closed, undefined, "applying an item retains Music's native Manage view");
+  assert.equal(socket.isSocket("Polished_Topaz_Gem"), true);
+  assert.deepEqual(socket.getModifier(bard.socket.localID), [abyssalEquipment[1].description]);
+  socket.socket("Polished_Topaz_Gem"); assert.equal(f.consumed.length, 1, "duplicate handlers cannot charge again");
   let refreshed = 0;
   f.controller.open(1001, "utility", () => refreshed++);
-  f.buttons()[1].onclick();
+  const utility = f.component();
+  assert.equal(utility.$template, socket.$template);
+  assert.equal(utility.state, "utility");
+  utility.utility("Pristine_Leather");
   assert.equal(bard.utility, f.item("Pristine_Abyssal_Leather")); assert.equal(refreshed, 1);
+  assert.equal(utility.state, "manage");
+  assert.equal(utility.isUtility("Pristine_Leather"), true);
+  utility.setState("utility");
+  assert.equal(utility.items.Pristine_Leather.quantity, 1, "reopening a native panel refreshes bank counts");
+  utility.setState("manage");
+  assert.equal(f.consumed.length, 2, "Back only changes the native view");
   f.controller.open(1001, "upgrade");
-  assert(descendants(f.swal.options.html).some(node => node.textContent === "Upgrade reward <safe text>"));
-  f.buttons()[0].onclick();
+  const upgrade = f.component();
+  assert.equal(upgrade.$template, socket.$template);
+  assert.equal(upgrade.state, "upgrade");
+  assert.equal(upgrade.upgradeModifier.description, "Upgrade reward <safe text>");
+  upgrade.upgrade();
   assert.equal(bard.isUpgraded, true);
   assert.equal(f.consumed.at(-1).id, f.item("Abyssal_Essence_Of_Music").id);
+  assert.equal(upgrade.state, "manage");
+  upgrade.ok();
+  assert.equal(f.swal.closed, true);
+});
+
+test("native Back and a successful retry clear a failed enhancement's validation message", async t => {
+  const f = await fixture(t), item = f.item("Polished_Nightopal_Gem");
+  f.controller.open(1001, "socket");
+  const component = f.component();
+  f.quantities.set(item, 0);
+  assert.equal(component.socket("Polished_Topaz_Gem"), false);
+  assert.match(f.swal.error, /Could not apply/);
+  component.setState("manage");
+  assert.equal(f.swal.error, undefined);
+  assert.equal(f.consumed.length, 0, "Back spends nothing after a failed application");
+  component.setState("socket");
+  assert.equal(component.socket("Polished_Topaz_Gem"), false);
+  assert.match(f.swal.error, /Could not apply/);
+  f.quantities.set(item, 1);
+  assert.equal(component.socket("Polished_Topaz_Gem"), true);
+  assert.equal(component.state, "manage");
+  assert.equal(f.swal.error, undefined);
+  assert.equal(f.consumed.length, 1);
 });
 
 test("pending enhancement choices recheck inventory, unlocks, registry identity and replaced bards before spending", async t => {
@@ -152,9 +200,10 @@ test("pending enhancement choices recheck inventory, unlocks, registry identity 
     f => f.items.delete(f.item("Polished_Nightopal_Gem").id),
   ]) {
     const f = await fixture(t);
-    f.controller.open(1001, "socket"); const button = f.buttons()[0]; change(f); button.onclick();
+    f.controller.open(1001, "socket"); const component = f.component(); change(f); component.socket("Polished_Topaz_Gem");
     assert.equal(f.consumed.length, 0); assert.equal(f.music.computations, 0); assert.equal(f.swal.closed, undefined);
-    assert(descendants(f.swal.options.html).some(node => node.attributes.role === "status" && node.textContent.includes("Could not apply")));
+    assert.match(f.swal.error, /Could not apply/);
+    assert.equal(component.state, "socket");
   }
 });
 

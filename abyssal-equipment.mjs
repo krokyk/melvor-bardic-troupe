@@ -52,55 +52,42 @@ export async function installAbyssalEquipment(ctx, music, namespace) {
   function open(slot, state, onChange = refresh) {
     const bard = music.bards.get(slot), instrument = bard?.instrument;
     if (!validBard(bard) || !["upgrade", "socket", "utility"].includes(state) || state === "upgrade" && bard.isUpgraded) return;
+    const items = () => Object.fromEntries(equipment.map(entry => [entry.type, {
+      item: entry.item, quantity: game.bank.getQty(entry.item), descriptions: [entry.description],
+    }]));
+    const apply = (type, target, component) => {
+      const entry = equipment.find(entry => entry.type === type && entry.state === target);
+      if (!entry || music.bards.get(slot) !== bard || bard.instrument !== instrument || !validBard(bard) ||
+          game.items.getObjectByID(entry.item.id) !== entry.item || game.bank.getQty(entry.item) < 1 ||
+          (target === "upgrade" ? bard.isUpgraded : bard[target] === entry.item)) {
+        SwalLocale.showValidationMessage("Could not apply this item. Check the hired bard, instrument unlocks, and available materials.");
+        return false;
+      }
+      game.bank.removeItemQuantityByID(entry.item.id, 1, true);
+      if (target === "upgrade") bard.isUpgraded = true;
+      else bard[target] = entry.item;
+      music.bards.set(instrument, bard);
+      onChange();
+      component.setState("manage");
+      return true;
+    };
+    const component = {
+      $template: "#myth-music-equipment", bard, state, items: items(),
+      get upgradeModifier() { return music.manager.getModifiers(instrument).find(modifier => modifier.isUpgrade); },
+      ok() { SwalLocale.clickConfirm(); },
+      setState(next) { SwalLocale.resetValidationMessage(); this.items = items(); this.state = next; },
+      upgrade() { return apply("Essence_Of_Music", "upgrade", this); },
+      socket(type) { return apply(type, "socket", this); },
+      utility(type) { return apply(type, "utility", this); },
+      isSocket(type) { return equipment.find(entry => entry.type === type)?.item === bard.socket; },
+      isUtility(type) { return equipment.find(entry => entry.type === type)?.item === bard.utility; },
+      getModifier(type) { return equipment.filter(entry => entry.type === type || entry.item.localID === type).map(entry => entry.description); },
+    };
     const content = document.createElement("div");
-    content.className = "text-left";
-    const status = document.createElement("p");
-    status.className = "text-danger font-size-sm";
-    status.setAttribute("role", "status");
-    status.setAttribute("aria-live", "polite");
-    for (const entry of equipment.filter(entry => entry.state === state)) {
-      const row = document.createElement("div");
-      row.className = "border-bottom py-3";
-      const image = document.createElement("img");
-      image.className = "skill-icon-sm mr-2";
-      image.src = entry.item.media;
-      image.alt = "";
-      const name = document.createElement("span");
-      name.className = "font-w600";
-      name.textContent = entry.item.name;
-      const description = document.createElement("p");
-      description.className = "font-size-sm my-2";
-      description.textContent = state === "upgrade" ? music.manager.getModifiers(instrument).find(modifier => modifier.isUpgrade)?.description ?? entry.description : entry.description;
-      const quantity = document.createElement("p");
-      quantity.className = "font-size-sm";
-      quantity.textContent = `Requires 1. You have ${game.bank.getQty(entry.item).toLocaleString("en-US")}.`;
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "btn btn-success btn-sm";
-      button.textContent = state === "upgrade" ? "Upgrade" : state === "socket" ? "Socket" : "Apply";
-      button.setAttribute("aria-label", `${button.textContent} ${entry.item.name} for ${instrument.name}`);
-      button.disabled = game.bank.getQty(entry.item) < 1 || state !== "upgrade" && bard[state] === entry.item;
-      button.onclick = () => {
-        if (music.bards.get(slot) !== bard || bard.instrument !== instrument || !validBard(bard) ||
-            game.items.getObjectByID(entry.item.id) !== entry.item || game.bank.getQty(entry.item) < 1 ||
-            (state === "upgrade" ? bard.isUpgraded : bard[state] === entry.item)) {
-          status.textContent = "Could not apply this item. Check the hired bard, instrument unlocks, and available materials.";
-          return;
-        }
-        game.bank.removeItemQuantityByID(entry.item.id, 1, true);
-        if (state === "upgrade") bard.isUpgraded = true;
-        else bard[state] = entry.item;
-        music.bards.set(instrument, bard);
-        onChange();
-        SwalLocale.close();
-      };
-      row.append(image, name, description, quantity, button);
-      content.append(row);
-    }
-    content.append(status);
+    content.id = "myth-music-equipment-container";
     return SwalLocale.fire({
-      titleText: `${instrument.name}: ${state === "upgrade" ? "Upgrade" : state === "socket" ? "Socket" : "Utility"}`,
-      html: content, showConfirmButton: false, showCancelButton: true, cancelButtonText: "Back",
+      html: content, showConfirmButton: false, showCancelButton: false, showDenyButton: false,
+      didOpen() { ui.create(component, content); },
     });
   }
 

@@ -75,7 +75,8 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 - Add a separate eight-slot Abyssal troupe, AP hiring and mastery purchases, and saved hires and enhancements.
 - Add seven Abyssal enhancement items from AP and Abyssal resources, with their own sockets and utilities and retained saved enhancement progress.
 - Give every Abyssal skill support through the instrument bonuses, including Harvesting, Corruption, Soul Points, AP/ASC, and Township waves.
-- Keep Bouzouki's complete Mastery 20, 40, 65, and 99 reward layout.
+- Grant Bouzouki +10% Melvor-realm Mastery XP at Mastery 65 while retaining its four mastery tiers.
+- Use Music's original equipment template for both realms' Upgrade, Socket, Utility, and Manage menus.
 - Add Abyssal Conductor with major Abyssal combat bonuses, enemy Abyssal Resistance reduction, Slayer support, and a third Abyssal prayer when upgraded.
 - Keep Melvor training and hired rosters independent of the selected realm's display.
 

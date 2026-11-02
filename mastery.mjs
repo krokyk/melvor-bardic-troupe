@@ -7,7 +7,7 @@ const layout = [
   ["Drum", [40, 65, 99], { level: 20, modifiers: { foodPreservationChance: 50 } }],
   ["Banjo", [20, 65, 99], { level: 40, modifiers: { runePreservationChance: 50 } }],
   ["Accordion", [20, 65, 99], { level: 40, modifiers: { consumablePreservationChance: 50 } }],
-  ["Bouzouki", [20, 99, 40], { level: 65, modifiers: { soulPointPreservationChance: 50 } }],
+  ["Bouzouki", [20, 99, 40], { level: 65, modifiers: { masteryXP: [{ realmID: "melvorD:Melvor", value: 10 }] } }],
   ["Flute", [40, 20, 99], { level: 65, modifiers: { skillXP: [{ skillID: "melvorAoD:Archaeology", value: 15 }] } }],
   ["Maraca", [20, 40, 99], { level: 65, modifiers: { skillInterval: [{ skillID: "melvorD:Crafting", value: -10 }] } }],
   ["Xylophone", [20, 99, 40], { level: 65, modifiers: { masteryXP: [{ skillID: "melvorD:Agility", value: 15 }] } }],

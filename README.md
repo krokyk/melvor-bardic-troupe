@@ -112,7 +112,9 @@ All roster shortcuts match the compact height of Melvor's labels, with item icon
 Missing enhancements use a green outline; applied enhancements use solid green.
 An upgraded instrument shows a disabled **Upgraded** button.
 Socket and Utility buttons show the equipped item's icon when filled, with its name in the tooltip and accessible label, and remain clickable so you can change the item.
-The shortcuts open Music's matching upgrade confirmation or item-selection menu, where normal material requirements still apply.
+Both realms use Music's original equipment template for Upgrade, Socket, Utility, and Manage, including its button sizes, item rows, spacing, and inline Back controls.
+Applying an enhancement returns to Manage, and OK closes the menu.
+Each realm retains its own enhancement materials.
 
 Each purchasable mastery bonus has a **Mastery 20**, **Mastery 40**, **Mastery 65**, or **Mastery 99** button beside its description.
 The button is grey and disabled before its mastery requirement is met, outlined green when available to unlock, and solid green and disabled after the bonus is purchased.
@@ -210,7 +212,7 @@ The table lists Standard bonus values; native Hardcore values remain unchanged, 
 | Banjo | +50% Food Preservation | -10% Cooking Interval | -30% Passive Cook Interval | +10% chance for an extra Fishing special item |
 | Snare Drum | -0.2s Smithing Interval | +50% Rune Preservation | -3 Coal Ore cost | x4 Mining ore |
 | Accordion | +15% Auto Eat Efficiency | +50% Consumable Charge Preservation | Enemy -10% Damage Reduction | +5% Auto Eat Threshold |
-| Bouzouki | +10% Global GP | +10% rare-item chances | +50% Soul Point Preservation | +10% Global Item Doubling |
+| Bouzouki | +10% Global GP | +10% rare-item chances | +10% Mastery XP in all Skills for Melvor Realm only | +10% Global Item Doubling |
 | Flute | -10% map-refinement cost | -10% survey interval | +15% Archaeology Skill XP | +2 Archaeology resources |
 | Maraca | +5% Fletching Skill XP | x4 Fletching resources | -10% Crafting Interval | x4 Crafting resources |
 | Xylophone | +15% Agility GP | -10% Agility Pillar cost | +15% Agility Mastery XP | -15% Agility Interval |
@@ -228,9 +230,8 @@ Generic skill resource preservation is covered by the optional +50-point distrib
 Snare Drum's rune preservation also applies to Alt. Magic, so Flute has no additional rune-preservation reward.
 Bypass modifiers and per-point Prayer modifiers affect existing preservation types rather than separate resources.
 Archaeology's Very Rare or Legendary map-preservation perk is a conditional effect rather than a general percentage chance.
-Bouzouki and Abyssal Violin each grant +50% Soul Point preservation at Mastery 65.
-Their bonuses combine subject to the game's 80% Soul Point preservation cap.
-Soul Points require Into the Abyss content.
+Bouzouki's Mastery 65 reward applies to Melvor-realm mastery actions.
+Abyssal Violin grants +50% Soul Point preservation at Mastery 65, subject to the game's cap.
 
 ## Mod Settings
 
