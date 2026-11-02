@@ -1,0 +1,24 @@
+Abyssal Music enhancement icons.
+Mode: built-in ImageGen editing, with transparent_background=true.
+All deliverables are 128x128 transparent PNGs under assets/abyssal/.
+
+Shared utility prompt:
+Use case: precise-object-edit. Asset type: tiny Melvor Idle inventory icon. First image is the edit target; second is a palette/style reference only. Preserve exactly the target object's recognizable silhouette, orientation, number of objects and simple flat bold illustrated icon style. Make it an Abyssal variant matching the reference's deep crimson lacquer, burgundy shadows, restrained vermilion highlights and warm orange trim. Add two or three tiny orange-red ember/flame licks at the lower outside edge, no more than ten percent of the icon area. Keep clean simple shapes, crisp edges and legibility at 48 pixels. Center the object with comfortable square padding. True transparent background including openings. No text, letters, logo, frame, backdrop, hand, person, 3D realism, elaborate ornament or smoke.
+
+Utility subjects:
+essence-of-music.png: Original Music assets/items/essence-of-music.png; preserve the circular essence token with its double musical-note symbol and tiny sparkles; deep crimson token, warm orange-gold musical note and small flames on the lower edge.
+string.png: Original Music assets/items/diamond-string.png; preserve the single doubled-over figure-eight string with diagonal ends and open gaps; dark crimson with thin orange edge glow and tiny flames near one lower end.
+leather.png: Original Music assets/items/pristine-leather.png; preserve the single stretched leather-hide shape and stitched perimeter; crimson/burgundy hide, muted orange stitching and tiny lower-edge flames.
+oil.png: Original Music assets/items/mystic-oil.png; preserve the single irregular oil splash, rounded lobes and highlight dots; burgundy/red oil with orange-red outline and small ember/flame detail; keep it an oil splash, not a bottle.
+
+Shared gem prompt:
+Use case: precise-object-edit. Asset type: tiny Melvor Idle inventory gem icon. First image is the edit target, second is palette/style reference only. Isolate only the gem from image 1 and retain its recognizable shape, orientation and simple flat bold Melvor illustrated icon style. Make the gem a polished Abyssal Music socket gem matching image 2: deep crimson and burgundy with restrained vermilion highlights and thin warm orange trim, subtle polished highlight. Add just two tiny orange-red flame/ember licks hugging the lower outside edge, at most ten percent area. Keep its native gem silhouette recognizable and distinct from the other gem shapes. Clean simple shapes, crisp edges, readable at 48px. Center with comfortable padding in a square canvas. True transparent background. No square/rectangular backing from the source image, text, logo, jewelry setting, frame, person, smoke, elaborate ornament or photorealistic 3D texture.
+
+Gem subjects:
+polished-nightopal.png: https://melvoridle.com/assets/media/bank/Nightopal.png; retain rounded triangular teardrop silhouette and curved iridescent bands, with a subtle dark violet-crimson core.
+polished-shadowpearl.png: https://melvoridle.com/assets/media/bank/Shadowpearl.png; retain a completely round pearl, flat crimson circle with one lighter curved side plane and one polished oval glint.
+polished-moonstone.png: https://melvoridle.com/assets/media/bank/Moonstone.png; retain the wide, flattened horizontal oval cabochon with curved polished upper edge, warm pale orange-gold face, crimson-burgundy lower rim and restrained red/orange glint.
+
+Palette and style reference for every edit: assets/abyssal/guitar.png.
+Postprocessing: resize with System.Drawing high-quality bicubic interpolation while preserving alpha.
+Contact sheet: assets/abyssal-equipment-preview.png.

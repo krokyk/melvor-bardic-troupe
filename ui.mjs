@@ -71,7 +71,7 @@ function appendModifiers(container, music, instrument, onMastery) {
   }
 }
 
-export function installControls(ctx, music, troupe, mastery) {
+export function installControls(ctx, music, troupe, mastery, equipment) {
   let roster;
   let toggle;
   let rosterIndicator;
@@ -83,6 +83,7 @@ export function installControls(ctx, music, troupe, mastery) {
   function openEquipment(slot, state) {
     const bard = music.bards.get(slot);
     if (!bard || (state === "upgrade" && bard.isUpgraded)) return;
+    if (bard.instrument.realm?.id === "melvorItA:Abyssal" && equipment) return equipment.open(slot, state, () => troupe.refresh());
     music.userInterface.bard1.setBard(bard);
     return openMusicMenu(() => music.userInterface.bard1.equipment(), `.myth-music-equipment .manage > .${state} > button`);
   }

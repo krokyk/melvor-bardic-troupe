@@ -36,7 +36,9 @@ Each realm has its own instruments and hired roster, with eligible bonuses from 
 Abyssal Guitar, Banjo, Snare Drum, Maracas, Violin, French Horn, Harp, and Conductor use a consistent crimson-and-ember icon theme.
 Their bonuses support Abyssal XP, nests, gems, Harvesting, Soul Points, Starfalls, AP, Township waves, Corruption, Slayer, and Abyssal Resistance.
 The Abyssal roster starts with one slot and supports seven additional slots at 1,000,000 AP each.
-Abyssal mastery purchases use AP and Essence of Music; instrument enhancements use Music's existing materials.
+Abyssal mastery purchases and instrument upgrades consume Abyssal Essence of Music.
+The **Abyssal Music Equipment** shop exchanges AP and Abyssal resources for the essence, polished Nightopal/Shadowpearl/Moonstone sockets, Abyssal String, Pristine Abyssal Leather, and Abyssal Oil.
+These enhancements support Abyssal Music AP, AXP, mastery, interval, and additional reward rolls, with matching crimson-and-ember icons.
 
 ## Homepage
 
@@ -71,6 +73,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 - Add eight Abyssal instruments with crimson-and-ember icons, native Abyssal Music levels, AP training rewards, and Abyssal Concert Pass XP.
 - Add a separate eight-slot Abyssal troupe, AP hiring and mastery purchases, and saved hires and enhancements.
+- Add seven Abyssal enhancement items from AP and Abyssal resources, with their own sockets and utilities and retained saved enhancement progress.
 - Give every Abyssal skill support through the instrument bonuses, including Harvesting, Corruption, Soul Points, AP/ASC, and Township waves.
 - Add Abyssal Conductor with major Abyssal combat bonuses, enemy Abyssal Resistance reduction, Slayer support, and a third Abyssal prayer when upgraded.
 - Keep Melvor training and hired rosters independent of the selected realm's display.
@@ -177,7 +180,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Upload configuration
 
-- Upload **krokys-bardic-troupe-2.4.0.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `conductor.mjs`, `mastery.mjs`, `music-realms.mjs`, `abyssal.mjs`, `abyssal-data.mjs`, `bonuses.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/conductor.png` and the eight PNG icons under `assets/abyssal/`.
+- Upload **krokys-bardic-troupe-2.4.0.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `conductor.mjs`, `mastery.mjs`, `music-realms.mjs`, `abyssal.mjs`, `abyssal-data.mjs`, `abyssal-equipment.mjs`, `abyssal-equipment-data.mjs`, `bonuses.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/conductor.png` and the fifteen PNG icons under `assets/abyssal/`.
 - Exclude tests and documentation from the archive.
 - Set **[Myth] Music**, mod.io ID **3096259**, as a hard dependency in mod.io.
   The current Melvor manifest loader does not read dependency declarations from `manifest.json`.

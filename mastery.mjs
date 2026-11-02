@@ -64,18 +64,20 @@ export function installMasteryTiers(ctx, music, troupe, namespace) {
         music.isMasteryActionUnlocked(instrument) && music.getMasteryLevel(instrument) >= level;
     };
     if (!isAvailable()) return;
-    const essence = game.items.getObjectByID("mythMusic:Essence_Of_Music");
-    const currency = instrument.realm?.id === "melvorItA:Abyssal" ? game.abyssalPieces : game.gp;
+    const abyssal = instrument.realm?.id === "melvorItA:Abyssal";
+    const essence = game.items.getObjectByID(abyssal ? `${namespace}:Abyssal_Essence_Of_Music` : "mythMusic:Essence_Of_Music");
+    const essenceName = essence?.name ?? (abyssal ? "Abyssal Essence of Music" : "Essence of Music");
+    const currency = abyssal ? game.abyssalPieces : game.gp;
     const code = currency === game.gp ? "GP" : "AP";
-    const canAfford = () => currency?.canAfford(cost) && game.bank.getQty(essence) >= 1;
+    const canAfford = () => !!essence && currency?.canAfford(cost) && game.bank.getQty(essence) >= 1;
     return SwalLocale.fire({
       titleText: `${instrument.name}: Mastery ${level}`,
-      html: `<p>${bonus().description}</p><p>${cost.toLocaleString("en-US")} ${code} + 1 Essence of Music</p>`,
+      html: `<p>${bonus().description}</p><p>${cost.toLocaleString("en-US")} ${code} + 1 ${essenceName}</p>`,
       showCancelButton: true, cancelButtonText: "Back", confirmButtonText: "Unlock",
       showConfirmButton: canAfford(),
       preConfirm() {
         if (!isAvailable() || !canAfford()) {
-          SwalLocale.showValidationMessage(`Requires Mastery ${level}, ${cost.toLocaleString("en-US")} ${code}, and 1 Essence of Music.`);
+          SwalLocale.showValidationMessage(`Requires Mastery ${level}, ${cost.toLocaleString("en-US")} ${code}, and 1 ${essenceName}.`);
           return false;
         }
         game.bank.removeItemQuantityByID(essence.id, 1, true);

@@ -33,12 +33,19 @@ function fixture(t, { enabled = true, cap = 99, missing = [], native = [true, tr
     }))]));
     instrument.modifiers = mode => modes[mode];
   }
-  const essence = { id: "mythMusic:Essence_Of_Music" };
+  const normalEssence = { id: "mythMusic:Essence_Of_Music", name: "Essence of Music" };
+  const abyssalEssence = { id: `${namespace}:Abyssal_Essence_Of_Music`, name: "Abyssal Essence of Music" };
+  const essence = abyssal ? abyssalEssence : normalEssence;
+  const otherEssence = abyssal ? normalEssence : abyssalEssence;
+  const items = new Map([normalEssence, abyssalEssence].map(item => [item.id, item]));
   const game = {
     gp: { amount: masteryCosts.get(99), canAfford(cost) { return this.amount >= cost; }, remove(cost) { this.amount -= cost; } },
     abyssalPieces: { amount: masteryCosts.get(99), canAfford(cost) { return this.amount >= cost; }, remove(cost) { this.amount -= cost; } },
-    bank: { quantity: 1, getQty(item) { assert.equal(item, essence); return this.quantity; }, removeItemQuantityByID(id, quantity) { assert.equal(id, essence.id); this.quantity -= quantity; } },
-    items: { getObjectByID: id => id === essence.id ? essence : undefined },
+    bank: { quantity: 1, otherQuantity: 1,
+      getQty(item) { assert([essence, otherEssence].includes(item)); return item === essence ? this.quantity : this.otherQuantity; },
+      removeItemQuantityByID(id, quantity) { assert(items.has(id)); if (id === essence.id) this.quantity -= quantity; else this.otherQuantity -= quantity; },
+    },
+    items: { getObjectByID: id => items.get(id) },
     getModifierValuesFromData: data => Object.entries(data).map(([id, value]) => ({ modifier: { id }, value })),
   };
   class Music {
@@ -78,7 +85,7 @@ function fixture(t, { enabled = true, cap = 99, missing = [], native = [true, tr
       };
     },
   }, music, { refresh() { refreshes++; } }, namespace);
-  return { controller, music, game, instruments, swal, refreshes: () => refreshes };
+  return { controller, music, game, instruments, swal, normalEssence, abyssalEssence, items, refreshes: () => refreshes };
 }
 
 test("every bard has the agreed five tiers in both modes while native reward positions and values stay intact", t => {
@@ -290,4 +297,24 @@ test("Abyssal mastery confirmations recheck AP, realm unlocks and Abyssal levels
   assert.equal(f.game.gp.amount, Number.MAX_SAFE_INTEGER);
   assert.equal(f.game.abyssalPieces.amount, 0);
   assert.equal(f.game.bank.quantity, 0);
+});
+
+test("Abyssal mastery requires Abyssal Essence of Music and cannot spend ordinary essence", t => {
+  const f = fixture(t, { abyssal: true }), instrument = f.instruments.at(-1);
+  f.music.masteryLevels.set(instrument, 20);
+  f.game.bank.quantity = 0;
+  f.game.bank.otherQuantity = 100;
+  const confirmation = f.controller.open(instrument, 20), funds = f.game.abyssalPieces.amount;
+  assert.match(confirmation.html, /1 Abyssal Essence of Music/);
+  assert.equal(confirmation.showConfirmButton, false);
+  assert.equal(confirmation.preConfirm(), false);
+  assert.match(f.swal.error, /Abyssal Essence of Music/);
+  assert.equal(f.game.bank.otherQuantity, 100);
+  assert.equal(f.game.abyssalPieces.amount, funds);
+  f.game.bank.quantity = 1;
+  assert.equal(confirmation.preConfirm(), true);
+  assert.equal(f.game.bank.quantity, 0);
+  assert.equal(f.game.bank.otherQuantity, 100);
+  assert.equal(f.game.abyssalPieces.amount, funds - masteryCosts.get(20));
+  assert.equal(confirmation.preConfirm(), false);
 });

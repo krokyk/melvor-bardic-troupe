@@ -50,7 +50,7 @@ function openRoster(f) {
   if (toggle.attributes["aria-expanded"] === "false") toggle.onclick();
 }
 
-function fixture(t, { masteryLabel = "Mastery" } = {}) {
+function fixture(t, { masteryLabel = "Mastery", equipmentEnabled = false } = {}) {
   const originals = { document: globalThis.document, SwalLocale: globalThis.SwalLocale, getLangString: globalThis.getLangString };
   t.after(() => {
     for (const [key, value] of Object.entries(originals)) {
@@ -134,6 +134,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
     slots: () => [1, 4],
     hireCost: () => 10000,
     hireCurrency: () => music.game.gp,
+    refresh() { this.refreshes = (this.refreshes ?? 0) + 1; },
     succeeds: false,
     hire(candidate, slot) { this.request = { candidate, slot }; return this.succeeds; }
   };
@@ -143,7 +144,9 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
     onInterfaceReady(callback) { this.ready = callback; }
   };
   const mastery = { open(target, level) { masteryCalls.push({ target, level }); return swal.result; } };
-  installControls(ctx, music, troupe, mastery);
+  const equipmentCalls = [];
+  const equipment = { open(slot, state, onChange) { equipmentCalls.push({ slot, state, onChange }); return swal.result; } };
+  installControls(ctx, music, troupe, mastery, equipmentEnabled ? equipment : undefined);
   const refresh = () => { music.renderQueue.bardModifiers = true; patches.get("renderBardModifiers")(); };
   function didOpen(expectedSelector, { missingButton = false } = {}) {
     const priorOpens = nativeOpens.length;
@@ -166,7 +169,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
     assert.equal(nativeOpens.at(-1).popup, popup);
     return { queries, clicks };
   }
-  return { counts, native, swal, instrument, existing, bards, bridge, music, troupe, mastery, patches, ctx, modifiers, masteryLevels, instrumentButtons, nativeMasteryCalls, masteryCalls, nativeModalCalls, nativeOpens, refresh, didOpen };
+  return { counts, native, swal, instrument, existing, bards, bridge, music, troupe, mastery, equipment, equipmentCalls, patches, ctx, modifiers, masteryLevels, instrumentButtons, nativeMasteryCalls, masteryCalls, nativeModalCalls, nativeOpens, refresh, didOpen };
 }
 
 test("roster retains native controls and opens each enhancement submenu for the correct extra bard", t => {
@@ -696,4 +699,30 @@ test("Abyssal hire confirmations show AP and select only Abyssal slots while the
   assert.equal(grid.textContent.includes("Abyssal Conductor"), false);
   assert(grid.textContent.includes("Harp Bard"));
   assert.equal(f.bards.get(1001), abyssalBard);
+});
+
+test("Abyssal enhancement shortcuts use their own equipment controller and retain normal native menus", t => {
+  const f = fixture(t, { equipmentEnabled: true });
+  f.existing.instrument.realm = { id: "melvorItA:Abyssal" };
+  f.existing.isUpgraded = false;
+  f.existing.slot = 1001;
+  f.bards.delete(4);
+  f.bards.set(1001, f.existing);
+  f.troupe.slots = () => [1001];
+  f.ctx.ready();
+  for (const [label, state] of [["Upgrade", "upgrade"], ["Socket:", "socket"], ["Utility:", "utility"]]) {
+    assert.equal(rosterButton(f, label, 1).onclick(), f.swal.result);
+    const call = f.equipmentCalls.at(-1);
+    assert.equal(call.slot, 1001);
+    assert.equal(call.state, state);
+    call.onChange();
+  }
+  assert.equal(f.equipmentCalls.length, 3);
+  assert.equal(f.troupe.refreshes, 3);
+  assert.equal(f.nativeModalCalls.length, 0);
+  f.existing.instrument.realm = { id: "melvorD:Melvor" };
+  rosterButton(f, "Socket:", 1).onclick();
+  assert.equal(f.equipmentCalls.length, 3);
+  assert.equal(f.nativeModalCalls.length, 1);
+  assert.equal(f.nativeModalCalls[0].target, f.existing);
 });

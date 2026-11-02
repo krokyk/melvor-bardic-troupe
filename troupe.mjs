@@ -59,9 +59,10 @@ export function createShopData(music) {
 }
 
 export class Troupe {
-  constructor(music, purchases) {
+  constructor(music, purchases, equipment) {
     this.music = music;
     this.purchases = purchases;
+    this.equipment = equipment;
   }
 
   purchasedSlots(realm = undefined) {
@@ -155,12 +156,16 @@ export class Troupe {
         if (!record || typeof record.instrument !== "string" || !Number.isSafeInteger(record.slot) || !slots.has(record.slot)) continue;
         const instrument = this.music.actions.getObjectByID(record.instrument);
         if (!instrument || isAbyssal(instrument) !== (record.slot >= 1001) || this.music.bards.isHired(instrument)) continue;
+        const restoredItem = state => {
+          const item = typeof record[state] === "string" ? this.music.game.items.getObjectByID(record[state]) : undefined;
+          return this.equipment ? this.equipment.restoreItem(instrument, item, state) : item;
+        };
         this.music.bards.set(instrument, {
           instrument,
           slot: record.slot,
           isUpgraded: record.isUpgraded === true,
-          socket: typeof record.socket === "string" ? this.music.game.items.getObjectByID(record.socket) : undefined,
-          utility: typeof record.utility === "string" ? this.music.game.items.getObjectByID(record.utility) : undefined,
+          socket: restoredItem("socket"),
+          utility: restoredItem("utility"),
         });
         slots.delete(record.slot);
       }

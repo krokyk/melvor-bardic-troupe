@@ -32,6 +32,18 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
   const storage = new Map();
   const hooks = {};
   const sections = new Map();
+  const itemRegistry = new Map([
+    "mythMusic:Polished_Ruby_Gem", "mythMusic:Mystic_Oil",
+    `${core.namespace}:Polished_Shadowpearl_Gem`, `${core.namespace}:Abyssal_Oil`,
+  ].map(id => [id, { id }]));
+  const equipmentCalls = [];
+  const equipment = { open() {}, restoreItem(instrument, item, state) {
+    if (instrument.realm?.id !== "melvorItA:Abyssal") return item;
+    equipmentCalls.push({ instrument, item, state });
+    const replacement = item?.id === "mythMusic:Polished_Ruby_Gem" ? "Polished_Shadowpearl_Gem" :
+      item?.id === "mythMusic:Mystic_Oil" ? "Abyssal_Oil" : undefined;
+    return replacement ? itemRegistry.get(`${core.namespace}:${replacement}`) : item;
+  } };
   let unlocked = false;
   let troupe;
   const instruments = Array.from({ length: instrumentCount }, (_, index) => {
@@ -149,7 +161,7 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
     abyssalPieces: { amount: 100_000_000, canAfford(cost) { return this.amount >= cost; }, remove(cost) { this.amount -= cost; } },
     registeredNamespaces: { hasNamespace: id => abyssalEnabled && id === "melvorItA" },
     realms: { getObjectByID: id => id === abyssalRealm.id ? abyssalRealm : normalRealm },
-    items: { getObjectByID: () => undefined },
+    items: { getObjectByID: id => itemRegistry.get(id) },
     getModifierValuesFromData: data => Object.entries(data).map(([id, value]) => ({ modifier: { id }, value })),
     combat: { player }, renderQueue: {},
     prayers: { getObjectByID: id => prayers.find(prayer => prayer.id === id) },
@@ -189,8 +201,15 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
           })),
         } }] } });
       } };
+      if (path === "abyssal-equipment.mjs") return { async installAbyssalEquipment(_ctx, skill, ns) {
+        assert.equal(skill, game.music); assert.equal(ns, core.namespace);
+        hooks.equipmentInstalled = true;
+        if (!abyssalEnabled) return;
+        assert(instruments.some(instrument => instrument.realm === abyssalRealm), "register Abyssal instruments before their equipment");
+        return equipment;
+      } };
       assert.equal(path, "ui.mjs");
-      return { installControls(_ctx, _music, controller) { troupe = controller; } };
+      return { installControls(_ctx, _music, controller, _mastery, suppliedEquipment) { troupe = controller; hooks.uiEquipment = suppliedEquipment; } };
     },
     onModsLoaded(fn) { hooks.mods = fn; },
     onCharacterLoaded(fn) { hooks.character = () => { unlocked = true; fn(); }; },
@@ -245,7 +264,7 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
     },
   };
   await setup(ctx);
-  return { hooks, storage, sections, counts, instruments, band, unrelated, registry, music, player, prayers, normalRealm, abyssalRealm, troupe: () => troupe };
+  return { hooks, storage, sections, counts, instruments, band, unrelated, registry, music, player, prayers, normalRealm, abyssalRealm, itemRegistry, equipment, equipmentCalls, troupe: () => troupe };
 }
 
 test("dependency is checked after all mods load, before touching shop data", async t => {
@@ -503,4 +522,31 @@ test("Abyssal slots keep independent AP prices and save alongside normal hires a
   assert.equal(f.music.bards.get(1002), undefined);
   assert.equal(f.music.bards.get(4), undefined);
   assert.equal(f.music.bards.get(1).instrument, f.instruments[0]);
+});
+
+test("setup connects Abyssal equipment to controls and migrates saved attachments without charging the character", async t => {
+  const f = await fixture(t, { abyssalEnabled: true });
+  await f.hooks.mods();
+  assert.equal(f.hooks.equipmentInstalled, true);
+  assert.equal(f.hooks.uiEquipment, f.equipment);
+  assert.equal(f.troupe().equipment, f.equipment);
+  f.hooks.character();
+  const gp = game.gp.amount, ap = game.abyssalPieces.amount;
+  const purchase = f.troupe().purchases.find(item => item.id.includes(":Slot_"));
+  game.decode({ counts: [[purchase, 1]], troupe: { version: 1, bards: [
+    { instrument: f.instruments[1].id, slot: 4, isUpgraded: true, socket: "mythMusic:Polished_Ruby_Gem", utility: "mythMusic:Mystic_Oil" },
+    { instrument: f.instruments[4].id, slot: 1001, isUpgraded: true, socket: "mythMusic:Polished_Ruby_Gem", utility: "mythMusic:Mystic_Oil" },
+  ] } });
+  assert.equal(f.music.bards.get(4).socket.id, "mythMusic:Polished_Ruby_Gem");
+  assert.equal(f.music.bards.get(4).utility.id, "mythMusic:Mystic_Oil");
+  assert.equal(f.music.bards.get(1001).isUpgraded, true);
+  assert.equal(f.music.bards.get(1001).socket.id, `${core.namespace}:Polished_Shadowpearl_Gem`);
+  assert.equal(f.music.bards.get(1001).utility.id, `${core.namespace}:Abyssal_Oil`);
+  assert(f.equipmentCalls.every(call => call.instrument.realm === f.abyssalRealm));
+  const saved = game.encode();
+  assert.equal(saved.troupe.bards.find(bard => bard.slot === 1001).socket, `${core.namespace}:Polished_Shadowpearl_Gem`);
+  game.decode(saved);
+  assert.equal(f.music.bards.get(1001).utility.id, `${core.namespace}:Abyssal_Oil`);
+  assert.equal(game.gp.amount, gp);
+  assert.equal(game.abyssalPieces.amount, ap);
 });

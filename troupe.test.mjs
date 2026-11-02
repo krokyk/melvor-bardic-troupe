@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createShopData, namespace, slotPrice, Troupe } from "./troupe.mjs";
 
-function fixture({ count = 8, bought = 0, band = false, relic = false, gp = 1_000_000_000, abyssal = false, abyssalBought = 0 } = {}) {
+function fixture({ count = 8, bought = 0, band = false, relic = false, gp = 1_000_000_000, abyssal = false, abyssalBought = 0, equipment } = {}) {
   const instruments = Array.from({ length: count }, (_, index) => ({ id: `mythMusic:Instrument_${index + 1}`, level: index + 1 }));
   const normalRealm = { id: "melvorD:Melvor", isUnlocked: true }, abyssalRealm = { id: "melvorItA:Abyssal", isUnlocked: true };
   if (abyssal) instruments.push(...Array.from({ length: 8 }, (_, index) => ({
@@ -71,7 +71,7 @@ function fixture({ count = 8, bought = 0, band = false, relic = false, gp = 1_00
     all() { return [...this.bards.values()]; },
     isHired(instrument) { return this.bards.has(actions.get(instrument.id)); },
   };
-  return { music, troupe: new Troupe(music, purchases), instruments, items, purchases, purchaseCounts, normalRealm, abyssalRealm };
+  return { music, troupe: new Troupe(music, purchases, equipment), instruments, items, purchases, purchaseCounts, normalRealm, abyssalRealm };
 }
 
 function addBard(music, instrument, slot, equipment = {}) {
@@ -409,4 +409,39 @@ test("locked Abyssal content cannot grant slots or hires and five bought mastery
   assert.equal(f.troupe.canBuySlot(purchase), false);
   assert.equal(f.troupe.hire(instrument, 1001), false);
   assert.equal(f.music.game.abyssalPieces.amount, funds);
+});
+
+test("restoring Abyssal attachments normalizes legacy items before stats without charging or changing normal hires", () => {
+  const calls = [], socket = { id: `${namespace}:Polished_Shadowpearl_Gem` }, utility = { id: `${namespace}:Abyssal_Oil` };
+  const equipment = { restoreItem(instrument, item, role) {
+    if (instrument.realm?.id !== "melvorItA:Abyssal") return item;
+    calls.push({ instrument, item, role });
+    return role === "socket" ? socket : utility;
+  } };
+  const f = fixture({ count: 4, bought: 1, abyssal: true, equipment });
+  for (const item of [socket, utility]) f.items.set(item.id, item);
+  const oldSocket = f.items.get("mythMusic:Polished_Ruby_Gem"), oldUtility = f.items.get("mythMusic:Mystic_Oil");
+  const normal = addBard(f.music, f.instruments[1], 4, { isUpgraded: true, socket: oldSocket, utility: oldUtility });
+  const abyssal = addBard(f.music, f.instruments[4], 1001, { isUpgraded: true, socket: oldSocket, utility: oldUtility });
+  const saved = JSON.parse(JSON.stringify(f.troupe.save()));
+  const gp = f.music.game.gp.amount, ap = f.music.game.abyssalPieces.amount;
+  const compute = f.music.computeProvidedStats;
+  f.music.computeProvidedStats = function () {
+    assert.equal(this.bards.get(1001).socket, socket);
+    assert.equal(this.bards.get(1001).utility, utility);
+    assert.equal(this.bards.get(4).socket, oldSocket);
+    return compute.call(this);
+  };
+  f.troupe.restore(saved);
+  assert.equal(f.music.bards.get(1001).isUpgraded, true);
+  assert.equal(f.music.bards.get(1001).instrument, abyssal.instrument);
+  assert.deepEqual(f.music.bards.get(4), normal);
+  assert.deepEqual(calls.map(call => [call.instrument, call.item, call.role]), [
+    [abyssal.instrument, oldSocket, "socket"], [abyssal.instrument, oldUtility, "utility"],
+  ]);
+  const migrated = f.troupe.save().bards.find(bard => bard.slot === 1001);
+  assert.equal(migrated.socket, socket.id);
+  assert.equal(migrated.utility, utility.id);
+  assert.equal(f.music.game.gp.amount, gp);
+  assert.equal(f.music.game.abyssalPieces.amount, ap);
 });

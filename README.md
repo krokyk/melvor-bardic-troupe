@@ -36,8 +36,8 @@ Native skill data saves Music's selected realm, Abyssal XP, instrument mastery, 
 Abyssal Music has one initial hired-bard slot and seven sequential **Abyssal Bardic Troupe** purchases at **1,000,000 AP each**.
 Abyssal slots require the unlocked Abyssal realm and are independent of Melvor slot purchases and their settings.
 Abyssal hiring uses Music's normal hiring prices and discounts, paid in AP.
-Abyssal Mastery 20, 40, 65, and 99 purchases cost **100K, 1M, 10M, and 100M AP**, respectively, plus **1 Essence of Music each**.
-Instrument upgrades, sockets, and utilities use Music's existing materials.
+Abyssal Mastery 20, 40, 65, and 99 purchases cost **100K, 1M, 10M, and 100M AP**, respectively, plus **1 Abyssal Essence of Music each**.
+Abyssal instrument upgrades, sockets, and utilities use their own Abyssal materials from the **Abyssal Music Equipment** shop category.
 Every instrument has its own mastery progress and the shared tiers **1, 20, 40, 65, and 99**.
 The Abyssal instruments require Into the Abyss, including Abyssal Conductor; Throne of the Herald is not required.
 
@@ -55,6 +55,30 @@ The Abyssal instruments require Into the Abyss, including Abyssal Conductor; Thr
 Shared skill interval/output bonuses target Abyssal actions.
 Ordinary XP, GP, Normal resistance, and ordinary Slayer-area bonuses are not used as substitutes for their Abyssal counterparts.
 The eight icons retain their original instrument shapes with a consistent crimson-and-ember treatment.
+
+### Abyssal instrument enhancements
+
+Every exchange uses AP and resources from Into the Abyss.
+Applying an enhancement consumes one item from the bank.
+Each bard has one socket and one utility; applying a different item replaces the current attachment.
+
+| Item | Use or benefit | Exchange cost |
+| --- | --- | --- |
+| Abyssal Essence of Music | Instrument upgrade or one paid mastery reward. | 1,000,000 AP, 1,000 Abyssal Essence, and 50 Weak Souls. |
+| Polished Nightopal Gem | +5% Abyssal Music AP. | 50,000 AP, 50 Nightopal, and 10 Abyssal Stardust. |
+| Polished Shadowpearl Gem | +5% Music Abyssal XP. | 50,000 AP, 50 Shadowpearl, and 10 Abyssal Stardust. |
+| Polished Moonstone Gem | +5% Abyssal Music Mastery XP. | 50,000 AP, 50 Moonstone, and 10 Abyssal Stardust. |
+| Abyssal String | 5% chance for an additional Sheet Music per action. | 50,000 AP, 100 Twisted Tendrils, 10 Nightopal, and 50 Abyssal Stardust. |
+| Pristine Abyssal Leather | -5% Abyssal Music interval. | 50,000 AP, 100 Abyssal Leather, 10 Nightopal, and 50 Abyssal Stardust. |
+| Abyssal Oil | One additional set of rare-drop, mastery-token, ancient-relic, pet, and Summoning-mark rolls per action. | 50,000 AP, 100 Abyssal Firemaking Oil, 10 Nightopal, and 50 Abyssal Stardust. |
+
+Attachment bonuses apply while the corresponding eligible Abyssal bard is hired.
+String and Oil apply only when training an Abyssal instrument.
+Oil does not duplicate Music XP, AP tips, mastery XP, or event rewards.
+Available token, relic, pet, and mark drops still follow the game's realm and content rules.
+The equipment icons use the same crimson-and-ember theme as the Abyssal instruments.
+Saved Abyssal bards with Music's original socket or utility items retain their enhancements through equivalent Abyssal attachments, without spending bank items again.
+Melvor bards retain Music's original enhancement menus and materials.
 
 ### Abyssal Conductor
 
@@ -93,7 +117,7 @@ Each purchasable mastery bonus has a **Mastery 20**, **Mastery 40**, **Mastery 6
 The button is grey and disabled before its mastery requirement is met, outlined green when available to unlock, and solid green and disabled after the bonus is purchased.
 An available button opens the selected tier’s purchase confirmation; confirming purchases the bonus and closes the popup.
 Back cancels and closes the popup without spending resources.
-Normal GP and Essence of Music costs still apply, even if an available button is green.
+The realm's GP/AP and Essence of Music/Abyssal Essence of Music costs still apply, even if an available button is green.
 The instrument-card **Mastery** button opens an overview of the remapped tiers and retains its gold **♫** while an eligible bonus remains unpurchased.
 This cue also works for unhired instruments, and all roster states and cues update after mastery changes, purchases, and save restoration.
 
@@ -166,8 +190,8 @@ The third prayer is stored with the addon and restored when eligible, while the 
 
 The mastery tiers are **1, 20, 40, 65, and 99**.
 Bardic Troupe leaves Music's mastery level cap unchanged, including any cap supplied by another mod.
-Mastery **20, 40, 65, and 99** purchases cost **100K, 1M, 10M, and 100M GP**, respectively, plus **1 Essence of Music each**.
-Each purchase requires its listed instrument mastery level and the instrument's normal Music unlock.
+Melvor Mastery **20, 40, 65, and 99** purchases cost **100K, 1M, 10M, and 100M GP**, respectively, plus **1 Essence of Music each**.
+Each purchase requires its listed instrument mastery level and the instrument's Music unlock for its realm.
 Music's native purchase records retain each bard's original rewards.
 Addon character storage retains each bard's added reward, regardless of its mastery tier.
 Existing native mastery purchases and hiring prices are retained.
@@ -246,6 +270,8 @@ mastery.mjs
 music-realms.mjs
 abyssal.mjs
 abyssal-data.mjs
+abyssal-equipment.mjs
+abyssal-equipment-data.mjs
 bonuses.mjs
 ui.mjs
 ui.css
@@ -259,6 +285,13 @@ assets/abyssal/violin.png
 assets/abyssal/french-horn.png
 assets/abyssal/harp.png
 assets/abyssal/conductor.png
+assets/abyssal/essence-of-music.png
+assets/abyssal/polished-nightopal.png
+assets/abyssal/polished-shadowpearl.png
+assets/abyssal/polished-moonstone.png
+assets/abyssal/string.png
+assets/abyssal/leather.png
+assets/abyssal/oil.png
 ```
 
 The manifest loads `ui.css` along with the addon scripts.

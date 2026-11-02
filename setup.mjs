@@ -1,5 +1,5 @@
 export async function setup(ctx) {
-  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installConductor }, { installSkillBonuses }, { installMasteryTiers }, { installMusicRealms }, { installAbyssalMusic }] = await Promise.all([
+  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installConductor }, { installSkillBonuses }, { installMasteryTiers }, { installMusicRealms }, { installAbyssalMusic }, { installAbyssalEquipment }] = await Promise.all([
     ctx.loadModule("troupe.mjs"),
     ctx.loadModule("ui.mjs"),
     ctx.loadModule("config.mjs"),
@@ -8,6 +8,7 @@ export async function setup(ctx) {
     ctx.loadModule("mastery.mjs"),
     ctx.loadModule("music-realms.mjs"),
     ctx.loadModule("abyssal.mjs"),
+    ctx.loadModule("abyssal-equipment.mjs"),
   ]);
   ctx.onModsLoaded(async () => {
     const music = game.music;
@@ -18,12 +19,13 @@ export async function setup(ctx) {
     let storageReady = false;
     const conductor = await installConductor(ctx, music, () => storageReady, namespace);
     await installAbyssalMusic(ctx, music, namespace);
+    const equipment = await installAbyssalEquipment(ctx, music, namespace);
     installMusicRealms(ctx, music);
     const data = createShopData(music);
     await ctx.gameData.addPackage(data);
     const purchases = data.data.shopPurchases.map(purchase => game.shop.purchases.getObjectByID(`${namespace}:${purchase.id}`));
     const settings = configureUpgrades(ctx, game, purchases.filter(purchase => !purchase.id.includes(":Abyssal_Slot_")));
-    const troupe = new Troupe(music, purchases);
+    const troupe = new Troupe(music, purchases, equipment);
     const mastery = installMasteryTiers(ctx, music, troupe, namespace);
     const bonuses = await installSkillBonuses(ctx, music, troupe);
     const bandPractice = game.shop.purchases.getObjectByID("mythMusic:Band_Practice");
@@ -77,6 +79,6 @@ export async function setup(ctx) {
     ctx.patch(game.constructor, "decode").after(function () {
       if (storageReady) restore();
     });
-    installControls(ctx, music, troupe, mastery);
+    installControls(ctx, music, troupe, mastery, equipment);
   });
 }
