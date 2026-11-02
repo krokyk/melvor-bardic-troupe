@@ -1,0 +1,22 @@
+Abyssal instrument icons
+Built-in image_gen editing mode.
+
+Shared prompt:
+Use case: precise-object-edit. Asset type: small Melvor Idle game inventory icon. Edit the attached original instrument into its Abyssal variant. Keep exactly the original recognizable instrument, silhouette, orientation, proportions, count of objects, and simple flat illustrated Melvor icon style. Change only its palette and a small consistent flame motif: deep crimson lacquer, dark burgundy shadows, restrained vermilion highlights, warm orange metal trim. Add two or three tiny stylized orange-red ember/flame licks hugging the outside lower edge; flames occupy at most 10 percent of total icon, do not obscure the instrument. Clean bold shapes, crisp edges, readable at 48 pixels. The same crimson/orange treatment will be used on all eight instruments. Center with comfortable padding in a square canvas. Genuine transparent background including between strings and internal openings. No text, frame, logo, backdrop, shadow, character, hands, extra objects, smoke cloud, or elaborate fantasy redesign.
+
+Subjects and outputs:
+Abyssal Guitar: C:\ws\.ai\tmp\abyssal-music-implementation\music-main\assets\instruments\guitar.png -> assets/abyssal/guitar.png
+Abyssal Banjo: C:\ws\.ai\tmp\abyssal-music-implementation\music-main\assets\instruments\banjo.png -> assets/abyssal/banjo.png
+Abyssal Snare Drum: C:\ws\.ai\tmp\abyssal-music-implementation\music-main\assets\instruments\drum.png -> assets/abyssal/snare-drum.png
+Abyssal Maracas: C:\ws\.ai\tmp\abyssal-music-implementation\music-main\assets\instruments\maraca.png -> assets/abyssal/maracas.png
+Abyssal Violin: C:\ws\.ai\tmp\abyssal-music-implementation\music-main\assets\instruments\violin.png -> assets/abyssal/violin.png
+Abyssal French Horn: C:\ws\.ai\tmp\abyssal-music-implementation\music-main\assets\instruments\french-horn.png -> assets/abyssal/french-horn.png
+Abyssal Harp: C:\ws\.ai\tmp\abyssal-music-implementation\music-main\assets\instruments\harp.png -> assets/abyssal/harp.png
+Abyssal Conductor: C:\ws\vsc-ws\melvor-bardic-troupe\assets\conductor.png -> assets/abyssal/conductor.png
+
+Second batch style reference: generated Abyssal Guitar.
+The edit target remains the original instrument; match the reference crimson/orange palette and tiny lower-edge flames.
+Conductor: preserve a single diagonal baton with crimson handle, orange trim, glowing red-orange shaft, and small handle/tip flames.
+
+Postprocessing: resize to 128x128 with System.Drawing high-quality bicubic interpolation while preserving alpha.
+Preview: assets/abyssal-preview.png.

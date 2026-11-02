@@ -22,18 +22,21 @@ Buy additional slots in order, with a configurable Music level requirement and G
 - Manage your troupe through a compact roster with enhancement shortcuts.
 - Add **The Conductor** for major combat boosts and a **third active prayer** when upgraded.
   Requires **Music level 118** and **Throne of the Herald**.
+- Train **eight Abyssal instruments** with Abyssal Music XP, AP-priced hires and slots, and bonuses for Abyssal resources and combat.
+  Requires **Into the Abyss**.
+- Hire **Abyssal Conductor** at Abyssal Music level 60 for major Abyssal combat bonuses, Corruption and Slayer support, and a third Abyssal prayer when upgraded.
 
 **This is a very powerful mod, especially with The Conductor: expect a major boost to skilling and combat.**
 
 Requires **[Myth] Music**.
 Export your save before disabling or removing the mod.
 
-Melvor training awards GP, while training in the unlocked Abyssal realm with Into the Abyss awards the same native computed tip amount as Abyssal Pieces (AP).
-Both realms use the same instruments, normal Music XP and mastery progress.
-Native realm selection and sidebar visibility recognize the unlocked Abyssal realm, and training ranges show the selected currency's icon and GP/AP label.
-Hiring, instrument enhancements, troupe slots and mastery purchases retain their normal GP and Essence of Music costs and bonus values.
-Passive hired-bard payouts keep their native GP behavior.
-The selected Music realm is saved by the native skill data.
+Melvor instruments award normal Music XP and GP; Abyssal instruments award Abyssal Music XP and AP.
+Each realm has its own instruments and hired roster, with eligible bonuses from both rosters active together.
+Abyssal Guitar, Banjo, Snare Drum, Maracas, Violin, French Horn, Harp, and Conductor use a consistent crimson-and-ember icon theme.
+Their bonuses support Abyssal XP, nests, gems, Harvesting, Soul Points, Starfalls, AP, Township waves, Corruption, Slayer, and Abyssal Resistance.
+The Abyssal roster starts with one slot and supports seven additional slots at 1,000,000 AP each.
+Abyssal mastery purchases use AP and Essence of Music; instrument enhancements use Music's existing materials.
 
 ## Homepage
 
@@ -66,8 +69,11 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ### 2.4.0
 
-- Pay the native Music training amount in Abyssal Pieces in the unlocked Abyssal realm, with matching currency labels and icons.
-- Keep Music available in the Abyssal sidebar and defer hidden currency-range rendering while retaining normal GP costs, XP, mastery, and bard bonuses.
+- Add eight Abyssal instruments with crimson-and-ember icons, native Abyssal Music levels, AP training rewards, and Abyssal Concert Pass XP.
+- Add a separate eight-slot Abyssal troupe, AP hiring and mastery purchases, and saved hires and enhancements.
+- Give every Abyssal skill support through the instrument bonuses, including Harvesting, Corruption, Soul Points, AP/ASC, and Township waves.
+- Add Abyssal Conductor with major Abyssal combat bonuses, enemy Abyssal Resistance reduction, Slayer support, and a third Abyssal prayer when upgraded.
+- Keep Melvor training and hired rosters independent of the selected realm's display.
 
 ### 2.3.2
 
@@ -171,7 +177,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 
 ## Upload configuration
 
-- Upload **krokys-bardic-troupe-2.4.0.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `conductor.mjs`, `mastery.mjs`, `music-realms.mjs`, `bonuses.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/conductor.png`.
+- Upload **krokys-bardic-troupe-2.4.0.zip** with `manifest.json`, `setup.mjs`, `config.mjs`, `troupe.mjs`, `conductor.mjs`, `mastery.mjs`, `music-realms.mjs`, `abyssal.mjs`, `abyssal-data.mjs`, `bonuses.mjs`, `ui.mjs`, `ui.css`, and `icon.svg` at the archive root, plus `assets/conductor.png` and the eight PNG icons under `assets/abyssal/`.
 - Exclude tests and documentation from the archive.
 - Set **[Myth] Music**, mod.io ID **3096259**, as a hard dependency in mod.io.
   The current Melvor manifest loader does not read dependency declarations from `manifest.json`.

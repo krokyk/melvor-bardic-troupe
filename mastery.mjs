@@ -42,6 +42,9 @@ export function installMasteryTiers(ctx, music, troupe, namespace) {
     }
     instruments.add(instrument);
   }
+  for (const instrument of music.actions.allObjects ?? []) {
+    if (instrument.realm?.id === "melvorItA:Abyssal") instruments.add(instrument);
+  }
 
   ctx.patch(music.manager.constructor, "isModifierActive").replace(function (original, instrument, modifier) {
     if (extraTiers.has(modifier)) return unlocked.has(instrument.id);
@@ -62,19 +65,21 @@ export function installMasteryTiers(ctx, music, troupe, namespace) {
     };
     if (!isAvailable()) return;
     const essence = game.items.getObjectByID("mythMusic:Essence_Of_Music");
-    const canAfford = () => game.gp.canAfford(cost) && game.bank.getQty(essence) >= 1;
+    const currency = instrument.realm?.id === "melvorItA:Abyssal" ? game.abyssalPieces : game.gp;
+    const code = currency === game.gp ? "GP" : "AP";
+    const canAfford = () => currency?.canAfford(cost) && game.bank.getQty(essence) >= 1;
     return SwalLocale.fire({
       titleText: `${instrument.name}: Mastery ${level}`,
-      html: `<p>${bonus().description}</p><p>${cost.toLocaleString("en-US")} GP + 1 Essence of Music</p>`,
+      html: `<p>${bonus().description}</p><p>${cost.toLocaleString("en-US")} ${code} + 1 Essence of Music</p>`,
       showCancelButton: true, cancelButtonText: "Back", confirmButtonText: "Unlock",
       showConfirmButton: canAfford(),
       preConfirm() {
         if (!isAvailable() || !canAfford()) {
-          SwalLocale.showValidationMessage(`Requires Mastery ${level}, ${cost.toLocaleString("en-US")} GP, and 1 Essence of Music.`);
+          SwalLocale.showValidationMessage(`Requires Mastery ${level}, ${cost.toLocaleString("en-US")} ${code}, and 1 Essence of Music.`);
           return false;
         }
         game.bank.removeItemQuantityByID(essence.id, 1, true);
-        game.gp.remove(cost);
+        currency.remove(cost);
         const bonuses = instrument.modifiers(music.settings.modifierType);
         const index = bonuses.findIndex(modifier => modifier.level === level);
         if (extraTiers.has(bonuses[index])) unlocked.add(instrument.id);

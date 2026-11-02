@@ -1,6 +1,10 @@
 export const namespace = "KrokyBardicTroupe";
 export const slotPrice = 1_000_000_000;
 
+export function isAbyssal(value) {
+  return (value?.realm?.id ?? value?.id) === "melvorItA:Abyssal";
+}
+
 function roman(number) {
   let result = "";
   for (const [value, letters] of [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]]) {
@@ -10,7 +14,7 @@ function roman(number) {
 }
 
 export function createShopData(music) {
-  const purchases = Array.from({ length: Math.max(0, music.actions.allObjects.length - 1) }, (_, index) => {
+  const purchases = Array.from({ length: Math.max(0, music.actions.allObjects.filter(instrument => !isAbyssal(instrument)).length - 1) }, (_, index) => {
     const previous = index === 0 ? [] : [{ type: "ShopPurchase", purchaseID: `${namespace}:Slot_${index}`, count: 1 }];
     return {
       id: `Slot_${index + 1}`,
@@ -28,11 +32,26 @@ export function createShopData(music) {
       showBuyLimit: false,
     };
   });
+  const abyssalCount = music.actions.allObjects.filter(isAbyssal).length;
+  for (let index = 1; index < abyssalCount; index++) {
+    const previous = index === 1 ? [] : [{ type: "ShopPurchase", purchaseID: `${namespace}:Abyssal_Slot_${index - 1}`, count: 1 }];
+    purchases.push({
+      id: `Abyssal_Slot_${index}`, category: `${namespace}:AbyssalTroupe`, media: "assets/abyssal/conductor.png",
+      customName: `Abyssal Bardic Troupe ${roman(index)}`,
+      customDescription: "Unlock one additional hired Abyssal bard slot in Music.",
+      contains: { items: [], modifiers: {} },
+      cost: { items: [], currencies: [{ currency: "melvorItA:AbyssalPieces", type: "Fixed", cost: 1_000_000 }] },
+      allowQuantityPurchase: false, unlockRequirements: previous,
+      purchaseRequirements: [{ type: "AbyssalLevel", skillID: music.id, level: 1 }, ...previous],
+      defaultBuyLimit: 1, buyLimitOverrides: [], showBuyLimit: false,
+    });
+  }
   return {
     namespace,
     data: {
-      shopCategories: [{ id: "Troupe", name: "Bardic Troupe", media: "icon.svg" }],
-      shopCategoryOrder: [{ insertAt: "End", ids: [`${namespace}:Troupe`] }],
+      shopCategories: [{ id: "Troupe", name: "Bardic Troupe", media: "icon.svg" },
+        ...(abyssalCount ? [{ id: "AbyssalTroupe", name: "Abyssal Bardic Troupe", media: "assets/abyssal/conductor.png" }] : [])],
+      shopCategoryOrder: [{ insertAt: "End", ids: [`${namespace}:Troupe`, ...(abyssalCount ? [`${namespace}:AbyssalTroupe`] : [])] }],
       shopPurchases: purchases,
       shopDisplayOrder: [{ insertAt: "End", ids: purchases.map(purchase => `${namespace}:${purchase.id}`) }],
     },
@@ -45,12 +64,13 @@ export class Troupe {
     this.purchases = purchases;
   }
 
-  purchasedSlots() {
+  purchasedSlots(realm = undefined) {
     const slots = [];
     for (const purchase of this.purchases) {
+      if (purchase.id.includes(":Abyssal_Slot_") !== isAbyssal(realm)) continue;
       if (this.music.game.shop.getPurchaseCount(purchase) < 1) break;
       // Slots 2 and 3 belong exclusively to Music's original upgrade and relic.
-      slots.push(slots.length + 4);
+      slots.push(slots.length + (isAbyssal(realm) ? 1002 : 4));
     }
     return slots;
   }
@@ -62,28 +82,41 @@ export class Troupe {
     return slots;
   }
 
-  slots() {
+  slots(realm = this.music.currentRealm) {
+    if (isAbyssal(realm)) {
+      const abyssal = realm.realm ?? realm;
+      if (!this.music.actions.allObjects.some(isAbyssal) || abyssal.isUnlocked !== true) return [];
+      return [1001, ...this.purchasedSlots(abyssal)];
+    }
     return [...this.nativeSlots(), ...this.purchasedSlots()];
   }
 
-  canBuySlot() {
-    return this.slots().length < this.music.actions.allObjects.length;
+  canBuySlot(purchase) {
+    const abyssal = purchase?.id.includes(":Abyssal_Slot_") === true;
+    const realm = abyssal ? this.music.game.realms?.getObjectByID("melvorItA:Abyssal") : undefined;
+    return this.slots(realm ?? { id: "melvorD:Melvor" }).length < this.music.actions.allObjects.filter(instrument => isAbyssal(instrument) === abyssal).length &&
+      (!abyssal || realm?.isUnlocked === true);
+  }
+
+  hireCurrency(instrument) {
+    return isAbyssal(instrument) ? this.music.game.abyssalPieces : this.music.game.gp;
   }
 
   hireCost(instrument) {
     if (!instrument || typeof instrument.id !== "string" || this.music.actions.getObjectByID(instrument.id) !== instrument ||
         !this.music.isUnlocked || !this.music.isMasteryActionUnlocked(instrument)) return;
     const { costs, unlocked } = this.music.manager.calculateHireCost(instrument);
-    const cost = Math.floor(costs[unlocked - 1] * (1 + this.music.manager.getHireCostModifier(instrument) / 100));
+    const cost = Math.floor(costs[Math.min(unlocked, costs.length) - 1] * (1 + this.music.manager.getHireCostModifier(instrument) / 100));
     if (Number.isSafeInteger(cost) && cost >= 0) return cost;
   }
 
   hire(instrument, slot) {
     const cost = this.hireCost(instrument);
-    if (cost === undefined || !this.slots().includes(slot) ||
-        this.music.bards.isHired(instrument) || !this.music.game.gp.canAfford(cost)) return false;
+    const currency = this.hireCurrency(instrument);
+    if (cost === undefined || !this.slots(instrument).includes(slot) ||
+        this.music.bards.isHired(instrument) || !currency?.canAfford(cost)) return false;
     const previous = this.music.bards.get(slot);
-    this.music.game.gp.remove(cost);
+    currency.remove(cost);
     if (previous) this.music.bards.remove(previous.instrument);
     this.music.bards.set(instrument, { instrument, slot, isUpgraded: false, socket: undefined, utility: undefined });
     this.refresh();
@@ -115,12 +148,13 @@ export class Troupe {
     for (const bard of this.music.bards.all()) {
       if (bard.slot >= 4) this.music.bards.remove(bard.instrument);
     }
-    const slots = new Set(this.purchasedSlots());
+    const abyssal = this.music.game.realms?.getObjectByID("melvorItA:Abyssal");
+    const slots = new Set([...this.purchasedSlots(), ...(abyssal ? [1001, ...this.purchasedSlots(abyssal)] : [])]);
     if (saved?.version === 1 && Array.isArray(saved.bards)) {
       for (const record of saved.bards) {
         if (!record || typeof record.instrument !== "string" || !Number.isSafeInteger(record.slot) || !slots.has(record.slot)) continue;
         const instrument = this.music.actions.getObjectByID(record.instrument);
-        if (!instrument || this.music.bards.isHired(instrument)) continue;
+        if (!instrument || isAbyssal(instrument) !== (record.slot >= 1001) || this.music.bards.isHired(instrument)) continue;
         this.music.bards.set(instrument, {
           instrument,
           slot: record.slot,

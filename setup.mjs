@@ -1,5 +1,5 @@
 export async function setup(ctx) {
-  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installConductor }, { installSkillBonuses }, { installMasteryTiers }, { installMusicRealms }] = await Promise.all([
+  const [{ Troupe, createShopData, namespace }, { installControls }, { configureUpgrades }, { installConductor }, { installSkillBonuses }, { installMasteryTiers }, { installMusicRealms }, { installAbyssalMusic }] = await Promise.all([
     ctx.loadModule("troupe.mjs"),
     ctx.loadModule("ui.mjs"),
     ctx.loadModule("config.mjs"),
@@ -7,6 +7,7 @@ export async function setup(ctx) {
     ctx.loadModule("bonuses.mjs"),
     ctx.loadModule("mastery.mjs"),
     ctx.loadModule("music-realms.mjs"),
+    ctx.loadModule("abyssal.mjs"),
   ]);
   ctx.onModsLoaded(async () => {
     const music = game.music;
@@ -14,20 +15,21 @@ export async function setup(ctx) {
         !music.bards?.bards || !music.userInterface) {
       throw new Error("Bardic Troupe requires [Myth] Music (mod.io ID 3096259), with Music save format 4. Enable Music and reload Melvor.");
     }
-    installMusicRealms(ctx, music);
     let storageReady = false;
     const conductor = await installConductor(ctx, music, () => storageReady, namespace);
+    await installAbyssalMusic(ctx, music, namespace);
+    installMusicRealms(ctx, music);
     const data = createShopData(music);
     await ctx.gameData.addPackage(data);
     const purchases = data.data.shopPurchases.map(purchase => game.shop.purchases.getObjectByID(`${namespace}:${purchase.id}`));
-    const settings = configureUpgrades(ctx, game, purchases);
+    const settings = configureUpgrades(ctx, game, purchases.filter(purchase => !purchase.id.includes(":Abyssal_Slot_")));
     const troupe = new Troupe(music, purchases);
     const mastery = installMasteryTiers(ctx, music, troupe, namespace);
     const bonuses = await installSkillBonuses(ctx, music, troupe);
     const bandPractice = game.shop.purchases.getObjectByID("mythMusic:Band_Practice");
     const bandIndex = game.shop.purchaseDisplayOrder.indexOf(bandPractice);
     if (bandIndex !== -1) game.shop.purchaseDisplayOrder.splice(bandIndex, 1);
-    const isBlocked = purchase => purchase === bandPractice || (purchases.includes(purchase) && !troupe.canBuySlot());
+    const isBlocked = purchase => purchase === bandPractice || (purchases.includes(purchase) && !troupe.canBuySlot(purchase));
     ctx.patch(ShopTabMenu, "shouldShowItem").after(function (result, purchase) {
       if (isBlocked(purchase)) return 0;
     });

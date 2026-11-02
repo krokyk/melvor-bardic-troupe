@@ -123,7 +123,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
   const music = Object.assign(new Music(), {
     bards: { get: slot => bards.get(slot), isHired: () => false },
     userInterface: { bard1: bridge, instruments },
-    game: {},
+    game: { gp: { name: "GP" }, abyssalPieces: { name: "Abyssal Pieces" } },
     manager: { getModifiers: target => { counts.modifierReads++; return modifiers.get(target) ?? []; } },
     getMasteryLevel: target => masteryLevels.get(target) ?? 1,
     unlockMastery(target) { return openNativeModal("mastery", target, this); },
@@ -133,6 +133,7 @@ function fixture(t, { masteryLabel = "Mastery" } = {}) {
   const troupe = {
     slots: () => [1, 4],
     hireCost: () => 10000,
+    hireCurrency: () => music.game.gp,
     succeeds: false,
     hire(candidate, slot) { this.request = { candidate, slot }; return this.succeeds; }
   };
@@ -662,4 +663,37 @@ test("collapsed rosters defer all slot card construction while keeping visible c
   const expanded = f.counts.elements;
   f.patches.get("renderBardModifiers")();
   assert.equal(f.counts.elements, expanded);
+});
+
+test("Abyssal hire confirmations show AP and select only Abyssal slots while the roster follows the viewed realm", t => {
+  const f = fixture(t), normal = { id: "melvorD:Melvor" }, abyssal = { id: "melvorItA:Abyssal" };
+  f.instrument.id = "KrokyBardicTroupe:Abyssal_Conductor";
+  f.instrument.name = "Abyssal Conductor";
+  f.instrument.realm = abyssal;
+  const abyssalBard = { instrument: f.instrument, slot: 1001, isUpgraded: false };
+  f.bards.set(1001, abyssalBard);
+  f.music.currentRealm = abyssal;
+  f.troupe.slots = (value = f.music.currentRealm) => (value.realm ?? value).id === abyssal.id ? [1001, 1002] : [1, 4];
+  f.troupe.hireCurrency = instrument => instrument.realm === abyssal ? f.music.game.abyssalPieces : f.music.game.gp;
+  f.ctx.ready();
+  openRoster(f);
+  const grid = descendants(f.native.sibling).find(node => node.id === "bardic-troupe-slots");
+  assert(grid.textContent.includes("Abyssal Conductor"));
+  assert.equal(grid.textContent.includes("Abyssal Conductor Bard"), false);
+  assert.equal(grid.textContent.includes("Harp Bard"), false);
+  f.patches.get("hire")(undefined, f.instrument);
+  const content = f.swal.options.html;
+  assert(content.textContent.includes(`${(10000).toLocaleString()} AP`));
+  assert.equal(content.textContent.includes(`${(10000).toLocaleString()} GP`), false);
+  assert(content.textContent.includes("Hire Abyssal Conductor?"));
+  const choices = descendants(content).filter(node => node.tag === "button");
+  assert.equal(choices.length, 2);
+  f.troupe.succeeds = true;
+  choices[1].onclick();
+  assert.deepEqual(f.troupe.request, { candidate: f.instrument, slot: 1002 });
+  f.music.currentRealm = normal;
+  f.refresh();
+  assert.equal(grid.textContent.includes("Abyssal Conductor"), false);
+  assert(grid.textContent.includes("Harp Bard"));
+  assert.equal(f.bards.get(1001), abyssalBard);
 });

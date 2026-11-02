@@ -2,12 +2,12 @@ export function installMusicRealms(ctx, music) {
   const game = music.game;
   const abyssal = game.realms?.getObjectByID("melvorItA:Abyssal"), ap = game.abyssalPieces;
   if (!game.registeredNamespaces?.hasNamespace("melvorItA") || !abyssal || !ap) return;
-  const currency = () => abyssal.isUnlocked && music.currentRealm === abyssal ? ap : game.gp;
+  const currency = instrument => instrument?.realm === abyssal ? ap : game.gp;
   const rows = new Map();
   const renderRanges = () => {
     if (typeof document === "undefined") return;
-    const selected = currency(), code = selected === ap ? "AP" : "GP";
     for (const [instrument, component] of music.userInterface.instruments) {
+      const selected = currency(instrument), code = selected === ap ? "AP" : "GP";
       const card = document.getElementById(component.localId);
       if (!card) continue;
       let view = rows.get(instrument);
@@ -29,16 +29,23 @@ export function installMusicRealms(ctx, music) {
   };
   ctx.patch(music.constructor, "actionRewards").get(function (original) {
     const rewards = original();
-    if (this === music && currency() === ap) {
+    if (this === music && currency(this.activeInstrument) === ap) {
       // Native Rewards exposes no currency-removal method.
       const amount = rewards._currencies.get(game.gp);
       if (amount !== undefined) { rewards._currencies.delete(game.gp); rewards.addCurrency(ap, amount); }
     }
     return rewards;
   });
+  ctx.patch(music.manager.constructor, "getGoldToAward").replace(function (original, instrument) {
+    if (this !== music.manager || currency(instrument) !== ap) return original(instrument);
+    const component = music.userInterface.instruments.get(instrument);
+    return music.modifyCurrencyReward(ap, rollInteger(component.getMinGPRoll(), component.getMaxGPRoll()), instrument);
+  });
   ctx.patch(music.constructor, "getRealmOptions").replace(function (original, ...args) {
     const options = original(...args);
-    return this === music && abyssal.isUnlocked && !options.includes(abyssal) ? [...options, abyssal] : options;
+    if (this !== music) return options;
+    if (!abyssal.isUnlocked) return options.includes(abyssal) ? options.filter(realm => realm !== abyssal) : options;
+    return options.includes(abyssal) ? options : [...options, abyssal];
   });
   ctx.patch(music.constructor, "onRealmChange").after(function () {
     if (this !== music) return;
@@ -54,5 +61,16 @@ export function installMusicRealms(ctx, music) {
     return result;
   });
   game.renderQueue.sidebarSkillOpacity = true;
-  ctx.onInterfaceReady(() => { music.renderQueue.gpRange = true; music.renderGPRange(); });
+  ctx.onInterfaceReady(() => {
+    for (const [instrument, component] of music.userInterface.instruments) {
+      if (currency(instrument) !== ap) continue;
+      component.getGPModifier = () => music.getCurrencyModifier(ap, instrument);
+      component.updateGPRange = function () {
+        this.minGP = music.modifyCurrencyReward(ap, this.getMinGPRoll(), instrument);
+        this.maxGP = music.modifyCurrencyReward(ap, this.getMaxGPRoll(), instrument);
+      };
+    }
+    music.renderQueue.gpRange = true;
+    music.renderGPRange();
+  });
 }

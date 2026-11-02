@@ -18,19 +18,60 @@ Version: **2.4.0**.
 4. Use **Upgrade**, **Socket**, **Utility**, or a **Mastery** button on a hired bard to open the matching Music menu.
 
 Slot purchases require **actual Music level 100 by default**, with a shared level requirement and GP price configurable in Mod Settings.
-Further purchases stop being offered once your total slot capacity covers every instrument registered by Music, including instruments you have not unlocked yet.
+Further Melvor purchases stop being offered once your Melvor slot capacity covers every Melvor instrument, including instruments you have not unlocked yet.
 Each instrument can have only one hired bard.
 Music's existing instruments retain their unlocks, normal XP, bonus values, hiring costs, and enhancements, with mastery tiers at 1, 20, 40, 65, and 99.
 Replacing a bard loses that bard's upgrade, socket, and utility, as in Music.
 
 ## Music realms and training currency
 
-Melvor training awards GP, while training in the unlocked Abyssal realm with Into the Abyss awards the same native computed tip amount as Abyssal Pieces (AP).
-Both realms use the same instruments, normal Music XP and mastery progress.
-Native realm selection and sidebar visibility recognize the unlocked Abyssal realm, and training ranges show the selected currency's icon and GP/AP label.
-Hiring, instrument enhancements, troupe slots and mastery purchases retain their normal GP and Essence of Music costs and bonus values.
-Passive hired-bard payouts keep their native GP behavior.
-The selected Music realm is saved by the native skill data.
+Melvor instruments award normal Music XP and GP.
+Into the Abyss adds eight separate Abyssal instruments that award Music Abyssal XP and Abyssal Pieces (AP), with an Abyssal Music level cap of 60.
+Each realm shows its own instruments and hired roster, while both rosters retain their hires and apply their eligible bonuses together.
+Rewards follow the instrument being trained, including while viewing another realm or processing offline progress.
+Abyssal tips use AP modifiers; GP bonuses apply to Melvor tips.
+Concert Pass awards Abyssal XP to the associated skills when training an Abyssal instrument.
+Native skill data saves Music's selected realm, Abyssal XP, instrument mastery, and mastery purchases.
+
+Abyssal Music has one initial hired-bard slot and seven sequential **Abyssal Bardic Troupe** purchases at **1,000,000 AP each**.
+Abyssal slots require the unlocked Abyssal realm and are independent of Melvor slot purchases and their settings.
+Abyssal hiring uses Music's normal hiring prices and discounts, paid in AP.
+Abyssal Mastery 20, 40, 65, and 99 purchases cost **100K, 1M, 10M, and 100M AP**, respectively, plus **1 Essence of Music each**.
+Instrument upgrades, sockets, and utilities use Music's existing materials.
+Every instrument has its own mastery progress and the shared tiers **1, 20, 40, 65, and 99**.
+The Abyssal instruments require Into the Abyss, including Abyssal Conductor; Throne of the Herald is not required.
+
+| Instrument | Abyssal Music level | Main hired-bard bonuses |
+| --- | --- | --- |
+| Abyssal Guitar | 1 | Woodcutting, Firemaking, and Farming AXP; faster Woodcutting/Firemaking; Shadow Raven/Drake nests; extra resources; Woodcutting AXP shared with Firemaking. |
+| Abyssal Banjo | 8 | Fishing/Cooking AXP, speed, mastery, and output; extra Fishing special items; stronger food healing with Abyssal damage. |
+| Abyssal Snare Drum | 16 | Mining, Smithing, and Harvesting AXP/speed; Harvesting intensity and unique products; Abyssal gems; extra resources; no Harvesting intensity decay when upgraded. |
+| Abyssal Maracas | 24 | Fletching/Crafting AXP, speed, lower recipe costs, and extra output; additional random Abyssal gems/fragments. |
+| Abyssal Violin | 32 | Runecrafting/Prayer AXP; faster Runecrafting and additional Abyssal runes; lower Soul Point costs; more Soul Points from souls, hits, and kills. |
+| Abyssal French Horn | 40 | Astrology, Summoning, and Agility AXP/speed; Starfalls and Abyssal Stardust; additional tablets; Agility mastery and cheaper Abyssal obstacles. |
+| Abyssal Harp | 48 | Thieving, Herblore, and Township AXP; Abyssal stealth/unique drops; potion output; AP income; Township wave AP/ASC rewards. |
+| Abyssal Conductor | 60 | Major Abyssal combat bonuses, Abyssal Resistance, Corruption, Slayer support, and a third Abyssal prayer when upgraded. |
+
+Shared skill interval/output bonuses target Abyssal actions.
+Ordinary XP, GP, Normal resistance, and ordinary Slayer-area bonuses are not used as substitutes for their Abyssal counterparts.
+The eight icons retain their original instrument shapes with a consistent crimson-and-ember treatment.
+
+### Abyssal Conductor
+
+| Bonus tier | Bonuses while hired |
+| --- | --- |
+| Mastery 1 | +10% Maximum Hitpoints with Abyssal or Eternal damage and +10% Abyssal Combat XP. |
+| Mastery 20 | +10 percentage points critical-hit chance, +50 percentage points critical damage multiplier, and +5% lifesteal with Abyssal or Eternal damage. |
+| Mastery 40 | +10 percentage points Abyssal Resistance and +50% evasion with Abyssal or Eternal damage. |
+| Mastery 65 | +50% accuracy and maximum hit, and +10% of maximum hit added to minimum hit, with Abyssal or Eternal damage. |
+| Mastery 99 | -10% character Attack Interval, -25% familiar Attack Interval, +25% Corruption progress, and +10% chance for an additional Corruption, with Abyssal or Eternal damage. |
+| Instrument upgrade | Enemy -10 percentage points Abyssal Resistance, +40% Abyssal Slayer Coins, +25% Abyssal Slayer-region effect negation, and a third active Abyssal prayer. |
+
+The third prayer requires an upgraded, hired Abyssal Conductor at Abyssal Music level 60, or the eligible Melvor Conductor.
+The prayer limit remains three when both conductors are hired.
+Prayer-book restrictions and the game's equipment, damage-type, and resource checks still apply.
+New Abyssal rewards have equal strength under Music's Standard and Hardcore modifier settings.
+Normal game caps and game-mode restrictions apply.
 
 The compact **Toggle Bardic Troupe** bar shows an eye icon and the number of hired bards out of your total slots.
 It also shows a gold **♫**, including while collapsed, when any hired bard has an eligible unpurchased mastery bonus or a missing instrument enhancement.
@@ -94,7 +135,7 @@ The Conductor grants neither of these two skill bonuses, regardless of the toggl
 ## The Conductor
 
 The Conductor unlocks at **Music level 118** with **Throne of the Herald enabled**.
-With all Music content enabled, it is the sixteenth instrument and the troupe can hold all sixteen different bards.
+With all Melvor Music content enabled, it is the sixteenth Melvor instrument and the Melvor troupe can hold all sixteen different bards.
 The extra slot uses the same sequential purchases, configurable level requirement, and GP price as the other troupe slots.
 In Melvor, The Conductor trains every 3 seconds before interval modifiers, grants 547 base Music XP, and has a base maximum tip of 705 GP before mastery and GP modifiers.
 Its associated skills are Attack, Strength, Ranged, Magic, Defence, Hitpoints, Prayer, and Summoning, including Concert Pass XP.
@@ -203,11 +244,21 @@ troupe.mjs
 conductor.mjs
 mastery.mjs
 music-realms.mjs
+abyssal.mjs
+abyssal-data.mjs
 bonuses.mjs
 ui.mjs
 ui.css
 icon.svg
 assets/conductor.png
+assets/abyssal/guitar.png
+assets/abyssal/banjo.png
+assets/abyssal/snare-drum.png
+assets/abyssal/maracas.png
+assets/abyssal/violin.png
+assets/abyssal/french-horn.png
+assets/abyssal/harp.png
+assets/abyssal/conductor.png
 ```
 
 The manifest loads `ui.css` along with the addon scripts.

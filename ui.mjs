@@ -6,7 +6,7 @@ function element(tag, className, text) {
 }
 
 function bardName(instrument, suffix = "Bard") {
-  return instrument.id === "KrokyBardicTroupe:Cello" ? instrument.name : `${instrument.name} ${suffix}`;
+  return ["KrokyBardicTroupe:Cello", "KrokyBardicTroupe:Abyssal_Conductor"].includes(instrument.id) ? instrument.name : `${instrument.name} ${suffix}`;
 }
 
 function canUnlockMastery(music, instrument, modifier) {
@@ -175,15 +175,16 @@ export function installControls(ctx, music, troupe, mastery) {
     }
 
     const content = element("div", "text-left");
+    const code = troupe.hireCurrency(instrument) === music.game.gp ? "GP" : "AP";
     content.append(element("h5", "mb-2", `Hire ${bardName(instrument)}?`));
-    content.append(element("p", "font-w600", `${cost.toLocaleString()} GP`));
+    content.append(element("p", "font-w600", `${cost.toLocaleString()} ${code}`));
     appendModifiers(content, music, instrument);
     content.append(element("p", "text-danger font-size-sm mt-3", "Replacing a bard loses its instrument upgrade, socket, and utility."));
     const status = element("p", "text-danger font-size-sm");
     status.setAttribute("role", "status");
     status.setAttribute("aria-live", "polite");
     const choices = element("div", "d-flex flex-wrap justify-content-center");
-    for (const [index, slot] of troupe.slots().entries()) {
+    for (const [index, slot] of troupe.slots(instrument).entries()) {
       const number = index + 1;
       const bard = music.bards.get(slot);
       const label = bard ? `Replace ${bard.instrument.name} (slot ${number})` : `Hire in slot ${number}`;
@@ -194,7 +195,7 @@ export function installControls(ctx, music, troupe, mastery) {
           render();
           SwalLocale.close();
         } else {
-          status.textContent = "Could not hire this bard. Check your GP, instrument unlocks, and available slots.";
+          status.textContent = `Could not hire this bard. Check your ${code}, instrument unlocks, and available slots.`;
         }
       };
       choices.append(button);

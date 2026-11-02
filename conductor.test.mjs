@@ -3,7 +3,7 @@ import test from "node:test";
 import { installConductor } from "./conductor.mjs";
 import { createShopData, namespace, Troupe } from "./troupe.mjs";
 
-async function fixture(t, { enabled = true } = {}) {
+async function fixture(t, { enabled = true, abyssal = false } = {}) {
   const globals = ["cloudManager", "loadedLangJson", "getLangString", "notifyPlayer"];
   const previous = new Map(globals.map(key => [key, globalThis[key]]));
   t.after(() => {
@@ -52,7 +52,8 @@ async function fixture(t, { enabled = true } = {}) {
   }
   const instruments = Array.from({ length: 15 }, (_, index) => ({ id: `mythMusic:Instrument_${index}` }));
   const bards = new Map();
-  const game = { combat: { player }, renderQueue: {}, prayer: {}, prayers: { getObjectByID: id => prayers.find(prayer => prayer.id === id) } };
+  const game = { combat: { player }, renderQueue: {}, prayer: {}, prayers: { getObjectByID: id => prayers.find(prayer => prayer.id === id) },
+    registeredNamespaces: { hasNamespace: id => abyssal && id === "melvorItA" } };
   const music = Object.assign(new Music(), {
     id: "mythMusic:Music", level: 118, game, bards: { get: instrument => bards.get(instrument) },
     actions: { allObjects: instruments, getObjectByID: id => instruments.find(instrument => instrument.id === id) },
@@ -85,6 +86,32 @@ async function fixture(t, { enabled = true } = {}) {
   if (instrument) bards.set(instrument, bard);
   return { cello, music, player, prayers, packages, bards, bard, instrument, notices, ready(value) { ready = value; } };
 }
+
+test("an upgraded Abyssal Conductor grants a third Abyssal prayer without Throne of the Herald", async t => {
+  const f = await fixture(t, { enabled: false, abyssal: true });
+  assert.equal(f.instrument, undefined);
+  assert.equal(f.packages[0].data.skillData, undefined);
+  assert.equal(f.packages[0].data.modifiers[0].id, "thirdPrayer");
+  const instrument = { id: `${namespace}:Abyssal_Conductor`, realm: { isUnlocked: true }, abyssalLevel: 60 };
+  f.music.actions.allObjects.push(instrument);
+  f.music.abyssalLevel = 60;
+  const bard = { instrument, isUpgraded: true };
+  f.bards.set(instrument, bard);
+  const prayers = f.prayers.slice(0, 4).map(prayer => ({ ...prayer, isAbyssal: true }));
+  f.player.equipmentSets[0].prayerSelection = new Set(prayers.slice(0, 2));
+  f.player.togglePrayer(prayers[2]);
+  assert.equal(f.player.activePrayers.size, 3);
+  f.player.togglePrayer(prayers[3]);
+  assert.equal(f.player.activePrayers.size, 3);
+  assert.equal(f.player.encode().prayers[0].length, 2);
+  bard.isUpgraded = false;
+  f.music.computeProvidedStats();
+  assert.equal(f.player.activePrayers.size, 2);
+  bard.isUpgraded = true;
+  f.player.equipmentSets[0].prayerSelection = new Set(f.prayers.slice(0, 2));
+  f.player.togglePrayer(f.prayers[2]);
+  assert.equal(f.player.activePrayers.size, 2, "Abyssal Conductor does not unlock a third ordinary prayer");
+});
 
 test("Conductor preserves the saved Cello identity and registers the rebalanced combat tiers", async t => {
   const f = await fixture(t);

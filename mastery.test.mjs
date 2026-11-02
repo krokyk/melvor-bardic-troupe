@@ -3,7 +3,7 @@ import test from "node:test";
 import { installMasteryTiers, masteryCosts } from "./mastery.mjs";
 import { namespace } from "./troupe.mjs";
 
-function fixture(t, { enabled = true, cap = 99, missing = [], native = [true, true, true, true] } = {}) {
+function fixture(t, { enabled = true, cap = 99, missing = [], native = [true, true, true, true], abyssal = false } = {}) {
   const globals = ["cloudManager", "StatObject", "SwalLocale"];
   const previous = new Map(globals.map(key => [key, globalThis[key]]));
   t.after(() => {
@@ -24,8 +24,11 @@ function fixture(t, { enabled = true, cap = 99, missing = [], native = [true, tr
   const ids = ["Guitar", "Drum", "Banjo", "Accordion", "Bouzouki", "Flute", "Maraca", "Xylophone", "Saxophone", "Violin", "Bongo", "French_Horn", "Harp", "Tambourine", "Trumpet"];
   const instruments = ids.filter(id => !missing.includes(id)).map(id => ({ id: `mythMusic:${id}`, name: id, level: 1 }));
   if (enabled) instruments.push({ id: `${namespace}:Cello`, name: "The Conductor", level: 118 });
+  const abyssalRealm = { id: "melvorItA:Abyssal", isUnlocked: true };
+  if (abyssal) instruments.push({ id: `${namespace}:Abyssal_Violin`, name: "Abyssal Violin", level: 99, abyssalLevel: 32, realm: abyssalRealm });
   for (const instrument of instruments) {
-    const modes = Object.fromEntries(["standard", "hardcore"].map(mode => [mode, [1, 40, 75, 99, 999].map(level => ({
+    const levels = instrument.realm === abyssalRealm ? [1, 20, 40, 65, 99, 999] : [1, 40, 75, 99, 999];
+    const modes = Object.fromEntries(["standard", "hardcore"].map(mode => [mode, levels.map(level => ({
       level, modifiers: [{ modifier: { id: `native:${level}` }, value: mode === "standard" ? 7 : 3 }],
     }))]));
     instrument.modifiers = mode => modes[mode];
@@ -33,6 +36,7 @@ function fixture(t, { enabled = true, cap = 99, missing = [], native = [true, tr
   const essence = { id: "mythMusic:Essence_Of_Music" };
   const game = {
     gp: { amount: masteryCosts.get(99), canAfford(cost) { return this.amount >= cost; }, remove(cost) { this.amount -= cost; } },
+    abyssalPieces: { amount: masteryCosts.get(99), canAfford(cost) { return this.amount >= cost; }, remove(cost) { this.amount -= cost; } },
     bank: { quantity: 1, getQty(item) { assert.equal(item, essence); return this.quantity; }, removeItemQuantityByID(id, quantity) { assert.equal(id, essence.id); this.quantity -= quantity; } },
     items: { getObjectByID: id => id === essence.id ? essence : undefined },
     getModifierValuesFromData: data => Object.entries(data).map(([id, value]) => ({ modifier: { id }, value })),
@@ -40,7 +44,10 @@ function fixture(t, { enabled = true, cap = 99, missing = [], native = [true, tr
   class Music {
     get masteryLevelCap() { return cap; }
     getMasteryLevel(instrument) { return this.masteryLevels.get(instrument) ?? 1; }
-    isMasteryActionUnlocked(instrument) { return this.isUnlocked && this.level >= instrument.level; }
+    isMasteryActionUnlocked(instrument) {
+      return this.isUnlocked && this.level >= instrument.level && (!instrument.abyssalLevel ||
+        instrument.realm.isUnlocked && this.abyssalLevel >= instrument.abyssalLevel);
+    }
     unlockMastery(instrument) { return SwalLocale.fire({ titleText: instrument.name, didOpen() {} }); }
   }
   class Manager {
@@ -56,9 +63,9 @@ function fixture(t, { enabled = true, cap = 99, missing = [], native = [true, tr
     calculateHireCost(instrument) { return music.masteriesUnlocked.get(instrument).filter(Boolean).length; }
   }
   const music = Object.assign(new Music(), {
-    level: 120, isUnlocked: true, game, manager: new Manager(), masteryLevels: new Map(), settings: { modifierType: "standard" },
+    level: 120, abyssalLevel: 60, isUnlocked: true, game, manager: new Manager(), masteryLevels: new Map(), settings: { modifierType: "standard" },
     actions: { allObjects: instruments, getObjectByID: id => instruments.find(instrument => instrument.id === id) },
-    masteriesUnlocked: new Map(instruments.map(instrument => [instrument, [...native]])),
+    masteriesUnlocked: new Map(instruments.map(instrument => [instrument, instrument.realm === abyssalRealm ? [true, false, false, false, false, false] : [...native]])),
   });
   let refreshes = 0;
   const controller = installMasteryTiers({
@@ -233,4 +240,54 @@ test("a lower extra purchase and a native Mastery 99 purchase use separate stora
   f.controller.restore([guitar.id]);
   assert.equal(f.music.manager.getModifiers(guitar).find(tier => tier.level === 20).isActive, true);
   assert.equal(f.game.gp.amount, 0);
+});
+
+test("all Abyssal mastery tiers spend AP and use their own native records without remapping bonuses", t => {
+  const f = fixture(t, { abyssal: true });
+  const instrument = f.instruments.at(-1), tiers = instrument.modifiers("standard");
+  assert.deepEqual(tiers.map(tier => tier.level), [1, 20, 40, 65, 99, 999]);
+  const total = [...masteryCosts.values()].reduce((sum, cost) => sum + cost, 0);
+  f.game.abyssalPieces.amount = total;
+  f.game.gp.amount = 0;
+  f.game.bank.quantity = 4;
+  for (const [level, cost] of masteryCosts) {
+    f.music.masteryLevels.set(instrument, level - 1);
+    assert.equal(f.controller.open(instrument, level), undefined);
+    f.music.masteryLevels.set(instrument, level);
+    const confirmation = f.controller.open(instrument, level);
+    assert.equal(confirmation.showConfirmButton, true);
+    assert.match(confirmation.html, new RegExp(`${cost.toLocaleString("en-US")} AP`));
+    const before = f.game.abyssalPieces.amount;
+    assert.equal(confirmation.preConfirm(), true);
+    assert.equal(f.game.abyssalPieces.amount, before - cost);
+    assert.equal(confirmation.preConfirm(), false, "a duplicate confirmation cannot spend AP twice");
+  }
+  assert.equal(f.game.abyssalPieces.amount, 0);
+  assert.equal(f.game.gp.amount, 0);
+  assert.equal(f.game.bank.quantity, 0);
+  assert.deepEqual(f.music.masteriesUnlocked.get(instrument), [true, true, true, true, true, false]);
+  assert.deepEqual(f.controller.save(), [], "Abyssal purchases remain in native per-tier records");
+  assert.deepEqual(tiers.map(tier => tier.level), [1, 20, 40, 65, 99, 999]);
+});
+
+test("Abyssal mastery confirmations recheck AP, realm unlocks and Abyssal levels independently of GP", t => {
+  const f = fixture(t, { abyssal: true });
+  const instrument = f.instruments.at(-1), cost = masteryCosts.get(20);
+  f.music.masteryLevels.set(instrument, 99);
+  f.game.gp.amount = Number.MAX_SAFE_INTEGER;
+  f.game.abyssalPieces.amount = cost - 1;
+  assert.equal(f.controller.open(instrument, 20).showConfirmButton, false);
+  f.game.abyssalPieces.amount = cost;
+  const confirmation = f.controller.open(instrument, 20);
+  for (const [target, key, value] of [[f.music, "abyssalLevel", 31], [instrument.realm, "isUnlocked", false],
+    [f.game.abyssalPieces, "amount", cost - 1], [f.game.bank, "quantity", 0]]) {
+    const previous = target[key]; target[key] = value;
+    assert.equal(confirmation.preConfirm(), false);
+    assert.equal(f.music.manager.isModifierActive(instrument, instrument.modifiers("standard")[1]), false);
+    target[key] = previous;
+  }
+  assert.equal(confirmation.preConfirm(), true);
+  assert.equal(f.game.gp.amount, Number.MAX_SAFE_INTEGER);
+  assert.equal(f.game.abyssalPieces.amount, 0);
+  assert.equal(f.game.bank.quantity, 0);
 });

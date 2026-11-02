@@ -2,22 +2,37 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createShopData, namespace, slotPrice, Troupe } from "./troupe.mjs";
 
-function fixture({ count = 8, bought = 0, band = false, relic = false, gp = 1_000_000_000 } = {}) {
+function fixture({ count = 8, bought = 0, band = false, relic = false, gp = 1_000_000_000, abyssal = false, abyssalBought = 0 } = {}) {
   const instruments = Array.from({ length: count }, (_, index) => ({ id: `mythMusic:Instrument_${index + 1}`, level: index + 1 }));
+  const normalRealm = { id: "melvorD:Melvor", isUnlocked: true }, abyssalRealm = { id: "melvorItA:Abyssal", isUnlocked: true };
+  if (abyssal) instruments.push(...Array.from({ length: 8 }, (_, index) => ({
+    id: `${namespace}:Abyssal_Instrument_${index + 1}`, level: 99, abyssalLevel: index + 1, realm: abyssalRealm,
+  })));
   const actions = new Map(instruments.map(instrument => [instrument.id, instrument]));
   const items = new Map(["Polished_Ruby_Gem", "Mystic_Oil"].map(id => [`mythMusic:${id}`, { id: `mythMusic:${id}` }]));
   const purchases = Array.from({ length: Math.max(0, count - 1) }, (_, index) => ({ id: `${namespace}:Slot_${index + 1}` }));
   const purchaseCounts = new Map(purchases.slice(0, bought).map(purchase => [purchase, 1]));
+  if (abyssal) {
+    const extras = Array.from({ length: 7 }, (_, index) => ({ id: `${namespace}:Abyssal_Slot_${index + 1}` }));
+    purchases.push(...extras);
+    for (const purchase of extras.slice(0, abyssalBought)) purchaseCounts.set(purchase, 1);
+  }
+  const currency = amount => ({ amount, canAfford(cost) { return this.amount >= cost; }, remove(cost) { this.amount -= cost; } });
   const music = {
     id: "mythMusic:Music",
     media: "music.svg",
     isUnlocked: true,
+    currentRealm: normalRealm,
     actions: { allObjects: instruments, getObjectByID: id => actions.get(id) },
-    isMasteryActionUnlocked: instrument => instrument.level <= music.level,
-    level: count,
+    isMasteryActionUnlocked: instrument => instrument.level <= music.level && (!instrument.abyssalLevel ||
+      abyssalRealm.isUnlocked && instrument.abyssalLevel <= music.abyssalLevel),
+    level: abyssal ? 120 : count,
+    abyssalLevel: 60,
     game: {
       shop: { getPurchaseCount: purchase => purchaseCounts.get(purchase) ?? 0 },
       items: { getObjectByID: id => items.get(id) },
+      realms: { getObjectByID: id => id === abyssalRealm.id ? abyssalRealm : normalRealm },
+      abyssalPieces: abyssal ? currency(1_000_000_000) : undefined,
       gp: {
         amount: gp,
         canAfford(cost) { return this.amount >= cost; },
@@ -56,7 +71,7 @@ function fixture({ count = 8, bought = 0, band = false, relic = false, gp = 1_00
     all() { return [...this.bards.values()]; },
     isHired(instrument) { return this.bards.has(actions.get(instrument.id)); },
   };
-  return { music, troupe: new Troupe(music, purchases), instruments, items, purchases, purchaseCounts };
+  return { music, troupe: new Troupe(music, purchases), instruments, items, purchases, purchaseCounts, normalRealm, abyssalRealm };
 }
 
 function addBard(music, instrument, slot, equipment = {}) {
@@ -303,4 +318,95 @@ test("failed native encoding restores the same live Map and every bard reference
   assert.equal(music.bards.bards, originalMap);
   assert.deepEqual(music.bards.all(), liveBards);
   assert.ok(music.bards.all().every((bard, index) => bard === liveBards[index]));
+});
+
+test("Abyssal shop slots have a separate AP purchase chain without increasing normal capacity", () => {
+  const f = fixture({ count: 16, abyssal: true });
+  const data = createShopData(f.music), purchases = data.data.shopPurchases;
+  const normal = purchases.filter(purchase => purchase.id.startsWith("Slot_"));
+  const abyssal = purchases.filter(purchase => purchase.id.startsWith("Abyssal_Slot_"));
+  assert.equal(normal.length, 15);
+  assert.equal(abyssal.length, 7);
+  assert.equal(normal.at(-1).id, "Slot_15", "existing normal purchase IDs retain their meaning");
+  for (const [index, purchase] of abyssal.entries()) {
+    assert.deepEqual(purchase.cost.currencies, [{ currency: "melvorItA:AbyssalPieces", type: "Fixed", cost: 1_000_000 }]);
+    assert(purchase.purchaseRequirements.some(requirement => requirement.type === "AbyssalLevel" && requirement.skillID === f.music.id && requirement.level === 1));
+    const preceding = purchase.purchaseRequirements.filter(requirement => requirement.type === "ShopPurchase");
+    assert.deepEqual(preceding, index ? [{ type: "ShopPurchase", purchaseID: `${namespace}:Abyssal_Slot_${index}`, count: 1 }] : []);
+  }
+  assert.deepEqual(f.troupe.slots(), [1]);
+  f.music.currentRealm = f.abyssalRealm;
+  assert.deepEqual(f.troupe.slots(), [1001]);
+});
+
+test("Abyssal hiring spends only AP and cannot overwrite normal bards or use their slots", () => {
+  const f = fixture({ count: 4, bought: 1, abyssal: true, abyssalBought: 1, gp: 0 });
+  const normalBard = addBard(f.music, f.instruments[0], 4, { isUpgraded: true });
+  const [first, second] = f.instruments.slice(4);
+  f.music.currentRealm = f.abyssalRealm;
+  assert.deepEqual(f.troupe.slots(), [1001, 1002]);
+  assert.equal(f.troupe.hireCurrency(first), f.music.game.abyssalPieces);
+  const funds = f.music.game.abyssalPieces.amount;
+  assert.equal(f.troupe.hire(first, 4), false);
+  assert.equal(f.troupe.hire(first, 1001), true);
+  assert.equal(f.music.game.abyssalPieces.amount, funds - 75_000);
+  assert.equal(f.music.game.gp.amount, 0);
+  assert.equal(f.music.bards.get(4), normalBard);
+  const after = f.music.game.abyssalPieces.amount;
+  assert.equal(f.troupe.hire(first, 1002), false, "duplicate instruments cannot occupy another slot");
+  assert.equal(f.troupe.hire(second, 1003), false, "unpurchased Abyssal slots remain unavailable");
+  assert.equal(f.troupe.hire(f.instruments[1], 1002), false, "normal instruments cannot enter Abyssal slots");
+  assert.equal(f.music.game.abyssalPieces.amount, after);
+  f.music.game.abyssalPieces.amount = 74_999;
+  assert.equal(f.troupe.hire(second, 1002), false);
+  f.music.game.abyssalPieces.amount = after;
+  f.music.abyssalLevel = 1;
+  assert.equal(f.troupe.hire(second, 1002), false, "ordinary Music level cannot bypass Abyssal unlocks");
+  f.music.currentRealm = f.normalRealm;
+  assert.deepEqual(f.troupe.slots(), [1, 4]);
+  assert.equal(f.music.bards.get(1001).instrument, first, "viewing Melvor retains the Abyssal roster");
+});
+
+test("Abyssal and normal rosters round-trip together while forged realm slots and native-save leakage are rejected", () => {
+  const f = fixture({ count: 4, bought: 1, abyssal: true, abyssalBought: 1 });
+  const native = addBard(f.music, f.instruments[0], 1);
+  const normal = addBard(f.music, f.instruments[1], 4, { isUpgraded: true });
+  const first = addBard(f.music, f.instruments[4], 1001, { isUpgraded: true, socket: f.items.values().next().value });
+  const second = addBard(f.music, f.instruments[5], 1002);
+  const saved = JSON.parse(JSON.stringify(f.troupe.save()));
+  assert.equal(saved.version, 1);
+  assert.deepEqual(saved.bards.map(bard => bard.slot), [4, 1001, 1002]);
+  f.troupe.restore({ ...saved, bards: [
+    { instrument: f.instruments[6].id, slot: 4 },
+    { instrument: f.instruments[2].id, slot: 1001 },
+    { instrument: f.instruments[6].id, slot: 1003 },
+    ...saved.bards,
+  ] });
+  assert.equal(f.music.bards.get(1), native);
+  assert.deepEqual(f.music.bards.get(4), normal);
+  assert.deepEqual(f.music.bards.get(1001), first);
+  assert.deepEqual(f.music.bards.get(1002), second);
+  assert.equal(f.music.bards.get(1003), undefined);
+  const live = f.music.bards.bards;
+  f.troupe.encodeNative(() => assert.deepEqual(f.music.bards.all(), [native]));
+  assert.equal(f.music.bards.bards, live);
+  assert.equal(f.music.bards.all().length, 4);
+  f.troupe.restore(undefined);
+  assert.deepEqual(f.music.bards.all(), [native]);
+});
+
+test("locked Abyssal content cannot grant slots or hires and five bought mastery tiers retain a finite hire cost", () => {
+  const f = fixture({ count: 4, abyssal: true, abyssalBought: 7 });
+  const instrument = f.instruments[4], purchase = f.purchases.find(purchase => purchase.id.includes(":Abyssal_Slot_"));
+  f.music.currentRealm = f.abyssalRealm;
+  assert.equal(f.troupe.slots().length, 8);
+  assert.equal(f.troupe.canBuySlot(purchase), false);
+  f.music.manager.unlocked = 5;
+  assert.equal(f.troupe.hireCost(instrument), 7_500_000);
+  f.abyssalRealm.isUnlocked = false;
+  const funds = f.music.game.abyssalPieces.amount;
+  assert.deepEqual(f.troupe.slots(), []);
+  assert.equal(f.troupe.canBuySlot(purchase), false);
+  assert.equal(f.troupe.hire(instrument, 1001), false);
+  assert.equal(f.music.game.abyssalPieces.amount, funds);
 });

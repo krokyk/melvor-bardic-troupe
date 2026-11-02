@@ -28,13 +28,21 @@ export function createConductorData(namespace) {
 }
 
 export async function installConductor(ctx, music, isReady, namespace) {
-  if (!cloudManager.hasTotHEntitlementAndIsEnabled) return;
-  await ctx.gameData.addPackage(createConductorData(namespace));
-  loadedLangJson.Myth_Music_Instrument_Cello = "The Conductor";
+  const normalEnabled = cloudManager.hasTotHEntitlementAndIsEnabled;
+  if (!normalEnabled && !music.game.registeredNamespaces?.hasNamespace("melvorItA")) return;
+  const data = createConductorData(namespace);
+  if (!normalEnabled) delete data.data.skillData;
+  await ctx.gameData.addPackage(data);
+  if (normalEnabled) loadedLangJson.Myth_Music_Instrument_Cello = "The Conductor";
   const instrument = music.actions.getObjectByID(`${namespace}:Cello`);
   const game = music.game;
   const player = game.combat.player;
-  const hasThirdPrayer = () => music.level >= instrument.level && music.bards.get(instrument)?.isUpgraded === true;
+  const hasThirdPrayer = prayers => {
+    if (instrument && music.level >= instrument.level && music.bards.get(instrument)?.isUpgraded === true) return true;
+    const abyssal = music.actions.getObjectByID(`${namespace}:Abyssal_Conductor`);
+    return abyssal && abyssal.realm.isUnlocked && music.abyssalLevel >= abyssal.abyssalLevel &&
+      music.bards.get(abyssal)?.isUpgraded === true && [...prayers].every(prayer => prayer.isAbyssal);
+  };
   const sameBook = (first, prayer) => first.isUnholy === prayer.isUnholy && first.isAbyssal === prayer.isAbyssal;
 
   // Music's completion getters count only its own namespace.
@@ -53,9 +61,9 @@ export async function installConductor(ctx, music, isReady, namespace) {
 
   function reconcilePrayers() {
     if (!isReady()) return;
-    const limit = hasThirdPrayer() ? 3 : 2;
     let changed = false;
     for (const set of player.equipmentSets) {
+      const limit = hasThirdPrayer(set.prayerSelection) ? 3 : 2;
       for (const prayer of [...set.prayerSelection].slice(limit)) {
         set.prayerSelection.delete(prayer);
         changed = true;
@@ -66,7 +74,7 @@ export async function installConductor(ctx, music, isReady, namespace) {
   ctx.patch(music.constructor, "computeProvidedStats").after(reconcilePrayers);
 
   ctx.patch(player.constructor, "togglePrayer").replace(function (original, prayer, render = true) {
-    if (this !== player || !hasThirdPrayer() || this.activePrayers.size < 2 || this.activePrayers.has(prayer)) {
+    if (this !== player || !hasThirdPrayer([...this.activePrayers, prayer]) || this.activePrayers.size < 2 || this.activePrayers.has(prayer)) {
       return original(prayer, render);
     }
     if (![...this.activePrayers].every(active => sameBook(active, prayer))) {
@@ -99,13 +107,13 @@ export async function installConductor(ctx, music, isReady, namespace) {
     savePrayers() { return player.equipmentSets.map(set => [...set.prayerSelection][2]?.id); },
     restorePrayers(saved) {
       reconcilePrayers();
-      if (!hasThirdPrayer() || !Array.isArray(saved)) return;
+      if (!Array.isArray(saved)) return;
       let changed = false;
       for (const [index, id] of saved.entries()) {
         if (typeof id !== "string") continue;
         const set = player.equipmentSets[index];
         const prayer = game.prayers.getObjectByID(id);
-        if (!set || !prayer || set.prayerSelection.size !== 2 || set.prayerSelection.has(prayer) ||
+        if (!set || !prayer || !hasThirdPrayer([...set.prayerSelection, prayer]) || set.prayerSelection.size !== 2 || set.prayerSelection.has(prayer) ||
             ![...set.prayerSelection].every(active => sameBook(active, prayer))) continue;
         if (index === player.selectedEquipmentSet && !player.canEnablePrayer(prayer)) continue;
         set.prayerSelection.add(prayer);

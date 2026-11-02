@@ -20,7 +20,7 @@ test("setup loads through Melvor's standalone module URLs", async () => {
   assert.equal(registered, true);
 });
 
-async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnabled = false } = {}) {
+async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnabled = false, abyssalEnabled = false } = {}) {
   const globals = ["game", "Shop", "ShopTabMenu", "ShopCostsAndUnlock", "shopMenu", "cloudManager", "loadedLangJson", "notifyPlayer", "getLangString", "StatObject"];
   const previous = new Map(globals.map(key => [key, globalThis[key]]));
   t.after(() => {
@@ -38,6 +38,7 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
     const modes = Object.fromEntries(["standard", "hardcore"].map(mode => [mode, [1, 40, 75, 99, 999].map(level => ({ level }))]));
     return { id: `mythMusic:Instrument_${index}`, level: 1, modifiers: mode => modes[mode] };
   });
+  const normalRealm = { id: "melvorD:Melvor", isUnlocked: true }, abyssalRealm = { id: "melvorItA:Abyssal", isUnlocked: true };
   const counts = new Map();
   const band = { id: "mythMusic:Band_Practice" };
   const unrelated = { id: "melvorD:Other" };
@@ -56,10 +57,12 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
       this.nativeBuys++;
       if (this.getPurchaseCount(purchase) >= (purchase.defaultBuyLimit ?? 1)) return;
       if (!purchase.purchaseRequirements?.every(req => req.type === "SkillLevel" ? req.skill.isUnlocked && req.skill.level >= req.level :
+        req.type === "AbyssalLevel" ? req.skill.isUnlocked && abyssalRealm.isUnlocked && req.skill.abyssalLevel >= req.level :
         req.type !== "ShopPurchase" || this.getPurchaseCount(registry.get(req.purchaseID)) >= req.count)) return;
       const price = purchase.costs?.currencies[0].cost ?? 0;
-      if (!game.gp.canAfford(price)) return;
-      game.gp.remove(price);
+      const currency = purchase.costs?.currencies[0].currency ?? game.gp;
+      if (!currency.canAfford(price)) return;
+      currency.remove(price);
       if (purchase.contains?.modifiers !== undefined) counts.set(purchase, this.getPurchaseCount(purchase) + 1);
       this.events.get("purchaseMade")?.({ purchase, quantity: 1 });
     }
@@ -143,13 +146,16 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
   globalThis.game = Object.assign(new Game(), {
     shop: new Shop(),
     gp: { amount: 10_000_000_000, canAfford(cost) { return this.amount >= cost; }, remove(cost) { this.amount -= cost; } },
+    abyssalPieces: { amount: 100_000_000, canAfford(cost) { return this.amount >= cost; }, remove(cost) { this.amount -= cost; } },
+    registeredNamespaces: { hasNamespace: id => abyssalEnabled && id === "melvorItA" },
+    realms: { getObjectByID: id => id === abyssalRealm.id ? abyssalRealm : normalRealm },
     items: { getObjectByID: () => undefined },
     getModifierValuesFromData: data => Object.entries(data).map(([id, value]) => ({ modifier: { id }, value })),
     combat: { player }, renderQueue: {},
     prayers: { getObjectByID: id => prayers.find(prayer => prayer.id === id) },
   });
   const music = Object.assign(new Music(), {
-    id: "mythMusic:Music", version: 4, level: 120, isUnlocked: true, game,
+    id: "mythMusic:Music", version: 4, level: 120, abyssalLevel: 60, currentRealm: normalRealm, isUnlocked: true, game,
     actions: { allObjects: instruments, getObjectByID: id => instruments.find(instrument => instrument.id === id) },
     manager: Object.assign(new Manager(), {
       isMasterAncientRelicUnlocked: false,
@@ -157,7 +163,8 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
       getHireCostModifier: () => 0,
     }),
     bards, userInterface: { instruments: new Map() }, renderQueue: {},
-    isMasteryActionUnlocked: instrument => instrument.level <= music.level,
+    isMasteryActionUnlocked: instrument => instrument.level <= music.level && (!instrument.abyssalLevel ||
+      abyssalRealm.isUnlocked && instrument.abyssalLevel <= music.abyssalLevel),
   });
   if (!missingMusic) game.music = music;
   const ctx = {
@@ -169,6 +176,18 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
       if (path === "bonuses.mjs") return bonuses;
       if (path === "music-realms.mjs") return { installMusicRealms(_ctx, skill) {
         assert.equal(skill, game.music); hooks.musicRealmsInstalled = true;
+      } };
+      if (path === "abyssal.mjs") return { async installAbyssalMusic(_ctx, skill, ns) {
+        assert.equal(skill, game.music); assert.equal(ns, core.namespace);
+        hooks.abyssalInstalled = true;
+        if (!abyssalEnabled) return;
+        const ids = ["Guitar", "Drum", "Banjo", "Maraca", "Violin", "French_Horn", "Harp", "Conductor"];
+        await ctx.gameData.addPackage({ namespace: ns, data: { skillData: [{ skillID: music.id, data: {
+          instruments: ids.map((id, index) => ({ id: `Abyssal_${id}`, level: 99, abyssalLevel: index + 1, realm: abyssalRealm,
+            standardModifiers: [1, 20, 40, 65, 99, 999].map(level => ({ level })),
+            hardcoreModifiers: [1, 20, 40, 65, 99, 999].map(level => ({ level })),
+          })),
+        } }] } });
       } };
       assert.equal(path, "ui.mjs");
       return { installControls(_ctx, _music, controller) { troupe = controller; } };
@@ -187,7 +206,7 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
       }
       for (const purchase of data.data?.shopPurchases ?? []) registry.set(`${core.namespace}:${purchase.id}`, {
         ...purchase, id: `${core.namespace}:${purchase.id}`,
-        costs: { currencies: purchase.cost.currencies.map(cost => ({ ...cost, currency: game.gp })) },
+        costs: { currencies: purchase.cost.currencies.map(cost => ({ ...cost, currency: cost.currency === "melvorItA:AbyssalPieces" ? game.abyssalPieces : game.gp })) },
         purchaseRequirements: purchase.purchaseRequirements.map(requirement => ({ ...requirement, skill: music })),
       });
     } },
@@ -226,7 +245,7 @@ async function fixture(t, { instrumentCount = 4, missingMusic = false, celloEnab
     },
   };
   await setup(ctx);
-  return { hooks, storage, sections, counts, instruments, band, unrelated, registry, music, player, prayers, troupe: () => troupe };
+  return { hooks, storage, sections, counts, instruments, band, unrelated, registry, music, player, prayers, normalRealm, abyssalRealm, troupe: () => troupe };
 }
 
 test("dependency is checked after all mods load, before touching shop data", async t => {
@@ -441,4 +460,47 @@ test("sixteenth Conductor hire, migrated final mastery, third prayer, and enhanc
   assert.equal(f.player.activePrayers.size, 2);
   assert.equal(f.music.bards.get(slot), undefined);
   assert.equal(f.music.manager.isModifierActive(cello, mastery99), false);
+});
+
+test("Abyssal slots keep independent AP prices and save alongside normal hires across QuickLoad", async t => {
+  const f = await fixture(t, { instrumentCount: 4, abyssalEnabled: true });
+  await f.hooks.mods();
+  assert.equal(f.hooks.abyssalInstalled, true);
+  assert.equal(f.instruments.length, 12, "Into the Abyss adds eight instruments without requiring Throne of the Herald");
+  f.hooks.character();
+  const normal = f.troupe().purchases.filter(purchase => purchase.id.includes(":Slot_"));
+  const abyssal = f.troupe().purchases.filter(purchase => purchase.id.includes(":Abyssal_Slot_"));
+  assert.equal(normal.length, 3);
+  assert.equal(abyssal.length, 7);
+  const settings = f.sections.get("Bardic Troupe");
+  settings.set("troupe-slot-price", 1234);
+  settings.set("troupe-slot-level", 99);
+  assert(normal.every(purchase => purchase.costs.currencies[0].cost === 1234));
+  assert(abyssal.every(purchase => purchase.costs.currencies[0].cost === 1_000_000));
+  assert(abyssal.every(purchase => purchase.purchaseRequirements[0].level === 1));
+  const initialGP = game.gp.amount, initialAP = game.abyssalPieces.amount;
+  game.shop.buyItemOnClick(abyssal[1]);
+  assert.equal(game.shop.getPurchaseCount(abyssal[1]), 0, "the independent Abyssal purchase chain is enforced");
+  game.shop.buyItemOnClick(normal[0]);
+  game.shop.buyItemOnClick(abyssal[0]);
+  assert.equal(game.gp.amount, initialGP - 1234);
+  assert.equal(game.abyssalPieces.amount, initialAP - 1_000_000);
+  assert(f.troupe().hire(f.instruments[0], 1));
+  assert(f.troupe().hire(f.instruments[1], 4));
+  assert(f.troupe().hire(f.instruments[4], 1001));
+  assert(f.troupe().hire(f.instruments[5], 1002));
+  f.music.bards.get(1002).isUpgraded = true;
+  const saved = game.encode();
+  assert.deepEqual(saved.bards.map(bard => bard.slot), [1]);
+  assert.deepEqual(saved.troupe.bards.map(bard => bard.slot), [4, 1001, 1002]);
+  f.music.currentRealm = f.abyssalRealm;
+  game.decode(saved);
+  assert.deepEqual(f.troupe().slots(), [1001, 1002]);
+  assert.equal(f.music.bards.get(1002).isUpgraded, true);
+  assert.equal(f.music.bards.get(4).instrument, f.instruments[1]);
+  game.decode({ counts: saved.counts, bards: saved.bards });
+  assert.equal(f.music.bards.get(1001), undefined);
+  assert.equal(f.music.bards.get(1002), undefined);
+  assert.equal(f.music.bards.get(4), undefined);
+  assert.equal(f.music.bards.get(1).instrument, f.instruments[0]);
 });
