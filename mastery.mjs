@@ -1,13 +1,13 @@
 export const masteryCosts = new Map([[20, 100_000], [40, 1_000_000], [65, 10_000_000], [99, 100_000_000]]);
 
 // Music stores Banjo as Drum, Snare Drum as Banjo, and Djembe as Bongo.
-// Each entry maps Music's original 40/75/99 rewards and optionally supplies an extra tier.
+// Each entry maps Music's original 40/75/99 rewards and supplies its extra tier.
 const layout = [
   ["Guitar", [65, 40, 99], { level: 20, modifiers: { ammoPreservationChance: 50 } }],
   ["Drum", [40, 65, 99], { level: 20, modifiers: { foodPreservationChance: 50 } }],
   ["Banjo", [20, 65, 99], { level: 40, modifiers: { runePreservationChance: 50 } }],
   ["Accordion", [20, 65, 99], { level: 40, modifiers: { consumablePreservationChance: 50 } }],
-  ["Bouzouki", [20, 99, 40]],
+  ["Bouzouki", [20, 99, 40], { level: 65, modifiers: { soulPointPreservationChance: 50 } }],
   ["Flute", [40, 20, 99], { level: 65, modifiers: { skillXP: [{ skillID: "melvorAoD:Archaeology", value: 15 }] } }],
   ["Maraca", [20, 40, 99], { level: 65, modifiers: { skillInterval: [{ skillID: "melvorD:Crafting", value: -10 }] } }],
   ["Xylophone", [20, 99, 40], { level: 65, modifiers: { masteryXP: [{ skillID: "melvorD:Agility", value: 15 }] } }],
@@ -34,13 +34,11 @@ export function installMasteryTiers(ctx, music, troupe, namespace) {
     for (const mode of ["standard", "hardcore"]) {
       const bonuses = instrument.modifiers(mode);
       for (const tier of bonuses) tier.level = remap.get(tier.level) ?? tier.level;
-      if (extra) {
-        const tier = new StatObject(extra, game, "Bardic Troupe mastery reward");
-        if (extra.modifiers) tier.modifiers = game.getModifierValuesFromData(extra.modifiers);
-        tier.level = extra.level;
-        bonuses.splice(bonuses.findIndex(bonus => bonus.level === 999), 0, tier);
-        extraTiers.add(tier);
-      }
+      const tier = new StatObject(extra, game, "Bardic Troupe mastery reward");
+      if (extra.modifiers) tier.modifiers = game.getModifierValuesFromData(extra.modifiers);
+      tier.level = extra.level;
+      bonuses.splice(bonuses.findIndex(bonus => bonus.level === 999), 0, tier);
+      extraTiers.add(tier);
     }
     instruments.add(instrument);
   }

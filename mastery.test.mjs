@@ -88,11 +88,11 @@ function fixture(t, { enabled = true, cap = 99, missing = [], native = [true, tr
   return { controller, music, game, instruments, swal, normalEssence, abyssalEssence, items, refreshes: () => refreshes };
 }
 
-test("mastery layouts retain native reward positions and values in both modes", t => {
+test("every bard has the agreed five tiers in both modes while native reward positions and values stay intact", t => {
   const f = fixture(t);
   const expected = {
     Guitar: [65, 40, 99, 20], Drum: [40, 65, 99, 20], Banjo: [20, 65, 99, 40],
-    Accordion: [20, 65, 99, 40], Bouzouki: [20, 99, 40], Flute: [40, 20, 99, 65],
+    Accordion: [20, 65, 99, 40], Bouzouki: [20, 99, 40, 65], Flute: [40, 20, 99, 65],
     Maraca: [20, 40, 99, 65], Xylophone: [20, 99, 40, 65], Saxophone: [40, 99, 20, 65],
     Violin: [20, 40, 99, 65], Bongo: [40, 20, 99, 65], French_Horn: [20, 65, 99, 40],
     Harp: [20, 99, 65, 40], Tambourine: [99, 40, 65, 20], Trumpet: [20, 40, 99, 65],
@@ -102,24 +102,25 @@ test("mastery layouts retain native reward positions and values in both modes", 
   for (const instrument of f.instruments) {
     for (const mode of ["standard", "hardcore"]) {
       const tiers = instrument.modifiers(mode);
-      assert.deepEqual(tiers.map(tier => tier.level), [1, ...expected[instrument.name], 999]);
+      const [first, second, third, extra] = expected[instrument.name];
+      assert.deepEqual(tiers.map(tier => tier.level), [1, first, second, third, extra, 999]);
       assert.equal(tiers.at(-1).level, 999);
       for (const [index, original] of [1, 40, 75, 99].entries()) {
         assert.deepEqual(tiers[index].modifiers, [{ modifier: { id: `native:${original}` }, value: mode === "standard" ? 7 : 3 }]);
       }
       assert.deepEqual(tiers.at(-1).modifiers, [{ modifier: { id: "native:999" }, value: mode === "standard" ? 7 : 3 }]);
       f.music.settings.modifierType = mode;
-      assert.deepEqual(f.music.manager.getModifiers(instrument).map(tier => tier.level), [1, ...expected[instrument.name], 999].sort((a, b) => a - b));
+      assert.deepEqual(f.music.manager.getModifiers(instrument).map(tier => tier.level), [1, 20, 40, 65, 99, 999]);
     }
   }
   assert.equal(f.instruments.filter(instrument => instrument.modifiers("standard").some(tier => tier.level === 99)).length, 16);
 });
 
-test("added Melvor rewards and Conductor intervals match the approved data", t => {
+test("the ten preservation rewards, five additions, and Conductor intervals match the approved data", t => {
   const f = fixture(t);
   const expected = {
     Guitar: { ammoPreservationChance: 50 }, Drum: { foodPreservationChance: 50 }, Banjo: { runePreservationChance: 50 },
-    Accordion: { consumablePreservationChance: 50 },
+    Accordion: { consumablePreservationChance: 50 }, Bouzouki: { soulPointPreservationChance: 50 },
     Flute: { skillXP: [{ skillID: "melvorAoD:Archaeology", value: 15 }] },
     Maraca: { skillInterval: [{ skillID: "melvorD:Crafting", value: -10 }] },
     Xylophone: { masteryXP: [{ skillID: "melvorD:Agility", value: 15 }] },
@@ -130,7 +131,6 @@ test("added Melvor rewards and Conductor intervals match the approved data", t =
     "The Conductor": { summoningAttackInterval: -25, attackInterval: -10 },
   };
   for (const instrument of f.instruments) {
-    if (instrument.name === "Bouzouki") continue;
     for (const mode of ["standard", "hardcore"]) {
       const extra = instrument.modifiers(mode)[4];
       assert.deepEqual(extra.data.modifiers, expected[instrument.name]);
@@ -140,27 +140,29 @@ test("added Melvor rewards and Conductor intervals match the approved data", t =
   }
 });
 
-test("Bouzouki has only native rewards and preserves paid native positions and dormant addon purchase data", t => {
-  const f = fixture(t, { native: [true, false, true, false], abyssal: true });
+test("Bouzouki retains the 2.3.2 four-tier layout and restores its purchased Mastery 65 reward", t => {
+  const f = fixture(t, { native: [true, false, true, false] });
   const bouzouki = f.instruments.find(instrument => instrument.id === "mythMusic:Bouzouki");
-  const violin = f.instruments.at(-1);
+  const funds = f.game.gp.amount, essence = f.game.bank.quantity;
+  f.music.masteryLevels.set(bouzouki, 99);
   f.controller.restore([bouzouki.id]);
   for (const mode of ["standard", "hardcore"]) {
     const tiers = bouzouki.modifiers(mode);
-    assert.deepEqual(tiers.map(tier => tier.level), [1, 20, 99, 40, 999]);
-    assert(tiers.every(tier => !tier.modifiers.some(value => value.modifier.id === "soulPointPreservationChance")));
     f.music.settings.modifierType = mode;
     assert.deepEqual(f.music.manager.getModifiers(bouzouki).filter(tier => tier.level < 999).map(tier => [tier.level, tier.isActive]), [
-      [1, true], [20, false], [40, false], [99, true],
+      [1, true], [20, false], [40, false], [65, true], [99, true],
     ]);
+    assert.deepEqual(tiers.find(tier => tier.level === 65).modifiers, [{ modifier: { id: "soulPointPreservationChance" }, value: 50 }]);
+    for (const [level, original] of [[20, 40], [40, 99], [99, 75]]) {
+      assert.deepEqual(tiers.find(tier => tier.level === level).modifiers, [{ modifier: { id: `native:${original}` }, value: mode === "standard" ? 7 : 3 }]);
+    }
+    assert.equal(f.controller.open(bouzouki, 65), undefined, "restored purchases cannot charge again");
   }
   assert.deepEqual(f.music.masteriesUnlocked.get(bouzouki), [true, false, true, false]);
   assert.equal(f.music.manager.calculateHireCost(bouzouki), 2);
   assert.deepEqual(f.controller.save(), [bouzouki.id]);
-  f.music.masteryLevels.set(bouzouki, 99);
-  assert.equal(f.controller.open(bouzouki, 65), undefined, "the removed reward cannot charge resources");
-  assert.equal(f.swal.options, undefined);
-  assert.deepEqual(f.music.masteriesUnlocked.get(violin), [true, false, false, false, false, false], "a Bouzouki purchase cannot grant Violin's cost reduction");
+  assert.equal(f.game.gp.amount, funds);
+  assert.equal(f.game.bank.quantity, essence);
 });
 
 test("purchases recheck mastery, unlocks, resources, and duplicate confirmations without changing native hiring tiers", t => {
