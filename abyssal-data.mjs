@@ -87,7 +87,7 @@ export function createAbyssalData(namespace) {
         { level: 40, modifiers: { flatAdditionalPrimaryProductQuantity: [{
           skillID: "melvorD:Runecrafting", realmID: realm, subcategoryID: "melvorF:Runes", value: 6,
         }] } },
-        { level: 65, modifiers: { soulPointCost: -20 } },
+        { level: 65, modifiers: { soulPointCost: -20, soulPointPreservationChance: 50 } },
         { level: 99, modifiers: { flatSoulPointsFromReleasing: 5 } },
         { level: 999, conditionalModifiers: [abyssalCombat(
           { flatSoulPointsWhenHit: 5, flatSoulPointsPerMonsterKill: 25 },

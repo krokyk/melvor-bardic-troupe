@@ -7,7 +7,7 @@ const distribution = [
   ["Banjo", 40, "skillPreservationChance"],
   ["Accordion", 1, "skillPreservationChance"],
   ["Bouzouki", 20, "skillItemDoublingChance"],
-  ["Bouzouki", 65, "skillPreservationChance"],
+  ["Bouzouki", 1, "skillPreservationChance"],
   ["Flute", 65, "skillPreservationChance"],
   ["Maraca", 20, "skillItemDoublingChance"],
   ["Maraca", 999, "skillPreservationChance"],

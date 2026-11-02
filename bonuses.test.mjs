@@ -5,7 +5,7 @@ import { installSkillBonuses } from "./bonuses.mjs";
 const names = ["Guitar", "Drum", "Banjo", "Accordion", "Bouzouki", "Flute", "Maraca", "Xylophone", "Saxophone", "Violin", "Bongo", "French_Horn", "Harp", "Tambourine", "Trumpet", "Cello"];
 const expected = [
   ["Guitar", 1, "D"], ["Drum", 1, "P"], ["Drum", 40, "D"], ["Banjo", 1, "D"], ["Banjo", 40, "P"],
-  ["Accordion", 1, "P"], ["Bouzouki", 20, "D"], ["Bouzouki", 65, "P"], ["Flute", 65, "P"],
+  ["Accordion", 1, "P"], ["Bouzouki", 1, "P"], ["Bouzouki", 20, "D"], ["Flute", 65, "P"],
   ["Maraca", 20, "D"], ["Maraca", 999, "P"], ["Xylophone", 20, "P"], ["Saxophone", 65, "D"],
   ["Violin", 20, "P"], ["Violin", 65, "D"], ["Bongo", 999, "D"], ["French_Horn", 40, "P"],
   ["Harp", 40, "D"], ["Tambourine", 999, "D"], ["Trumpet", 999, "P"],
@@ -16,7 +16,8 @@ async function fixture({ missing = [] } = {}) {
   let scopeRegistered = false;
   let refreshes = 0;
   const instruments = new Map(names.filter(name => !missing.includes(name)).map(name => {
-    const modes = Object.fromEntries(["standard", "hardcore"].map(mode => [mode, [1, 20, 40, 65, 999].map(level => ({
+    const levels = name === "Bouzouki" ? [1, 20, 40, 99, 999] : [1, 20, 40, 65, 999];
+    const modes = Object.fromEntries(["standard", "hardcore"].map(mode => [mode, levels.map(level => ({
       level,
       modifiers: name === "Trumpet" && level === 999 ? undefined : [{ modifier: { id: "native:bonus" }, value: mode === "standard" ? 10 : 2 }],
       describePlain() { return (this.modifiers ?? []).map(value => `${value.modifier.id}:${value.value}`).join(", "); },
@@ -82,7 +83,9 @@ test("both modes receive the exact agreed 20 separate five-point awards across 1
     assert.equal(new Set(actual.map(([instrument, tier]) => `${instrument}:${tier}`)).size, 20, "no tier receives both additions");
     assert.equal(actual.filter(value => value[2] === "D").reduce((sum, value) => sum + value[3], 0), 50);
     assert.equal(actual.filter(value => value[2] === "P").reduce((sum, value) => sum + value[3], 0), 50);
-    for (const tier of [1, 20, 40, 65, 999]) assert.equal(actual.filter(value => value[1] === tier).length, 4);
+    const bouzouki = f.instruments.get("mythMusic:Bouzouki").modifiers(mode);
+    assert(!bouzouki.some(tier => tier.level === 65));
+    assert.deepEqual(actual.filter(([instrument]) => instrument === "Bouzouki"), [["Bouzouki", 1, "P", 5], ["Bouzouki", 20, "D", 5]]);
     assert(!actual.some(([instrument]) => instrument === "Cello"));
   }
 });

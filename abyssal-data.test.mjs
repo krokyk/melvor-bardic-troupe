@@ -29,6 +29,7 @@ const nativeScopes = new Map([
   ["additionalRandomAbyssalGemChance", ["skill", "skill,subcategory", "action,skill", "category,skill", "realm,skill"]],
   ["additionalRandomFragmentChance", ["skill", "skill,subcategory", "action,skill", "category,skill", "realm,skill"]],
   ["soulPointCost", [""]],
+  ["soulPointPreservationChance", [""]],
   ["flatSoulPointsFromReleasing", [""]],
   ["flatSoulPointsWhenHit", [""]],
   ["flatSoulPointsPerMonsterKill", [""]],
@@ -140,6 +141,18 @@ test("the Conductor supplies Abyssal resistance, gated major combat stats, Corru
   assert.equal(tiers[5].modifiers[`${namespace}:thirdPrayer`], 1);
   assert(tiers[5].modifiers.flatAbyssalSlayerAreaEffectNegation > 0);
   assert.deepEqual(tiers[5].enemyModifiers.flatResistance, [{ damageTypeID: realm, value: -10 }]);
+});
+
+test("Abyssal Violin grants Soul Point preservation once at Mastery 65 alongside its existing cost reduction", () => {
+  const instruments = packageData().instruments;
+  const violin = instruments.find(instrument => instrument.id === "Abyssal_Violin");
+  for (const mode of ["standardModifiers", "hardcoreModifiers"]) {
+    const awards = instruments.flatMap(instrument => instrument[mode]
+      .filter(tier => tier.modifiers?.soulPointPreservationChance !== undefined)
+      .map(tier => ({ instrument: instrument.id, level: tier.level, value: tier.modifiers.soulPointPreservationChance })));
+    assert.deepEqual(awards, [{ instrument: violin.id, level: 65, value: 50 }]);
+    assert.equal(violin[mode].find(tier => tier.level === 65).modifiers.soulPointCost, -20);
+  }
 });
 
 test("Abyssal and Eternal weapons receive one combat package while Normal weapons receive none", () => {

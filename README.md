@@ -38,7 +38,7 @@ Abyssal slots require the unlocked Abyssal realm and are independent of Melvor s
 Abyssal hiring uses Music's normal hiring prices and discounts, paid in AP.
 Abyssal Mastery 20, 40, 65, and 99 purchases cost **100K, 1M, 10M, and 100M AP**, respectively, plus **1 Abyssal Essence of Music each**.
 Abyssal instrument upgrades, sockets, and utilities use their own Abyssal materials from the **Abyssal Music Equipment** shop category.
-Every instrument has its own mastery progress and the shared tiers **1, 20, 40, 65, and 99**.
+Every instrument has its own mastery progress, with reward tiers drawn from **1, 20, 40, 65, and 99**.
 The Abyssal instruments require Into the Abyss, including Abyssal Conductor; Throne of the Herald is not required.
 
 | Instrument | Abyssal Music level | Main hired-bard bonuses |
@@ -47,7 +47,7 @@ The Abyssal instruments require Into the Abyss, including Abyssal Conductor; Thr
 | Abyssal Banjo | 8 | Fishing/Cooking AXP, speed, mastery, and output; extra Fishing special items; stronger food healing with Abyssal damage. |
 | Abyssal Snare Drum | 16 | Mining, Smithing, and Harvesting AXP/speed; Harvesting intensity and unique products; Abyssal gems; extra resources; no Harvesting intensity decay when upgraded. |
 | Abyssal Maracas | 24 | Fletching/Crafting AXP, speed, lower recipe costs, and extra output; additional random Abyssal gems/fragments. |
-| Abyssal Violin | 32 | Runecrafting/Prayer AXP; faster Runecrafting and additional Abyssal runes; lower Soul Point costs; more Soul Points from souls, hits, and kills. |
+| Abyssal Violin | 32 | Runecrafting/Prayer AXP; faster Runecrafting and additional Abyssal runes; lower Soul Point costs and +50% Soul Point preservation at Mastery 65; more Soul Points from souls, hits, and kills. |
 | Abyssal French Horn | 40 | Astrology, Summoning, and Agility AXP/speed; Starfalls and Abyssal Stardust; additional tablets; Agility mastery and cheaper Abyssal obstacles. |
 | Abyssal Harp | 48 | Thieving, Herblore, and Township AXP; Abyssal stealth/unique drops; potion output; AP income; Township wave AP/ASC rewards. |
 | Abyssal Conductor | 60 | Major Abyssal combat bonuses, Abyssal Resistance, Corruption, Slayer support, and a third Abyssal prayer when upgraded. |
@@ -59,6 +59,7 @@ The eight icons retain their original instrument shapes with a consistent crimso
 ### Abyssal instrument enhancements
 
 Every exchange uses AP and resources from Into the Abyss.
+Open **Shop → Abyssal Music Equipment** after completing **Into the Abyss** and reaching **Abyssal Music level 1** to obtain each enhancement item.
 Applying an enhancement consumes one item from the bank.
 Each bard has one socket and one utility; applying a different item replaces the current attachment.
 
@@ -136,7 +137,7 @@ Every award below adds **5 percentage points** to one bonus at the listed tier; 
 | Banjo | Mastery 40 | Base |
 | Snare Drum | Base | Mastery 40 |
 | Accordion | — | Base |
-| Bouzouki | Mastery 20 | Mastery 65 |
+| Bouzouki | Mastery 20 | Base |
 | Flute | — | Mastery 65 |
 | Maraca | Mastery 20 | Instrument upgrade |
 | Xylophone | — | Mastery 20 |
@@ -149,7 +150,8 @@ Every award below adds **5 percentage points** to one bonus at the listed tier; 
 | Trumpet | — | Instrument upgrade |
 
 The ten awards per bonus total **+50 percentage points each** when all relevant bards are hired and their listed tiers are active.
-The base, Mastery 20, Mastery 40, Mastery 65, and instrument upgrade tiers each contain two doubling awards and two preservation awards across the troupe.
+Doubling awards are distributed equally across base, Mastery 20, Mastery 40, Mastery 65, and instrument upgrade tiers.
+Preservation has three base awards, two each at Mastery 20, Mastery 40, and instrument upgrade, and one at Mastery 65.
 Normal instrument levels, mastery purchases, upgrade costs, expansion requirements, and game caps still apply; unavailable expansion shares are not reassigned.
 The additions have the same strength under Music's Standard and Hardcore modifier settings.
 Changing the toggle immediately refreshes active bonuses and descriptions.
@@ -199,7 +201,8 @@ Bonuses apply while the corresponding bard is hired.
 These rewards are independent of the optional extra skill preservation and doubling toggle.
 
 The added preservation rewards occupy their own lower mastery tiers.
-Every bard has rewards at Mastery 1, 20, 40, 65, and 99.
+Bouzouki retains Music's original rewards at Mastery 1, 20, 40, and 99, with no added Mastery 65 reward.
+Other bards have rewards at Mastery 1, 20, 40, 65, and 99.
 Existing base bonuses and instrument upgrades are retained.
 The table lists Standard bonus values; native Hardcore values remain unchanged, and added rewards have equal strength in both modes.
 
@@ -209,7 +212,7 @@ The table lists Standard bonus values; native Hardcore values remain unchanged, 
 | Banjo | +50% Food Preservation | -10% Cooking Interval | -30% Passive Cook Interval | +10% chance for an extra Fishing special item |
 | Snare Drum | -0.2s Smithing Interval | +50% Rune Preservation | -3 Coal Ore cost | x4 Mining ore |
 | Accordion | +15% Auto Eat Efficiency | +50% Consumable Charge Preservation | Enemy -10% Damage Reduction | +5% Auto Eat Threshold |
-| Bouzouki | +10% Global GP | +10% rare-item chances | +50% Soul Point Preservation | +10% Global Item Doubling |
+| Bouzouki | +10% Global GP | +10% rare-item chances | — | +10% Global Item Doubling |
 | Flute | -10% map-refinement cost | -10% survey interval | +15% Archaeology Skill XP | +2 Archaeology resources |
 | Maraca | +5% Fletching Skill XP | x4 Fletching resources | -10% Crafting Interval | x4 Crafting resources |
 | Xylophone | +15% Agility GP | -10% Agility Pillar cost | +15% Agility Mastery XP | -15% Agility Interval |
@@ -222,12 +225,12 @@ The table lists Standard bonus values; native Hardcore values remain unchanged, 
 | Trumpet | +5% of maximum hit added to minimum hit | +10% Maximum Hit | +5% Critical Hit Chance | -0.5s Attack Interval |
 
 The Conductor retains its separate combat layout, including +200 Maximum Hitpoints at Mastery 1 and both attack interval reductions at Mastery 99.
-No mastery slots are unassigned.
+Only Bouzouki has no Mastery 65 reward.
 Generic skill resource preservation is covered by the optional +50-point distribution.
 Snare Drum's rune preservation also applies to Alt. Magic, so Flute has no additional rune-preservation reward.
 Bypass modifiers and per-point Prayer modifiers affect existing preservation types rather than separate resources.
 Archaeology's Very Rare or Legendary map-preservation perk is a conditional effect rather than a general percentage chance.
-Soul Points require Into the Abyss content; the reward remains assigned to Bouzouki when that content is unavailable.
+Soul Point preservation belongs to Abyssal Violin's Mastery 65 reward and requires Into the Abyss.
 
 ## Mod Settings
 
