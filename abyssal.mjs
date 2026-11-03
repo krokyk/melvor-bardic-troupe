@@ -16,6 +16,20 @@ export async function installAbyssalMusic(ctx, music, namespace) {
     loadedLangJson[`Myth_Music_Instrument_${definition.id}`] = definition.name;
     return music.actions.getObjectByID(`${namespace}:${definition.id}`);
   });
+  const realm = abyssal.id;
+  const skillID = music.id;
+  // The hire discount resolves instrument IDs, so register checkpoints after the instruments.
+  await ctx.gameData.addPackage({
+    namespace,
+    data: { skillData: [{ skillID, data: { masteryPoolBonuses: [
+      { realm, percent: 10, modifiers: { abyssalSkillXP: [{ skillID, value: 3 }] } },
+      { realm, percent: 25, modifiers: { masteryXP: [{ skillID, realmID: realm, value: 3 }] } },
+      { realm, percent: 50, modifiers: { flatSkillInterval: [{ skillID, realmID: realm, value: -250 }] } },
+      { realm, percent: 95, modifiers: {
+        "mythMusic:musicHireCost": instruments.map(instrument => ({ skillID, actionID: instrument.id, value: -5 })),
+      } },
+    ] } }] },
+  });
   const isAbyssal = instrument => instrument?.realm === abyssal;
 
   ctx.patch(music.constructor, "isMasteryActionUnlocked").replace(function (original, instrument) {

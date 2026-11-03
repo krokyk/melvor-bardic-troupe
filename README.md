@@ -33,6 +33,13 @@ Abyssal tips use AP modifiers; GP bonuses apply to Melvor tips.
 Concert Pass awards Abyssal XP to the associated skills when training an Abyssal instrument.
 Native skill data saves Music's selected realm, Abyssal XP, instrument mastery, and mastery purchases.
 
+| Abyssal mastery pool | Checkpoint bonus |
+| --- | --- |
+| 10% | +3% Abyssal Music Skill XP |
+| 25% | +3% Abyssal Music Mastery XP |
+| 50% | −0.25s Abyssal Music interval |
+| 95% | −5% Abyssal bard hire cost |
+
 Abyssal Music has one initial hired-bard slot and seven sequential **Abyssal Bardic Troupe** purchases at **1,000,000 AP each**.
 Abyssal slots require the unlocked Abyssal realm and are independent of Melvor slot purchases and their settings.
 Abyssal hiring uses Music's normal hiring prices and discounts, paid in AP.

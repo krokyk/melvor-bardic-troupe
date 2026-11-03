@@ -94,9 +94,9 @@ async function fixture(t, { enabled = true, unlocked = true, capped = false, alr
   const ctx = { async loadModule(path) { assert.equal(path, "abyssal-data.mjs"); return { createAbyssalData }; }, onInterfaceReady(callback) { hooks.push(callback); }, gameData: { async addPackage(data) {
     packages.push(data);
     for (const definition of data.data.skillData) {
-      music.hasAbyssalLevels = definition.data.hasAbyssalLevels;
-      music.abyssalLevelRealm = abyssal;
-      for (const item of definition.data.instruments) {
+      if (definition.data.hasAbyssalLevels !== undefined) music.hasAbyssalLevels = definition.data.hasAbyssalLevels;
+      if (definition.data.abyssalLevelRealm !== undefined) music.abyssalLevelRealm = abyssal;
+      for (const item of definition.data.instruments ?? []) {
         const instrument = { ...item, id: `KrokyBardicTroupe:${item.id}`, localID: item.id, realm: abyssal };
         instruments.push(instrument); addComponent(instrument);
       }
@@ -135,6 +135,21 @@ test("Abyssal Music registers native AXP levels and translations only with Into 
   f.music.postDataRegistration();
   assert.deepEqual(f.music.milestones, [f.instruments[0]]);
   assert.deepEqual(f.music.abyssalMilestones, f.controller.instruments);
+});
+
+test("Abyssal checkpoints mirror Melvor rewards and scope hiring discounts to registered Abyssal instruments", async t => {
+  const f = await fixture(t);
+  const [{ skillID, data }] = f.packages[1].data.skillData;
+  const realm = f.abyssal.id;
+  assert.equal(skillID, f.music.id);
+  assert.deepEqual(data.masteryPoolBonuses, [
+    { realm, percent: 10, modifiers: { abyssalSkillXP: [{ skillID, value: 3 }] } },
+    { realm, percent: 25, modifiers: { masteryXP: [{ skillID, realmID: realm, value: 3 }] } },
+    { realm, percent: 50, modifiers: { flatSkillInterval: [{ skillID, realmID: realm, value: -250 }] } },
+    { realm, percent: 95, modifiers: {
+      "mythMusic:musicHireCost": f.controller.instruments.map(({ id }) => ({ skillID, actionID: id, value: -5 })),
+    } },
+  ]);
 });
 
 test("unlocks and hired bonuses require the realm and actual Abyssal Music level", async t => {

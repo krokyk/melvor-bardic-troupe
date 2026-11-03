@@ -37,6 +37,7 @@ Abyssal Guitar, Banjo, Snare Drum, Maracas, Violin, French Horn, Harp, and Condu
 Their bonuses support Abyssal XP, nests, gems, Harvesting, Soul Points, Starfalls, AP, Township waves, Corruption, Slayer, and Abyssal Resistance.
 The Abyssal roster starts with one slot and supports seven additional slots at 1,000,000 AP each.
 Abyssal mastery purchases and instrument upgrades consume Abyssal Essence of Music.
+The Abyssal Music mastery pool grants +3% Abyssal Music Skill XP at 10%, +3% Abyssal Music Mastery XP at 25%, −0.25s Abyssal Music interval at 50%, and −5% Abyssal bard hire cost at 95%.
 The **Abyssal Music Equipment** shop exchanges AP and Abyssal resources for the essence, polished Nightopal/Shadowpearl/Moonstone sockets, Abyssal String, Pristine Abyssal Leather, and Abyssal Oil.
 These enhancements support Abyssal Music AP, AXP, mastery, interval, and additional reward rolls, with matching crimson-and-ember icons.
 
@@ -72,6 +73,7 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 ### 2.4.0
 
 - Add eight Abyssal instruments with crimson-and-ember icons, native Abyssal Music levels, AP training rewards, and Abyssal Concert Pass XP.
+- Mirror Melvor Music's four mastery pool checkpoints for Abyssal training and bard hires.
 - Add a separate eight-slot Abyssal troupe, AP hiring and mastery purchases, and saved hires and enhancements.
 - Add seven Abyssal enhancement items from AP and Abyssal resources, with their own sockets and utilities and retained saved enhancement progress.
 - Give every Abyssal skill support through the instrument bonuses, including Harvesting, Corruption, Soul Points, AP/ASC, and Township waves.
