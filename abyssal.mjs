@@ -30,6 +30,20 @@ export async function installAbyssalMusic(ctx, music, namespace) {
       } },
     ] } }] },
   });
+  if (typeof MasteryPoolBonusElement === "function") {
+    ctx.patch(MasteryPoolBonusElement, "setBonus").replace(function (original, bonus, skill) {
+      if (skill !== music || bonus.realm !== abyssal || bonus.percent !== 95) return original(bonus, skill);
+      let shownHireDiscount = false;
+      // The renderer repeats the same description for each instrument's discount.
+      const modifiers = bonus.modifiers.filter(({ modifier, value }) => {
+        if (modifier.id !== "mythMusic:musicHireCost" || value !== -5) return true;
+        if (shownHireDiscount) return false;
+        shownHireDiscount = true;
+        return true;
+      });
+      return original({ ...bonus, modifiers }, skill);
+    });
+  }
   const isAbyssal = instrument => instrument?.realm === abyssal;
 
   ctx.patch(music.constructor, "isMasteryActionUnlocked").replace(function (original, instrument) {

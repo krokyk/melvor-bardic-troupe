@@ -4,10 +4,13 @@ import { installAbyssalMusic } from "./abyssal.mjs";
 import { createAbyssalData } from "./abyssal-data.mjs";
 
 async function fixture(t, { enabled = true, unlocked = true, capped = false, alreadyAdded = false } = {}) {
-  const globals = ["loadedLangJson", "abyssalExp", "document", "showElement", "hideElement"];
+  const globals = ["loadedLangJson", "abyssalExp", "document", "showElement", "hideElement", "MasteryPoolBonusElement"];
   const previous = new Map(globals.map(key => [key, globalThis[key]]));
   t.after(() => { for (const [key, value] of previous) { if (value === undefined) delete globalThis[key]; else globalThis[key] = value; } });
   globalThis.loadedLangJson = {};
+  globalThis.MasteryPoolBonusElement = class {
+    setBonus(bonus) { this.modifiers = bonus.modifiers; }
+  };
   globalThis.abyssalExp = { levelToXP: level => level ** 3 * 1000 };
   globalThis.showElement = node => { node.hidden = false; };
   globalThis.hideElement = node => { node.hidden = true; };
@@ -150,6 +153,20 @@ test("Abyssal checkpoints mirror Melvor rewards and scope hiring discounts to re
       "mythMusic:musicHireCost": f.controller.instruments.map(({ id }) => ({ skillID, actionID: id, value: -5 })),
     } },
   ]);
+});
+
+test("the Abyssal hire checkpoint renders once and retains every instrument discount", async t => {
+  const f = await fixture(t);
+  const modifiers = f.controller.instruments.map(action => ({ action, modifier: { id: "mythMusic:musicHireCost" }, value: -5 }));
+  const extra = { modifier: { id: "melvorD:masteryXP" }, value: 3 };
+  modifiers.push(extra);
+  const bonus = { realm: f.abyssal, percent: 95, modifiers };
+  const row = new MasteryPoolBonusElement();
+  row.setBonus(bonus, f.music);
+  assert.deepEqual(row.modifiers, [modifiers[0], extra]);
+  assert.equal(bonus.modifiers.length, 9);
+  row.setBonus({ ...bonus, realm: f.normal }, f.music);
+  assert.equal(row.modifiers, modifiers);
 });
 
 test("unlocks and hired bonuses require the realm and actual Abyssal Music level", async t => {
