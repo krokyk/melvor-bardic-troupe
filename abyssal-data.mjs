@@ -5,7 +5,8 @@ const scoped = (names, value) => names.map(name => ({ skillID: skillID(name), re
 const experience = names => names.map(name => ({ skillID: skillID(name), value: 10 }));
 const abyssalCombat = (modifiers, description) => ({
   condition: { type: "Some", conditions: damageTypes.map(damageType => ({ type: "DamageType", character: "Player", damageType })) },
-  modifiers, description,
+  modifiers,
+  description: `<span class="bardic-troupe-abyssal-damage" title="Requires Abyssal or Eternal damage">${description}<sup aria-hidden="true">*</sup></span>`,
 });
 
 export function createAbyssalData(namespace) {
@@ -39,10 +40,17 @@ export function createAbyssalData(namespace) {
         { level: 20, modifiers: { skillInterval: scoped(["Fishing", "Cooking"], -10) } },
         { level: 40, modifiers: { flatAdditionalPrimaryProductQuantity: scoped(["Fishing", "Cooking"], 1) } },
         { level: 65, modifiers: { masteryXP: scoped(["Fishing", "Cooking"], 15) } },
-        { level: 99, modifiers: { fishingAdditionalSpecialItemChance: [{ realmID: realm, value: 20 }] } },
+        { level: 99, modifiers: {
+          fishingAdditionalSpecialItemChance: [{ realmID: realm, value: 20 }],
+          skillInterval: scoped(["Cooking"], -50),
+        } },
         { level: 999, modifiers: {
           foodHealingValue: damageTypes.map(damageTypeID => ({ damageTypeID, value: 20 })),
           basePrimaryProductQuantity: scoped(["Cooking"], 20),
+          effectIgnoreChance: [
+            { effectGroupID: "melvorD:LacerationDOT", value: 20 },
+            { effectGroupID: "melvorItA:Blight", value: 15 },
+          ],
         } },
       ],
     },
@@ -88,10 +96,10 @@ export function createAbyssalData(namespace) {
           skillID: "melvorD:Runecrafting", realmID: realm, subcategoryID: "melvorF:Runes", value: 6,
         }] } },
         { level: 65, modifiers: { soulPointCost: -20, soulPointPreservationChance: 50 } },
-        { level: 99, modifiers: { flatSoulPointsFromReleasing: 5 } },
+        { level: 99, modifiers: { flatSoulPointsFromReleasing: 5, permanentCorruptionCost: -15 } },
         { level: 999, conditionalModifiers: [abyssalCombat(
           { flatSoulPointsWhenHit: 5, flatSoulPointsPerMonsterKill: 25 },
-          "When using ${condDamageType0} or ${condDamageType1}: +${modValue0} Soul Points when hit and +${modValue1} Soul Points per Monster kill.",
+          "+${modValue0} Soul Points when hit and +${modValue1} Soul Points per Monster kill.",
         )] },
       ],
     },
@@ -143,17 +151,23 @@ export function createAbyssalData(namespace) {
         } },
         { level: 20, conditionalModifiers: [abyssalCombat(
           { critChance: 10, critMultiplier: 50, lifesteal: 5 },
-          "When using ${condDamageType0} or ${condDamageType1}: +${modValue0}% critical hit chance, +${modValue1}% critical hit multiplier, and +${modValue2}% lifesteal.",
+          "+${modValue0}% critical hit chance, +${modValue1}% critical hit multiplier, and +${modValue2}% lifesteal.",
         )] },
         { level: 40, modifiers: { flatResistance: [{ damageTypeID: realm, value: 10 }] },
-          conditionalModifiers: [abyssalCombat({ evasion: 50 }, "When using ${condDamageType0} or ${condDamageType1}: +${modValue0}% Global Evasion.")] },
+          conditionalModifiers: [abyssalCombat({
+            evasion: 50,
+            effectIgnoreChance: [
+              { effectGroupID: "melvorD:Fear", value: 15 },
+              { effectGroupID: "melvorItA:Silence", value: 15 },
+            ],
+          }, "+${modValue0}% Global Evasion, ${modValue1}% chance to ignore Fear, and ${modValue2}% chance to ignore Silence.")] },
         { level: 65, conditionalModifiers: [abyssalCombat(
           { accuracyRating: 50, maxHit: 50, minHitBasedOnMaxHit: 10 },
-          "When using ${condDamageType0} or ${condDamageType1}: +${modValue0}% Accuracy Rating, +${modValue1}% Maximum Hit, and +${modValue2}% of Maximum Hit added to Minimum Hit.",
+          "+${modValue0}% Accuracy Rating, +${modValue1}% Maximum Hit, and +${modValue2}% of Maximum Hit added to Minimum Hit.",
         )] },
         { level: 99, conditionalModifiers: [abyssalCombat(
           { attackInterval: -10, summoningAttackInterval: -25, corruptionCounterRate: 25, bonusCorruptionChance: 10 },
-          "When using ${condDamageType0} or ${condDamageType1}: -${modValue0}% Attack Interval, -${modValue1}% Summoning Familiar Attack Interval, +${modValue2}% Corruption progress per hit, and +${modValue3}% chance for a second Corruption effect.",
+          "-${modValue0}% Attack Interval, -${modValue1}% Summoning Familiar Attack Interval, +${modValue2}% Corruption progress per hit, and +${modValue3}% chance for a second Corruption effect.",
         )] },
         { level: 999, modifiers: {
           [`${namespace}:thirdPrayer`]: 1, flatAbyssalSlayerAreaEffectNegation: 25,

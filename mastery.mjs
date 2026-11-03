@@ -70,9 +70,11 @@ export function installMasteryTiers(ctx, music, troupe, namespace) {
     const currency = abyssal ? game.abyssalPieces : game.gp;
     const code = currency === game.gp ? "GP" : "AP";
     const canAfford = () => !!essence && currency?.canAfford(cost) && game.bank.getQty(essence) >= 1;
+    const description = bonus().description;
+    const damageNote = description.includes("bardic-troupe-abyssal-damage") ? "<p>* Requires Abyssal or Eternal damage.</p>" : "";
     return SwalLocale.fire({
       titleText: `${instrument.name}: Mastery ${level}`,
-      html: `<p>${bonus().description}</p><p>${cost.toLocaleString("en-US")} ${code} + 1 ${essenceName}</p>`,
+      html: `<p>${description}</p>${damageNote}<p>${cost.toLocaleString("en-US")} ${code} + 1 ${essenceName}</p>`,
       showCancelButton: true, cancelButtonText: "Back", confirmButtonText: "Unlock",
       showConfirmButton: canAfford(),
       preConfirm() {

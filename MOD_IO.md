@@ -35,6 +35,9 @@ Melvor instruments award normal Music XP and GP; Abyssal instruments award Abyss
 Each realm has its own instruments and hired roster, with eligible bonuses from both rosters active together.
 Abyssal Guitar, Banjo, Snare Drum, Maracas, Violin, French Horn, Harp, and Conductor use a consistent crimson-and-ember icon theme.
 Their bonuses support Abyssal XP, nests, gems, Harvesting, Soul Points, Starfalls, AP, Township waves, Corruption, Slayer, and Abyssal Resistance.
+Abyssal Banjo Mastery 99 adds −50% Abyssal Cooking interval, and its instrument upgrade adds chances to ignore Laceration and Blight.
+Abyssal Conductor Mastery 40 adds a chance to ignore Fear and Silence with Abyssal or Eternal damage.
+Abyssal Violin Mastery 99 reduces the Soul Point cost of automatically corrupting monsters by 15%.
 The Abyssal roster starts with one slot and supports seven additional slots at 1,000,000 AP each.
 Abyssal mastery purchases and instrument upgrades consume Abyssal Essence of Music.
 The Abyssal Music mastery pool grants +3% Abyssal Music Skill XP at 10%, +3% Abyssal Music Mastery XP at 25%, −0.25s Abyssal Music interval at 50%, and −5% Abyssal bard hire cost at 95%.
@@ -80,6 +83,8 @@ Use a 16:9 image of at least 512 × 288 pixels and no more than 8 MB.
 - Grant Bouzouki +10% Melvor-realm Mastery XP at Mastery 65 while retaining its four mastery tiers.
 - Use Music's original equipment template for both realms' Upgrade, Socket, Utility, and Manage menus.
 - Add Abyssal Conductor with major Abyssal combat bonuses, enemy Abyssal Resistance reduction, Slayer support, and a third Abyssal prayer when upgraded.
+- Add Abyssal Cooking speed, chances to ignore four Abyssal combat effects, and an automatic Corruption cost discount to the existing bard rewards.
+- Consolidate the Abyssal or Eternal damage requirement in bard bonus descriptions.
 - Keep Melvor training and hired rosters independent of the selected realm's display.
 
 ### 2.3.2

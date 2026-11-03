@@ -10,6 +10,8 @@ const packageData = () => createAbyssalData(namespace).data.skillData[0].data;
 const nativeScopes = new Map([
   ["abyssalSkillXP", ["", "skill"]],
   ["skillInterval", ["", "skill", "action,skill", "realm,skill", "realm"]],
+  ["effectIgnoreChance", ["effectGroup"]],
+  ["permanentCorruptionCost", [""]],
   ["randomProductChance", ["item,skill", "action,item,skill"]],
   ["flatAdditionalPrimaryProductQuantity", ["", "skill", "action,skill", "realm", "realm,skill", "category,skill", "realm,skill,subcategory", "skill,subcategory"]],
   ["flatBaseRandomProductQuantity", ["item,skill"]],
@@ -117,7 +119,8 @@ test("Abyssal rewards use native modifier scopes and Abyssal resource IDs withou
         });
         checkModifiers(conditional.modifiers);
         checkModifiers(conditional.enemyModifiers);
-        assert(conditional.description.includes("${condDamageType0} or ${condDamageType1}"), "Conditional bonuses need both visible damage types");
+        assert.match(conditional.description, /title="Requires Abyssal or Eternal damage"/);
+        assert.doesNotMatch(conditional.description, /When using/);
         const values = Object.values(conditional.modifiers).flat();
         const described = [...conditional.description.matchAll(/\$\{modValue(\d+)\}/g)].map(match => Number(match[1]));
         assert.deepEqual(described, values.map((_, index) => index), "Every conditional bonus needs a native description value");
@@ -134,6 +137,10 @@ test("the Conductor supplies Abyssal resistance, gated major combat stats, Corru
   const conductor = packageData().instruments.at(-1), tiers = conductor.standardModifiers;
   assert.deepEqual(tiers[0].modifiers.maxHitpoints, damageTypes.map(damageTypeID => ({ damageTypeID, value: 10 })));
   assert.deepEqual(tiers[2].modifiers.flatResistance, [{ damageTypeID: realm, value: 10 }]);
+  assert.deepEqual(tiers[2].conditionalModifiers[0].modifiers.effectIgnoreChance, [
+    { effectGroupID: "melvorD:Fear", value: 15 },
+    { effectGroupID: "melvorItA:Silence", value: 15 },
+  ]);
   assert.equal(tiers[1].conditionalModifiers[0].modifiers.critChance, 10);
   assert.equal(tiers[3].conditionalModifiers[0].modifiers.maxHit, 50);
   assert.equal(tiers[4].conditionalModifiers[0].modifiers.summoningAttackInterval, -25);
@@ -141,6 +148,16 @@ test("the Conductor supplies Abyssal resistance, gated major combat stats, Corru
   assert.equal(tiers[5].modifiers[`${namespace}:thirdPrayer`], 1);
   assert(tiers[5].modifiers.flatAbyssalSlayerAreaEffectNegation > 0);
   assert.deepEqual(tiers[5].enemyModifiers.flatResistance, [{ damageTypeID: realm, value: -10 }]);
+});
+
+test("Banjo rewards retain Fishing while adding Abyssal Cooking speed and upgrade protection", () => {
+  const { standardModifiers: tiers } = packageData().instruments.find(instrument => instrument.id === "Abyssal_Drum");
+  assert.deepEqual(tiers[4].modifiers.skillInterval, [{ skillID: "melvorD:Cooking", realmID: realm, value: -50 }]);
+  assert.deepEqual(tiers[4].modifiers.fishingAdditionalSpecialItemChance, [{ realmID: realm, value: 20 }]);
+  assert.deepEqual(tiers[5].modifiers.effectIgnoreChance, [
+    { effectGroupID: "melvorD:LacerationDOT", value: 20 },
+    { effectGroupID: "melvorItA:Blight", value: 15 },
+  ]);
 });
 
 test("Abyssal Violin grants Soul Point preservation once at Mastery 65 alongside its existing cost reduction", () => {
@@ -152,6 +169,7 @@ test("Abyssal Violin grants Soul Point preservation once at Mastery 65 alongside
       .map(tier => ({ instrument: instrument.id, level: tier.level, value: tier.modifiers.soulPointPreservationChance })));
     assert.deepEqual(awards, [{ instrument: violin.id, level: 65, value: 50 }]);
     assert.equal(violin[mode].find(tier => tier.level === 65).modifiers.soulPointCost, -20);
+    assert.equal(violin[mode].find(tier => tier.level === 99).modifiers.permanentCorruptionCost, -15);
   }
 });
 

@@ -371,6 +371,17 @@ test("the instrument Mastery overview uses the same remapped rows and purchase c
   assert.equal(f.nativeModalCalls.length, 0);
 });
 
+test("the Mastery overview shows one shared damage requirement for gated bonuses", t => {
+  const f = fixture(t);
+  const instrument = f.existing.instrument;
+  const marked = `<span class="bardic-troupe-abyssal-damage">Gated bonus<sup>*</sup></span>`;
+  f.modifiers.set(instrument, [20, 40].map(level => ({ level, isActive: true, description: marked })));
+  f.patches.get("unlockMastery")(undefined, instrument);
+  const rows = descendants(f.swal.options.html);
+  assert.equal(rows.filter(node => node.innerHTML === marked).length, 2);
+  assert.equal(rows.filter(node => node.textContent === "* Requires Abyssal or Eternal damage.").length, 1);
+});
+
 test("mastery indicators refresh after bonus purchases and mastery rollback while another tier remains eligible", t => {
   const f = fixture(t);
   const instrument = f.existing.instrument;

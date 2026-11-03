@@ -63,6 +63,11 @@ Shared skill interval/output bonuses target Abyssal actions.
 Ordinary XP, GP, Normal resistance, and ordinary Slayer-area bonuses are not used as substitutes for their Abyssal counterparts.
 The eight icons retain their original instrument shapes with a consistent crimson-and-ember treatment.
 
+Abyssal Banjo Mastery 99 adds a −50% Abyssal Cooking interval bonus alongside its Fishing special-item bonus.
+It stacks with the existing −10% Abyssal Cooking interval at Mastery 20.
+The Abyssal Banjo instrument upgrade adds a 20% chance to ignore Laceration and a 15% chance to ignore Blight.
+Abyssal Violin Mastery 99 reduces the Soul Point cost of automatically corrupting monsters by 15%.
+
 ### Abyssal instrument enhancements
 
 Every exchange uses AP and resources from Into the Abyss.
@@ -94,7 +99,7 @@ Melvor bards retain Music's original enhancement menus and materials.
 | --- | --- |
 | Mastery 1 | +10% Maximum Hitpoints with Abyssal or Eternal damage and +10% Abyssal Combat XP. |
 | Mastery 20 | +10 percentage points critical-hit chance, +50 percentage points critical damage multiplier, and +5% lifesteal with Abyssal or Eternal damage. |
-| Mastery 40 | +10 percentage points Abyssal Resistance and +50% evasion with Abyssal or Eternal damage. |
+| Mastery 40 | +10 percentage points Abyssal Resistance, plus +50% evasion and a 15% chance to ignore each of Fear and Silence with Abyssal or Eternal damage. |
 | Mastery 65 | +50% accuracy and maximum hit, and +10% of maximum hit added to minimum hit, with Abyssal or Eternal damage. |
 | Mastery 99 | -10% character Attack Interval, -25% familiar Attack Interval, +25% Corruption progress, and +10% chance for an additional Corruption, with Abyssal or Eternal damage. |
 | Instrument upgrade | Enemy -10 percentage points Abyssal Resistance, +40% Abyssal Slayer Coins, +25% Abyssal Slayer-region effect negation, and a third active Abyssal prayer. |
@@ -102,6 +107,7 @@ Melvor bards retain Music's original enhancement menus and materials.
 The third prayer requires an upgraded, hired Abyssal Conductor at Abyssal Music level 60, or the eligible Melvor Conductor.
 The prayer limit remains three when both conductors are hired.
 Prayer-book restrictions and the game's equipment, damage-type, and resource checks still apply.
+The Abyssal Conductor and Violin descriptions give the Abyssal or Eternal damage requirement once for the bonuses that require it.
 New Abyssal rewards have equal strength under Music's Standard and Hardcore modifier settings.
 Normal game caps and game-mode restrictions apply.
 

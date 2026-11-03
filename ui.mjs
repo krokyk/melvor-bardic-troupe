@@ -43,7 +43,8 @@ function upgradeIndicator(description = "Mastery bonus available to unlock (cost
 }
 
 function appendModifiers(container, music, instrument, onMastery) {
-  for (const modifier of music.manager.getModifiers(instrument)) {
+  const modifiers = music.manager.getModifiers(instrument);
+  for (const modifier of modifiers) {
     const row = element("div", modifier.isActive ? "text-success" : "myth-text-grey");
     if (onMastery && !modifier.isUpgrade && modifier.level > 1 && modifier.level <= 99) {
       const available = canUnlockMastery(music, instrument, modifier);
@@ -68,6 +69,9 @@ function appendModifiers(container, music, instrument, onMastery) {
     description.innerHTML = modifier.description;
     row.append(description);
     container.append(row);
+  }
+  if (modifiers.some(modifier => modifier.description.includes("bardic-troupe-abyssal-damage"))) {
+    container.append(element("small", "d-block text-muted", "* Requires Abyssal or Eternal damage."));
   }
 }
 
