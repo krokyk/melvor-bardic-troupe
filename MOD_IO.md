@@ -15,34 +15,18 @@ Buy additional slots in order, with a configurable Music level requirement and G
 
 ## Description
 
-**Kroky's Bardic Troupe** expands [[Myth] Music](https://mod.io/g/melvoridle/m/myth-music) with a full ensemble whose passive bonuses work together.
+Hire a full ensemble in [Myth] Music and keep the bards' passive bonuses active together.
 
-- Hire multiple bards, with configurable slot prices and level requirements.
-- Unlock extra mastery rewards and optional skill preservation and item doubling (OFF by default).
-- Manage your troupe through a compact roster with enhancement shortcuts.
-- Add **The Conductor** for major combat boosts and a **third active prayer** when upgraded.
-  Requires **Music level 118** and **Throne of the Herald**.
-- Train **eight Abyssal instruments** with Abyssal Music XP, AP-priced hires and slots, and bonuses for Abyssal resources and combat.
-  Requires **Into the Abyss**.
-- Hire **Abyssal Conductor** at Abyssal Music level 60 for major Abyssal combat bonuses, Corruption and Slayer support, and a third Abyssal prayer when upgraded.
+- Buy additional bard slots with configurable GP prices and Music-level requirements.
+- Manage hires, mastery bonuses and instrument enhancements from a compact roster.
+- Add The Conductor, with powerful combat bonuses and a third active prayer when upgraded.
+- Train eight Abyssal instruments for Abyssal Music XP and Abyssal Pieces, with a separate hired roster and Abyssal enhancements.
+- Enable optional skill preservation and item-doubling bonuses in Mod Settings; they default to off.
 
-**This is a very powerful mod, especially with The Conductor: expect a major boost to skilling and combat.**
-
-Requires **[Myth] Music**.
-Export your save before disabling or removing the mod.
-
-Melvor instruments award normal Music XP and GP; Abyssal instruments award Abyssal Music XP and AP.
-Each realm has its own instruments and hired roster, with eligible bonuses from both rosters active together.
-Abyssal Guitar, Banjo, Snare Drum, Maracas, Violin, French Horn, Harp, and Conductor use a consistent crimson-and-ember icon theme.
-Their bonuses support Abyssal XP, nests, gems, Harvesting, Soul Points, Starfalls, AP, Township waves, Corruption, Slayer, and Abyssal Resistance.
-Abyssal Banjo Mastery 99 adds −50% Abyssal Cooking interval, and its instrument upgrade adds chances to ignore Laceration and Blight.
-Abyssal Conductor Mastery 40 adds a chance to ignore Fear and Silence with Abyssal or Eternal damage.
-Abyssal Violin Mastery 99 reduces the Soul Point cost of automatically corrupting monsters by 15%.
-The Abyssal roster starts with one slot and supports seven additional slots at 1,000,000 AP each.
-Abyssal mastery purchases and instrument upgrades consume Abyssal Essence of Music.
-The Abyssal Music mastery pool grants +3% Abyssal Music Skill XP at 10%, +3% Abyssal Music Mastery XP at 25%, −0.25s Abyssal Music interval at 50%, and −5% Abyssal bard hire cost at 95%.
-The **Abyssal Music Equipment** shop exchanges AP and Abyssal resources for the essence, polished Nightopal/Shadowpearl/Moonstone sockets, Abyssal String, Pristine Abyssal Leather, and Abyssal Oil.
-These enhancements support Abyssal Music AP, AXP, mastery, interval, and additional reward rolls, with matching crimson-and-ember icons.
+**Requires:** [[Myth] Music](https://mod.io/g/melvoridle/m/myth-music).
+The Melvor Conductor requires Throne of the Herald; Abyssal instruments require Into the Abyss.
+This addon extends Music and does not replace it.
+Its additional bard bonuses substantially increase skilling and combat power.
 
 ## Homepage
 
