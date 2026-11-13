@@ -10,23 +10,31 @@ krokys-bardic-troupe
 
 ## Summary
 
-Build a full troupe of hired bards in [Myth] Music and enjoy their passive bonuses together.
-Buy additional slots in order, with a configurable Music level requirement and GP price.
+Hire additional bards, keep their passive bonuses active together, and train a separate Abyssal troupe.
 
 ## Description
 
-Hire a full ensemble in [Myth] Music and keep the bards' passive bonuses active together.
+Hire additional bards and keep their passive bonuses active together.
 
-- Buy additional bard slots with configurable GP prices and Music-level requirements.
-- Manage hires, mastery bonuses and instrument enhancements from a compact roster.
-- Add The Conductor, with powerful combat bonuses and a third active prayer when upgraded.
-- Train eight Abyssal instruments for Abyssal Music XP and Abyssal Pieces, with a separate hired roster and Abyssal enhancements.
-- Enable optional skill preservation and item-doubling bonuses in Mod Settings; they default to off.
+- Buy bard slots with configurable GP prices and Music-level requirements.
+- Manage hires, mastery bonuses and instrument enhancements from one roster.
+- Unlock The Conductor, with combat bonuses and a third active prayer when upgraded.
+- Train eight Abyssal instruments for Abyssal Music XP and Abyssal Pieces, with a separate roster and enhancements.
+- Enable optional preservation and item-doubling bonuses in Mod Settings; both default to off.
 
 **Requires:** [[Myth] Music](https://mod.io/g/melvoridle/m/myth-music).
+This addon extends the original mod.
 The Melvor Conductor requires Throne of the Herald; Abyssal instruments require Into the Abyss.
-This addon extends Music and does not replace it.
-Its additional bard bonuses substantially increase skilling and combat power.
+
+The additional passive bonuses substantially increase skilling and combat power.
+
+### See my other mods:
+
+- [Kroky's Workforce](https://mod.io/g/melvoridle/m/krokys-workforce)
+- [Kroky's Armed to the Seeds](https://mod.io/g/melvoridle/m/krokys-armed-to-the-seeds)
+- [Kroky's Better UI](https://mod.io/g/melvoridle/m/krokys-better-ui)
+- [Kroky's Mapmaking](https://mod.io/g/melvoridle/m/krokys-mapmaking)
+- [Kroky's No Pain, All Gain](https://mod.io/g/melvoridle/m/krokys-no-pain-all-gain)
 
 ## Homepage
 
